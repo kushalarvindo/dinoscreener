@@ -176,7 +176,10 @@ class CrispAestheticFliqlo(QWidget):
                 if next_obs:
                     dist = next_obs['x'] - (dino_x + dino_w)
                     if dist < 120 and self.dino_y == 0:
-                        self.dino_vy = 12.0
+                        if next_obs.get('type') == 'crow' and next_obs.get('y_off', 0) >= 47:
+                            pass # run under it
+                        else:
+                            self.dino_vy = 12.0
                                 
             self.dino_frame = (self.dino_frame + 1) % 20
         
@@ -636,7 +639,7 @@ class CrispAestheticFliqlo(QWidget):
         
         painter.setFont(font_time)
         painter.setPen(QColor(255, 255, 255))
-        time_rect = QRectF(0, h * 0.05, w, scaled_size * 1.2)
+        time_rect = QRectF(0, h * 0.12, w, scaled_size * 1.2)
         painter.drawText(time_rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, time_str)
         
         base_date = int(h * 0.025)
@@ -647,7 +650,7 @@ class CrispAestheticFliqlo(QWidget):
         font_date.setWeight(QFont.Weight.Medium)
         
         painter.setFont(font_date)
-        date_y = h * 0.05 + scaled_size * 1.05
+        date_y = h * 0.12 + scaled_size * 1.30
         date_rect = QRectF(0, date_y, w, scaled_date * 2)
         painter.drawText(date_rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str)
         
@@ -783,9 +786,9 @@ class CrispAestheticFliqlo(QWidget):
             painter.fillRect(self.rect(), QColor(0, 0, 0, overlay_alpha))
 
     def keyPressEvent(self, event):
-        if self.preview_mode: return
         if self.strict_exit and event.key() == Qt.Key.Key_Z and (event.modifiers() & Qt.KeyboardModifier.ControlModifier):
-            self.close()
+            if not self.preview_mode:
+                self.close()
             return
             
         if event.key() == Qt.Key.Key_Equal or event.key() == Qt.Key.Key_Plus:
@@ -807,7 +810,7 @@ class CrispAestheticFliqlo(QWidget):
         elif self.enable_win_key and event.key() in (Qt.Key.Key_Meta, Qt.Key.Key_Super_L, Qt.Key.Key_Super_R):
             self.show_bg = not self.show_bg
         else:
-            if not self.strict_exit:
+            if not self.strict_exit and not self.preview_mode:
                 self.close()
 
     def mouseMoveEvent(self, event):
@@ -957,8 +960,14 @@ class SettingsDialog(QDialog):
         self.preview.update()
         self.update_style_ui()
         
-    def update_info(self, state):
+    def update_info(self, state=None):
         self.preview.set_show_info(self.info_cb.isChecked())
+        
+    def update_strict(self, state=None):
+        self.preview.strict_exit = self.strict_cb.isChecked()
+        
+    def update_win(self, state=None):
+        self.preview.enable_win_key = self.win_cb.isChecked()
             
     def initUI(self):
         main_layout = QVBoxLayout()
@@ -1014,9 +1023,11 @@ class SettingsDialog(QDialog):
         
         self.strict_cb = QCheckBox("Lock Screen (Ctrl+Z)")
         self.strict_cb.setChecked(self.config["strict_exit"])
+        self.strict_cb.stateChanged.connect(self.update_strict)
         
         self.win_cb = QCheckBox("Win Key")
         self.win_cb.setChecked(self.config["enable_win_key"])
+        self.win_cb.stateChanged.connect(self.update_win)
         
         save_btn = QPushButton("OK")
         save_btn.setStyleSheet("background-color: #8F96BF; color: #11111B; font-weight: bold; padding: 6px 20px;")
