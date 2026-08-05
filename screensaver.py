@@ -350,95 +350,56 @@ class CrispAestheticFliqlo(QWidget):
         hr_rect = QRectF(cx - w * 0.15, cy - h * 0.25, w * 0.30, h * 0.50)
         painter.drawText(hr_rect, Qt.AlignmentFlag.AlignCenter, hour_str)
 
-        # 5. Right Side Circular Widgets
-        dial_radius = h * 0.07
-        dial_spacing = h * 0.23
-        dial_x = pill_right + w * 0.12
-        
-        def draw_widget_dial(cy_offset, icon_draw_func, top_text, bottom_text, top_color, bottom_color, track_color, track_progress=None):
-            center_y = cy + cy_offset
-            
-            painter.setPen(QPen(track_color, 2.5))
-            painter.setBrush(Qt.BrushStyle.NoBrush)
-            
-            # The circle is broken at the top for the icon. Gap from ~70 to 110 degrees.
-            painter.drawArc(QRectF(dial_x - dial_radius, center_y - dial_radius, dial_radius*2, dial_radius*2), int(115 * 16), int(310 * 16))
-            
-            if track_progress is not None:
-                painter.setPen(QPen(accent_color, 2.5))
-                painter.drawArc(QRectF(dial_x - dial_radius, center_y - dial_radius, dial_radius*2, dial_radius*2), int(115 * 16), int(track_progress * 16))
-                
-            painter.save()
-            painter.translate(dial_x, center_y - dial_radius)
-            icon_draw_func()
-            painter.restore()
-            
-            if top_text and bottom_text:
-                font_top = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-                font_top.setPixelSize(int(dial_radius * 0.28))
-                font_top.setWeight(QFont.Weight.Bold)
-                font_top.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 1.0)
-                painter.setFont(font_top)
-                painter.setPen(top_color)
-                painter.drawText(QRectF(dial_x - dial_radius, center_y - dial_radius*0.25, dial_radius*2, dial_radius*0.4), Qt.AlignmentFlag.AlignCenter, top_text)
-                
-                font_bot = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-                font_bot.setPixelSize(int(dial_radius * 0.35))
-                font_bot.setWeight(QFont.Weight.Bold)
-                painter.setFont(font_bot)
-                painter.setPen(bottom_color)
-                painter.drawText(QRectF(dial_x - dial_radius, center_y + dial_radius*0.15, dial_radius*2, dial_radius*0.4), Qt.AlignmentFlag.AlignCenter, bottom_text)
-            elif bottom_text: 
-                font_bot = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-                font_bot.setPixelSize(int(dial_radius * 0.40))
-                font_bot.setWeight(QFont.Weight.Bold)
-                painter.setFont(font_bot)
-                painter.setPen(bottom_color)
-                painter.drawText(QRectF(dial_x - dial_radius, center_y - dial_radius*0.2, dial_radius*2, dial_radius*0.4), Qt.AlignmentFlag.AlignCenter, bottom_text)
-
-        # Weather Widget (Top)
-        def draw_weather_icon():
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(accent_color)
-            painter.drawEllipse(QRectF(-8, -4, 16, 10))
-            painter.drawEllipse(QRectF(-12, 0, 10, 6))
-            painter.drawEllipse(QRectF(2, 0, 10, 6))
-            painter.setPen(QPen(accent_color, 2.0))
-            painter.drawLine(-4, 8, -6, 12)
-            painter.drawLine(4, 8, 2, 12)
-            
-        draw_widget_dial(-dial_spacing, draw_weather_icon, "", "26°", accent_color, pure_white, QColor(accent_color.red(), accent_color.green(), accent_color.blue(), 80), track_progress=100)
-        
-        # Date Widget (Middle)
-        def draw_calendar_icon():
-            painter.setPen(QPen(accent_color, 1.5))
-            painter.setBrush(Qt.BrushStyle.NoBrush)
-            painter.drawRoundedRect(QRectF(-9, -5, 18, 14), 2, 2)
-            painter.drawLine(-5, -7, -5, -5)
-            painter.drawLine(5, -7, 5, -5)
-            painter.drawLine(-9, 1, 9, 1)
-            painter.setPen(QPen(accent_color, 1.5))
-            painter.drawPoint(-4, 5)
-            painter.drawPoint(0, 5)
-            painter.drawPoint(4, 5)
-            
+        # 5. Right Side Date & Weather Display
         date_now = QDate.currentDate()
-        date_str_top = date_now.toString("ddd").upper()
-        date_str_bot = date_now.toString("dd MMM").upper()
-        draw_widget_dial(0, draw_calendar_icon, date_str_top, date_str_bot, accent_color, pure_white, QColor(120, 125, 130, 80))
+        date_str_1 = date_now.toString("dd MMM yyyy").upper()
+        date_str_2 = date_now.toString("dddd").upper()
         
-        # Heart Rate Widget (Bottom)
-        def draw_heart_icon():
-            painter.setPen(QPen(accent_color, 2.0, Qt.PenStyle.SolidLine, Qt.PenCapStyle.SquareCap))
-            pixels = [
-                (-3, -3), (-2, -4), (-1, -4), (0, -3), (1, -4), (2, -4), (3, -3),
-                (-4, -2), (4, -2), (-4, -1), (4, -1), (-3, 0), (3, 0),
-                (-2, 1), (2, 1), (-1, 2), (1, 2), (0, 3)
-            ]
-            for px, py in pixels:
-                painter.drawPoint(int(px * 1.5), int(py * 1.5))
-            
-        draw_widget_dial(dial_spacing, draw_heart_icon, "", "--", accent_color, pure_white, QColor(120, 125, 130, 80))
+        box_w = w * 0.3
+        date_x = pill_right + w * 0.05
+        center_x = date_x + box_w / 2
+        
+        # Draw Center Aligned Date Text
+        font_date_1 = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
+        font_date_1.setPixelSize(int(h * 0.035))
+        font_date_1.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 6.0)
+        
+        font_date_2 = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
+        font_date_2.setPixelSize(int(h * 0.055))
+        font_date_2.setWeight(QFont.Weight.Bold)
+        font_date_2.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 4.0)
+        
+        painter.setFont(font_date_1)
+        painter.setPen(accent_color)
+        painter.drawText(QRectF(date_x, cy - h * 0.15, box_w, h * 0.10), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom, date_str_1)
+        
+        painter.setFont(font_date_2)
+        painter.setPen(pure_white)
+        painter.drawText(QRectF(date_x, cy - h * 0.03, box_w, h * 0.10), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str_2)
+        
+        # Weather Display Below Date
+        weather_text = "26°C Clear"
+        weather_y = cy + h * 0.15
+        icon_size = h * 0.025
+        
+        painter.save()
+        painter.translate(center_x - w * 0.04, weather_y)
+        painter.setPen(QPen(accent_color, 2.0))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawEllipse(QRectF(-icon_size*0.4, -icon_size*0.4, icon_size*0.8, icon_size*0.8))
+        for i in range(8):
+            painter.rotate(45)
+            painter.drawLine(int(icon_size*0.5), 0, int(icon_size*0.8), 0)
+        painter.restore()
+        
+        font_weather = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
+        font_weather.setPixelSize(int(h * 0.022))
+        font_weather.setWeight(QFont.Weight.Medium)
+        font_weather.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 2.0)
+        painter.setFont(font_weather)
+        painter.setPen(QColor(180, 185, 190))
+        text_rect = QRectF(center_x - w * 0.02, weather_y - h * 0.02, w * 0.15, h * 0.04)
+        painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, weather_text)
 
     # ==========================================
     # AMBIENT ORBS & MAIN PAINT EVENT
@@ -506,7 +467,7 @@ class CrispAestheticFliqlo(QWidget):
         elif event.key() == Qt.Key.Key_Up or event.key() == Qt.Key.Key_Down:
             self.clock_style = 1 - self.clock_style 
             self.update()
-        elif event.key() in (Qt.Key.Key_Space, Qt.Key.Key_Meta, Qt.Key.Key_Super_L, Qt.Key.Key_Super_R, Qt.Key.Key_F23):
+        elif event.key() in (Qt.Key.Key_Space, Qt.Key.Key_F23):
             self.show_bg = not self.show_bg
         else:
             self.close()
