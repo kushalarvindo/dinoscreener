@@ -17,7 +17,7 @@ ENABLE_WIN_KEY = "False"
 ' If set to "True", moving the mouse or pressing random keys WILL NOT exit the screensaver. 
 ' This is perfect for taking screenshots or locking the screen to purely visual! 
 ' IMPORTANT: To exit the screensaver when this is True, you MUST press Ctrl + Z.
-STRICT_EXIT = "True"
+STRICT_EXIT = "False"
 
 ' ==========================================
 ' SCRIPT LAUNCHER (DO NOT EDIT BELOW)

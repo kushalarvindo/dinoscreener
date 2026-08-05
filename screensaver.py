@@ -375,14 +375,14 @@ class CrispAestheticFliqlo(QWidget):
         
         painter.setFont(font_date_1)
         painter.setPen(accent_color)
-        painter.drawText(QRectF(date_x, cy - h * 0.14, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom, date_str_1)
+        painter.drawText(QRectF(date_x, cy - h * 0.16, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom, date_str_1)
         
         painter.setFont(font_date_2)
         painter.setPen(pure_white)
-        painter.drawText(QRectF(date_x, cy - h * 0.05, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str_2)
+        painter.drawText(QRectF(date_x, cy - h * 0.07, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str_2)
         
         # Unified Weather & Battery Display
-        info_y = cy + h * 0.08
+        info_y = cy + h * 0.06
         info_h = h * 0.04
         
         # Center dot
