@@ -15,12 +15,12 @@ Dinoscreener is built natively using **Python** and **PyQt6**. It leverages powe
 
 ### 🎨 Clock Modes
 
-Dinoscreener V4 features three distinct, meticulously crafted clock styles. Switch between them instantly using the **Up/Down arrow keys**!
+Dinoscreener features three distinct, meticulously crafted clock styles. Switch between them instantly using the **Up/Down arrow keys**!
 
 | Mode | Description | Preview |
 |---|---|---|
 | **Modern Rotary** | A dual-ring rotary interface calculating exact rotation angles using trigonometry for a seamless spinning wheel effect. | <img src="screenshots/Screenshot (Modern Rotary).png" width="250" alt="Rotary Clock"> |
-| **Classic Fliqlo** | A retro mechanical flip-clock style utilizing 3D perspective scaling to visually compress the numbers. | <img src="screenshots/Screenshot (Flip Clock).png" width="250" alt="Fliqlo Clock"> |
+| **Classic Flip Clock** | A retro mechanical flip-clock style utilizing 3D perspective scaling to visually compress the numbers. | <img src="screenshots/Screenshot (Flip Clock).png" width="250" alt="Fliqlo Clock"> |
 | **Chrome Dino Game** | A beautiful auto-playing Chrome Dino game featuring authentic sprite rendering, exact gravity physics, and randomly generated cacti/crows. Time is displayed cleanly at the top. | <img src="screenshots/Screenshot (Chrome Dino Game).png" width="250" alt="Dino Clock"> | <img src="screenshots/Screenshot (Chrome Dino Game).png" width="250" alt="Dino Clock"> |
 
 - **Ambient Lighting System**: Subtle, color-shifting ambient orbs float in the background. These are drawn using `QRadialGradient`, and their coordinates drift organically using trigonometric phase shifts over a 15-second loop.
