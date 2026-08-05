@@ -77,6 +77,14 @@ class CrispAestheticFliqlo(QWidget):
         self.brightness = val
         self.update()
         
+    def update_24hr(self, state=None):
+        self.preview.use_24hr = self.use_24hr_cb.isChecked()
+        self.preview.update()
+        
+    def update_leading_zero(self, state=None):
+        self.preview.leading_zero = self.leading_zero_cb.isChecked()
+        self.preview.update()
+
     def initUI(self):
         if not self.preview_mode:
             self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
@@ -653,7 +661,7 @@ class CrispAestheticFliqlo(QWidget):
         
         painter.setFont(font_time)
         painter.setPen(QColor(255, 255, 255))
-        time_rect = QRectF(0, h * 0.08, w, scaled_size * 1.2)
+        time_rect = QRectF(0, h * 0.05, w, scaled_size * 1.2)
         painter.drawText(time_rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, time_str)
         
         base_date = int(h * 0.025)
@@ -664,7 +672,7 @@ class CrispAestheticFliqlo(QWidget):
         font_date.setWeight(QFont.Weight.Medium)
         
         painter.setFont(font_date)
-        date_y = h * 0.08 + scaled_size * 1.30
+        date_y = h * 0.05 + scaled_size * 1.30
         date_rect = QRectF(0, date_y, w, scaled_date * 2)
         painter.drawText(date_rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str)
         
@@ -986,6 +994,14 @@ class SettingsDialog(QDialog):
     def update_win(self, state=None):
         self.preview.enable_win_key = self.win_cb.isChecked()
             
+    def update_24hr(self, state=None):
+        self.preview.use_24hr = self.use_24hr_cb.isChecked()
+        self.preview.update()
+        
+    def update_leading_zero(self, state=None):
+        self.preview.leading_zero = self.leading_zero_cb.isChecked()
+        self.preview.update()
+
     def initUI(self):
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -1046,6 +1062,14 @@ class SettingsDialog(QDialog):
         self.win_cb.setChecked(self.config["enable_win_key"])
         self.win_cb.stateChanged.connect(self.update_win)
         
+        self.use_24hr_cb = QCheckBox("24 Hr")
+        self.use_24hr_cb.setChecked(self.config.get("use_24hr", False))
+        self.use_24hr_cb.stateChanged.connect(self.update_24hr)
+        
+        self.leading_zero_cb = QCheckBox("0-Pad")
+        self.leading_zero_cb.setChecked(self.config.get("leading_zero", False))
+        self.leading_zero_cb.stateChanged.connect(self.update_leading_zero)
+        
         save_btn = QPushButton("OK")
         save_btn.setStyleSheet("background-color: #8F96BF; color: #11111B; font-weight: bold; padding: 6px 20px;")
         save_btn.clicked.connect(self.save_config)
@@ -1064,6 +1088,10 @@ class SettingsDialog(QDialog):
         control_layout.addWidget(self.strict_cb)
         control_layout.addSpacing(10)
         control_layout.addWidget(self.win_cb)
+        control_layout.addSpacing(10)
+        control_layout.addWidget(self.use_24hr_cb)
+        control_layout.addSpacing(10)
+        control_layout.addWidget(self.leading_zero_cb)
         
         control_layout.addStretch()
         control_layout.addWidget(save_btn)
