@@ -1,11 +1,12 @@
 import sys
 import math
+import argparse
 from PyQt6.QtWidgets import QApplication, QWidget
 from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate
 from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath
 
 class CrispAestheticFliqlo(QWidget):
-    def __init__(self):
+    def __init__(self, accent_color="#8F96BF", enable_win_key=False):
         super().__init__()
         self.last_pos = None
         self.clock_scale = 0.45 
@@ -23,7 +24,8 @@ class CrispAestheticFliqlo(QWidget):
         self.clock_style = 1 # 0 = Fliqlo Flip Clock, 1 = Modern Rotary
         
         # --- CUSTOMIZATION ---
-        self.rotary_accent = QColor("#8F96BF") 
+        self.rotary_accent = QColor(accent_color) 
+        self.enable_win_key = enable_win_key
         
         self.initUI()
         
@@ -361,30 +363,30 @@ class CrispAestheticFliqlo(QWidget):
         
         # Draw Center Aligned Date Text
         font_date_1 = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-        font_date_1.setPixelSize(int(h * 0.035))
-        font_date_1.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 6.0)
+        font_date_1.setPixelSize(int(h * 0.028))
+        font_date_1.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 4.0)
         
         font_date_2 = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-        font_date_2.setPixelSize(int(h * 0.055))
+        font_date_2.setPixelSize(int(h * 0.045))
         font_date_2.setWeight(QFont.Weight.Bold)
-        font_date_2.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 4.0)
+        font_date_2.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 3.0)
         
         painter.setFont(font_date_1)
         painter.setPen(accent_color)
-        painter.drawText(QRectF(date_x, cy - h * 0.15, box_w, h * 0.10), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom, date_str_1)
+        painter.drawText(QRectF(date_x, cy - h * 0.12, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom, date_str_1)
         
         painter.setFont(font_date_2)
         painter.setPen(pure_white)
-        painter.drawText(QRectF(date_x, cy - h * 0.03, box_w, h * 0.10), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str_2)
+        painter.drawText(QRectF(date_x, cy - h * 0.03, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str_2)
         
         # Weather Display Below Date
         weather_text = "26°C Clear"
-        weather_y = cy + h * 0.15
-        icon_size = h * 0.025
+        weather_y = cy + h * 0.12
+        icon_size = h * 0.020
         
         painter.save()
-        painter.translate(center_x - w * 0.04, weather_y)
-        painter.setPen(QPen(accent_color, 2.0))
+        painter.translate(center_x - w * 0.035, weather_y)
+        painter.setPen(QPen(accent_color, 1.5))
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawEllipse(QRectF(-icon_size*0.4, -icon_size*0.4, icon_size*0.8, icon_size*0.8))
         for i in range(8):
@@ -393,12 +395,12 @@ class CrispAestheticFliqlo(QWidget):
         painter.restore()
         
         font_weather = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-        font_weather.setPixelSize(int(h * 0.022))
+        font_weather.setPixelSize(int(h * 0.018))
         font_weather.setWeight(QFont.Weight.Medium)
-        font_weather.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 2.0)
+        font_weather.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 1.0)
         painter.setFont(font_weather)
         painter.setPen(QColor(180, 185, 190))
-        text_rect = QRectF(center_x - w * 0.02, weather_y - h * 0.02, w * 0.15, h * 0.04)
+        text_rect = QRectF(center_x - w * 0.02, weather_y - h * 0.015, w * 0.15, h * 0.03)
         painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, weather_text)
 
     # ==========================================
@@ -469,6 +471,8 @@ class CrispAestheticFliqlo(QWidget):
             self.update()
         elif event.key() in (Qt.Key.Key_Space, Qt.Key.Key_F23):
             self.show_bg = not self.show_bg
+        elif self.enable_win_key and event.key() in (Qt.Key.Key_Meta, Qt.Key.Key_Super_L, Qt.Key.Key_Super_R):
+            self.show_bg = not self.show_bg
         else:
             self.close()
 
@@ -484,6 +488,13 @@ class CrispAestheticFliqlo(QWidget):
         self.close()
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Aesthetic Screensaver Configuration')
+    parser.add_argument('--accent-color', type=str, default='#8F96BF', help='Hex code for accent color (e.g., #8F96BF)')
+    parser.add_argument('--enable-win-key', type=str, default='False', help='Enable Windows Key toggle (True/False)')
+    
+    args, unknown = parser.parse_known_args()
+    enable_win = args.enable_win_key.strip().lower() in ['true', '1', 'yes', 'y']
+    
     app = QApplication(sys.argv)
-    ex = CrispAestheticFliqlo()
+    ex = CrispAestheticFliqlo(accent_color=args.accent_color, enable_win_key=enable_win)
     sys.exit(app.exec())
