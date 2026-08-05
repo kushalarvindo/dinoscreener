@@ -368,7 +368,7 @@ class CrispAestheticFliqlo(QWidget):
         if self.show_info:
             offset_y = cy + h * 0.03
         else:
-            offset_y = cy + h * 0.06
+            offset_y = cy + h * 0.09
         
         # Draw Center Aligned Date Text
         font_date_1 = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
