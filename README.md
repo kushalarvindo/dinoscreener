@@ -13,8 +13,16 @@
 
 Dinoscreener is built natively using **Python** and **PyQt6**. It leverages powerful graphics engines to render 60 FPS antialiased shapes, drawing the interface using complex `QPainter` geometry rather than loading static images.
 
-- **Modern Rotary Clock Engine**: The primary clock face is a dual-ring rotary interface. Using trigonometry (`math.sin` / `math.cos`), Dinoscreener calculates the exact rotation angle for each minute and second, creating a seamless spinning wheel effect. The opacity of each number fades gracefully based on its distance from the exact current time.
-- **Classic Fliqlo Flip Clock**: By pressing the **Up/Down arrow keys**, you can instantly switch the rendering engine over to a retro mechanical flip-clock style! The flip animation utilizes `QPainter.scale` to visually compress the numbers, giving a 3D perspective effect as the card falls.
+### 🎨 Clock Modes
+
+Dinoscreener V2 features three distinct, meticulously crafted clock styles. Switch between them instantly using the **Up/Down arrow keys**!
+
+| Mode | Description |
+|---|---|
+| **Modern Rotary Clock** | A dual-ring rotary interface. Calculates exact rotation angles using trigonometry for a seamless spinning wheel effect. The opacity of each number fades gracefully based on distance from the exact time. |
+| **Classic Fliqlo** | A retro mechanical flip-clock style! The flip animation utilizes scaling to visually compress the numbers, giving a 3D perspective effect as the card falls. |
+| **Chrome Dino Game** | A beautiful, ambient auto-playing Chrome Dino game! Features authentic sprite rendering, exact gravity physics, randomly generated cacti/crows, and day/night clouds. Time is displayed cleanly at the top. |
+
 - **Ambient Lighting System**: Subtle, color-shifting ambient orbs float in the background. These are drawn using `QRadialGradient`, and their coordinates drift organically using trigonometric phase shifts over a 15-second loop.
 - **System Integrations**: 
   - Dynamic local weather display ☀️
@@ -27,7 +35,7 @@ Dinoscreener is built natively using **Python** and **PyQt6**. It leverages powe
 
 While the screensaver is running, you can use these keyboard shortcuts to modify it in real time:
 
-- **`Arrow Up` / `Arrow Down`**: Toggle between the Modern Rotary Clock and the Classic Fliqlo Flip Clock styles.
+- **`Arrow Up` / `Arrow Down`**: Toggle between the Modern Rotary, Classic Fliqlo, and Chrome Dino clock styles.
 - **`Spacebar` / `Windows Key`**: Toggle the background Ambient Lighting orbs on or off.
 - **`+` (Plus) / `-` (Minus)**: Scale the size of the Fliqlo flip clock up or down.
 - **`Ctrl + Z`**: If you enabled "Screenshot Mode" (Strict Exit) in the settings, moving your mouse will no longer close the screensaver. You must press this exact keybind to close it and return to your desktop.
