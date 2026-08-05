@@ -7,7 +7,7 @@ from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate
 from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath
 
 class CrispAestheticFliqlo(QWidget):
-    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False):
+    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True):
         super().__init__()
         self.last_pos = None
         self.clock_scale = 0.45 
@@ -28,6 +28,7 @@ class CrispAestheticFliqlo(QWidget):
         self.rotary_accent = QColor(accent_color) 
         self.enable_win_key = enable_win_key
         self.strict_exit = strict_exit
+        self.show_info = show_info
         
         self.initUI()
         
@@ -363,6 +364,11 @@ class CrispAestheticFliqlo(QWidget):
         date_x = pill_right + w * 0.10
         center_x = date_x + box_w / 2
         
+        if self.show_info:
+            base_y = cy - h * 0.04
+        else:
+            base_y = cy
+        
         # Draw Center Aligned Date Text
         font_date_1 = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
         font_date_1.setPixelSize(int(h * 0.022))
@@ -375,112 +381,113 @@ class CrispAestheticFliqlo(QWidget):
         
         painter.setFont(font_date_1)
         painter.setPen(accent_color)
-        painter.drawText(QRectF(date_x, cy - h * 0.16, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom, date_str_1)
+        painter.drawText(QRectF(date_x, base_y - h * 0.10, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom, date_str_1)
         
         painter.setFont(font_date_2)
         painter.setPen(pure_white)
-        painter.drawText(QRectF(date_x, cy - h * 0.07, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str_2)
+        painter.drawText(QRectF(date_x, base_y - h * 0.01, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str_2)
         
-        # Unified Weather & Battery Display
-        info_y = cy + h * 0.06
-        info_h = h * 0.04
-        
-        # Center dot
-        font_info = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-        font_info.setPixelSize(int(h * 0.016))
-        font_info.setWeight(QFont.Weight.Medium)
-        font_info.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 1.0)
-        painter.setFont(font_info)
-        painter.setPen(QColor(120, 125, 130))
-        painter.drawText(QRectF(center_x - w*0.01, info_y, w*0.02, info_h), Qt.AlignmentFlag.AlignCenter, "•")
-        
-        # Weather
-        weather_text = "26°C"
-        w_icon_size = h * 0.016
-        fm = painter.fontMetrics()
-        w_text_width = fm.horizontalAdvance(weather_text)
-        
-        weather_end = center_x - w * 0.015
-        weather_text_x = weather_end - w_text_width
-        weather_icon_x = weather_text_x - w_icon_size - w * 0.005
-        
-        painter.save()
-        painter.translate(weather_icon_x + w_icon_size/2, info_y + info_h/2)
-        painter.setPen(QPen(accent_color, 1.5))
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.drawEllipse(QRectF(-w_icon_size*0.4, -w_icon_size*0.4, w_icon_size*0.8, w_icon_size*0.8))
-        for i in range(8):
-            painter.rotate(45)
-            painter.drawLine(int(w_icon_size*0.5), 0, int(w_icon_size*0.8), 0)
-        painter.restore()
-        
-        painter.setPen(QColor(180, 185, 190))
-        painter.drawText(QRectF(weather_text_x, info_y, w_text_width, info_h), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, weather_text)
-        
-        # Battery
-        bat_text = "100%"
-        bat_val = 100
-        is_charging = False
-        try:
-            class SYSTEM_POWER_STATUS(ctypes.Structure):
-                _fields_ = [
-                    ('ACLineStatus', ctypes.c_byte),
-                    ('BatteryFlag', ctypes.c_byte),
-                    ('BatteryLifePercent', ctypes.c_byte),
-                    ('SystemStatusFlag', ctypes.c_byte),
-                    ('BatteryLifeTime', ctypes.c_ulong),
-                    ('BatteryFullLifeTime', ctypes.c_ulong),
-                ]
-            sys_pwr = SYSTEM_POWER_STATUS()
-            ctypes.windll.kernel32.GetSystemPowerStatus(ctypes.byref(sys_pwr))
-            if sys_pwr.BatteryLifePercent == 255:
-                bat_text = "PWR"
-            else:
-                bat_text = f"{sys_pwr.BatteryLifePercent}%"
-                bat_val = sys_pwr.BatteryLifePercent
-                if sys_pwr.ACLineStatus == 1:
-                    is_charging = True
-        except Exception:
-            pass
+        if self.show_info:
+            # Unified Weather & Battery Display
+            info_y = base_y + h * 0.10
+            info_h = h * 0.04
             
-        bat_start = center_x + w * 0.015
-        bat_icon_w = w * 0.02
-        bat_icon_h = h * 0.015
-        bat_icon_x = bat_start
-        bat_text_x = bat_icon_x + bat_icon_w + w * 0.005
-        bat_icon_y = info_y + info_h/2 - bat_icon_h/2
-        
-        painter.setPen(QPen(accent_color, 1.5))
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.drawRoundedRect(QRectF(bat_icon_x, bat_icon_y, bat_icon_w, bat_icon_h), 2, 2)
-        painter.drawRect(QRectF(bat_icon_x + bat_icon_w, bat_icon_y + bat_icon_h*0.25, w*0.0015, bat_icon_h*0.5))
-        
-        if is_charging:
+            # Center dot
+            font_info = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
+            font_info.setPixelSize(int(h * 0.016))
+            font_info.setWeight(QFont.Weight.Medium)
+            font_info.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 1.0)
+            painter.setFont(font_info)
+            painter.setPen(QColor(120, 125, 130))
+            painter.drawText(QRectF(center_x - w*0.01, info_y, w*0.02, info_h), Qt.AlignmentFlag.AlignCenter, "•")
+            
+            # Weather
+            weather_text = "26°C"
+            w_icon_size = h * 0.016
+            fm = painter.fontMetrics()
+            w_text_width = fm.horizontalAdvance(weather_text)
+            
+            weather_end = center_x - w * 0.015
+            weather_text_x = weather_end - w_text_width
+            weather_icon_x = weather_text_x - w_icon_size - w * 0.005
+            
             painter.save()
-            painter.translate(bat_icon_x + bat_icon_w/2, bat_icon_y + bat_icon_h/2)
-            bolt = QPainterPath()
-            bw = bat_icon_w * 0.2
-            bh = bat_icon_h * 0.4
-            bolt.moveTo(bw*0.3, -bh)
-            bolt.lineTo(-bw*0.8, 0)
-            bolt.lineTo(0, 0)
-            bolt.lineTo(-bw*0.3, bh)
-            bolt.lineTo(bw*0.8, 0)
-            bolt.lineTo(0, 0)
-            bolt.closeSubpath()
-            painter.setBrush(accent_color)
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawPath(bolt)
+            painter.translate(weather_icon_x + w_icon_size/2, info_y + info_h/2)
+            painter.setPen(QPen(accent_color, 1.5))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawEllipse(QRectF(-w_icon_size*0.4, -w_icon_size*0.4, w_icon_size*0.8, w_icon_size*0.8))
+            for i in range(8):
+                painter.rotate(45)
+                painter.drawLine(int(w_icon_size*0.5), 0, int(w_icon_size*0.8), 0)
             painter.restore()
-        else:
-            fill_w = (bat_icon_w - w*0.002) * (bat_val / 100.0)
-            if fill_w > 0:
+            
+            painter.setPen(QColor(180, 185, 190))
+            painter.drawText(QRectF(weather_text_x, info_y, w_text_width, info_h), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, weather_text)
+            
+            # Battery
+            bat_text = "100%"
+            bat_val = 100
+            is_charging = False
+            try:
+                class SYSTEM_POWER_STATUS(ctypes.Structure):
+                    _fields_ = [
+                        ('ACLineStatus', ctypes.c_byte),
+                        ('BatteryFlag', ctypes.c_byte),
+                        ('BatteryLifePercent', ctypes.c_byte),
+                        ('SystemStatusFlag', ctypes.c_byte),
+                        ('BatteryLifeTime', ctypes.c_ulong),
+                        ('BatteryFullLifeTime', ctypes.c_ulong),
+                    ]
+                sys_pwr = SYSTEM_POWER_STATUS()
+                ctypes.windll.kernel32.GetSystemPowerStatus(ctypes.byref(sys_pwr))
+                if sys_pwr.BatteryLifePercent == 255:
+                    bat_text = "PWR"
+                else:
+                    bat_text = f"{sys_pwr.BatteryLifePercent}%"
+                    bat_val = sys_pwr.BatteryLifePercent
+                    if sys_pwr.ACLineStatus == 1:
+                        is_charging = True
+            except Exception:
+                pass
+                
+            bat_start = center_x + w * 0.015
+            bat_icon_w = w * 0.02
+            bat_icon_h = h * 0.015
+            bat_icon_x = bat_start
+            bat_text_x = bat_icon_x + bat_icon_w + w * 0.005
+            bat_icon_y = info_y + info_h/2 - bat_icon_h/2
+            
+            painter.setPen(QPen(accent_color, 1.5))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawRoundedRect(QRectF(bat_icon_x, bat_icon_y, bat_icon_w, bat_icon_h), 2, 2)
+            painter.drawRect(QRectF(bat_icon_x + bat_icon_w, bat_icon_y + bat_icon_h*0.25, w*0.0015, bat_icon_h*0.5))
+            
+            if is_charging:
+                painter.save()
+                painter.translate(bat_icon_x + bat_icon_w/2, bat_icon_y + bat_icon_h/2)
+                bolt = QPainterPath()
+                bw = bat_icon_w * 0.2
+                bh = bat_icon_h * 0.4
+                bolt.moveTo(bw*0.3, -bh)
+                bolt.lineTo(-bw*0.8, 0)
+                bolt.lineTo(0, 0)
+                bolt.lineTo(-bw*0.3, bh)
+                bolt.lineTo(bw*0.8, 0)
+                bolt.lineTo(0, 0)
+                bolt.closeSubpath()
                 painter.setBrush(accent_color)
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.drawRect(QRectF(bat_icon_x + w*0.001, bat_icon_y + h*0.002, fill_w, bat_icon_h - h*0.004))
-                
-        painter.setPen(QColor(180, 185, 190))
-        painter.drawText(QRectF(bat_text_x, info_y, w*0.1, info_h), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, bat_text)
+                painter.drawPath(bolt)
+                painter.restore()
+            else:
+                fill_w = (bat_icon_w - w*0.002) * (bat_val / 100.0)
+                if fill_w > 0:
+                    painter.setBrush(accent_color)
+                    painter.setPen(Qt.PenStyle.NoPen)
+                    painter.drawRect(QRectF(bat_icon_x + w*0.001, bat_icon_y + h*0.002, fill_w, bat_icon_h - h*0.004))
+                    
+            painter.setPen(QColor(180, 185, 190))
+            painter.drawText(QRectF(bat_text_x, info_y, w*0.1, info_h), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, bat_text)
 
     # ==========================================
     # AMBIENT ORBS & MAIN PAINT EVENT
@@ -578,11 +585,13 @@ if __name__ == '__main__':
     parser.add_argument('--accent-color', type=str, default='#8F96BF', help='Hex code for accent color (e.g., #8F96BF)')
     parser.add_argument('--enable-win-key', type=str, default='False', help='Enable Windows Key toggle (True/False)')
     parser.add_argument('--strict-exit', type=str, default='False', help='Disable exit on mouse movement/keys unless Ctrl+Z is pressed')
+    parser.add_argument('--show-info', type=str, default='True', help='Show weather and battery information below date')
     
     args, unknown = parser.parse_known_args()
     enable_win = args.enable_win_key.strip().lower() in ['true', '1', 'yes', 'y']
     strict_exit = args.strict_exit.strip().lower() in ['true', '1', 'yes', 'y']
+    show_info = args.show_info.strip().lower() in ['true', '1', 'yes', 'y']
     
     app = QApplication(sys.argv)
-    ex = CrispAestheticFliqlo(accent_color=args.accent_color, enable_win_key=enable_win, strict_exit=strict_exit)
+    ex = CrispAestheticFliqlo(accent_color=args.accent_color, enable_win_key=enable_win, strict_exit=strict_exit, show_info=show_info)
     sys.exit(app.exec())

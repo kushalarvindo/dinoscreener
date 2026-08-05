@@ -19,6 +19,11 @@ ENABLE_WIN_KEY = "False"
 ' IMPORTANT: To exit the screensaver when this is True, you MUST press Ctrl + Z.
 STRICT_EXIT = "False"
 
+' 4. Show Extra Info
+' If set to "True", the battery and weather line will be shown below the date.
+' If set to "False", they will be hidden, and the date/day will dynamically center itself.
+SHOW_INFO = "True"
+
 ' ==========================================
 ' SCRIPT LAUNCHER (DO NOT EDIT BELOW)
 ' ==========================================
@@ -30,5 +35,5 @@ strFolder = objFSO.GetParentFolderName(objFile)
 WshShell.CurrentDirectory = strFolder
 
 ' Launch python script completely silently in the background and pass our configuration options
-strCommand = "pythonw.exe screensaver.py --accent-color """ & ACCENT_COLOR & """ --enable-win-key """ & ENABLE_WIN_KEY & """ --strict-exit """ & STRICT_EXIT & """"
+strCommand = "pythonw.exe screensaver.py --accent-color """ & ACCENT_COLOR & """ --enable-win-key """ & ENABLE_WIN_KEY & """ --strict-exit """ & STRICT_EXIT & """ --show-info """ & SHOW_INFO & """"
 WshShell.Run strCommand, 0, False
