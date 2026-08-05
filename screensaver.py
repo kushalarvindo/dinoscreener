@@ -13,7 +13,7 @@ class CrispAestheticFliqlo(QWidget):
     def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zero=False):
         super().__init__()
         self.last_pos = None
-        self.clock_scales[str(self.clock_style)]s = clock_scales if clock_scales else {"0": 0.45, "1": 0.45, "2": 0.45}
+        self.clock_scales = clock_scales if clock_scales else {"0": 0.45, "1": 0.45, "2": 0.45}
         
         self.target_time = QTime.currentTime()
         self.old_time = self.target_time
