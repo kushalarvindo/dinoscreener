@@ -1,8 +1,9 @@
 import sys
 import math
-import argparse
 import ctypes
-from PyQt6.QtWidgets import QApplication, QWidget
+import json
+import os
+from PyQt6.QtWidgets import QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout
 from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate
 from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath
 
@@ -365,9 +366,9 @@ class CrispAestheticFliqlo(QWidget):
         center_x = date_x + box_w / 2
         
         if self.show_info:
-            offset_y = cy - h * 0.02
+            offset_y = cy + h * 0.03
         else:
-            offset_y = cy + h * 0.01
+            offset_y = cy + h * 0.06
         
         # Draw Center Aligned Date Text
         font_date_1 = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
@@ -580,18 +581,126 @@ class CrispAestheticFliqlo(QWidget):
         if self.strict_exit: return
         self.close()
 
+class SettingsDialog(QDialog):
+    def __init__(self, config_path):
+        super().__init__()
+        self.setWindowTitle("Dinoscreener Settings")
+        self.config_path = config_path
+        self.config = self.load_config()
+        self.initUI()
+        
+    def load_config(self):
+        default_config = {
+            "accent_color": "#8F96BF",
+            "show_info": True,
+            "strict_exit": False,
+            "enable_win_key": False
+        }
+        if os.path.exists(self.config_path):
+            try:
+                with open(self.config_path, 'r') as f:
+                    default_config.update(json.load(f))
+            except Exception:
+                pass
+        return default_config
+        
+    def save_config(self):
+        self.config["accent_color"] = self.color_input.text()
+        self.config["show_info"] = self.info_cb.isChecked()
+        self.config["strict_exit"] = self.strict_cb.isChecked()
+        self.config["enable_win_key"] = self.win_cb.isChecked()
+        
+        os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
+        with open(self.config_path, 'w') as f:
+            json.dump(self.config, f)
+        self.accept()
+        
+    def pick_color(self):
+        color = QColorDialog.getColor(QColor(self.color_input.text()), self, "Select Accent Color")
+        if color.isValid():
+            self.color_input.setText(color.name())
+            
+    def initUI(self):
+        layout = QFormLayout()
+        
+        self.color_input = QLineEdit(self.config["accent_color"])
+        color_btn = QPushButton("Pick Color")
+        color_btn.clicked.connect(self.pick_color)
+        c_layout = QHBoxLayout()
+        c_layout.addWidget(self.color_input)
+        c_layout.addWidget(color_btn)
+        
+        layout.addRow("Accent Color (Hex):", c_layout)
+        
+        self.info_cb = QCheckBox()
+        self.info_cb.setChecked(self.config.get("show_info", True))
+        layout.addRow("Show Weather & Battery:", self.info_cb)
+        
+        self.strict_cb = QCheckBox()
+        self.strict_cb.setChecked(self.config.get("strict_exit", False))
+        layout.addRow("Screenshot Mode (Ctrl+Z to exit):", self.strict_cb)
+        
+        self.win_cb = QCheckBox()
+        self.win_cb.setChecked(self.config.get("enable_win_key", False))
+        layout.addRow("Enable Windows Key Toggle:", self.win_cb)
+        
+        btn_layout = QHBoxLayout()
+        save_btn = QPushButton("Save")
+        save_btn.clicked.connect(self.save_config)
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.clicked.connect(self.reject)
+        
+        btn_layout.addWidget(save_btn)
+        btn_layout.addWidget(cancel_btn)
+        
+        layout.addRow(btn_layout)
+        self.setLayout(layout)
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Aesthetic Screensaver Configuration')
-    parser.add_argument('--accent-color', type=str, default='#8F96BF', help='Hex code for accent color (e.g., #8F96BF)')
-    parser.add_argument('--enable-win-key', type=str, default='False', help='Enable Windows Key toggle (True/False)')
-    parser.add_argument('--strict-exit', type=str, default='False', help='Disable exit on mouse movement/keys unless Ctrl+Z is pressed')
-    parser.add_argument('--show-info', type=str, default='True', help='Show weather and battery information below date')
-    
-    args, unknown = parser.parse_known_args()
-    enable_win = args.enable_win_key.strip().lower() in ['true', '1', 'yes', 'y']
-    strict_exit = args.strict_exit.strip().lower() in ['true', '1', 'yes', 'y']
-    show_info = args.show_info.strip().lower() in ['true', '1', 'yes', 'y']
-    
     app = QApplication(sys.argv)
-    ex = CrispAestheticFliqlo(accent_color=args.accent_color, enable_win_key=enable_win, strict_exit=strict_exit, show_info=show_info)
+    
+    # Parse Windows screensaver arguments manually
+    # Windows passes things like '/c', '/p65535', or '/s'
+    mode = 's'
+    for arg in sys.argv[1:]:
+        arg_lower = arg.lower()
+        if arg_lower.startswith('/c') or arg_lower.startswith('-c'):
+            mode = 'c'
+        elif arg_lower.startswith('/p') or arg_lower.startswith('-p'):
+            mode = 'p'
+        elif arg_lower.startswith('/s') or arg_lower.startswith('-s'):
+            mode = 's'
+            
+    config_dir = os.path.join(os.environ.get('APPDATA', os.path.expanduser('~')), 'Dinoscreener')
+    config_path = os.path.join(config_dir, 'config.json')
+    
+    if mode == 'c':
+        dialog = SettingsDialog(config_path)
+        dialog.exec()
+        sys.exit(0)
+    elif mode == 'p':
+        # Preview mode inside small settings window. Not supported gracefully in PyQt without heavy win32 embedding.
+        sys.exit(0)
+        
+    # Standard full screen start mode
+    default_config = {
+        "accent_color": "#8F96BF",
+        "show_info": True,
+        "strict_exit": False,
+        "enable_win_key": False
+    }
+    
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, 'r') as f:
+                default_config.update(json.load(f))
+        except Exception:
+            pass
+            
+    ex = CrispAestheticFliqlo(
+        accent_color=default_config["accent_color"], 
+        enable_win_key=default_config["enable_win_key"], 
+        strict_exit=default_config["strict_exit"],
+        show_info=default_config["show_info"]
+    )
     sys.exit(app.exec())
