@@ -5,11 +5,11 @@ import json
 import os
 import random
 from PyQt6.QtWidgets import QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider
-from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate, QPointF
-from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath, QFontDatabase
+from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate, QPointF, QByteArray
+from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath, QFontDatabase, QPixmap, QImage
 
 class CrispAestheticFliqlo(QWidget):
-    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100):
+    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1):
         super().__init__()
         self.last_pos = None
         self.clock_scale = 0.45 
@@ -24,7 +24,7 @@ class CrispAestheticFliqlo(QWidget):
         # States
         self.show_bg = False
         self.bg_opacity = 1.0
-        self.clock_style = 1 # 0 = Fliqlo Flip Clock, 1 = Modern Rotary, 2 = Dino Game
+        self.clock_style = clock_style
         
         # Dino Game State
         self.dino_active = False
@@ -43,8 +43,19 @@ class CrispAestheticFliqlo(QWidget):
         self.strict_exit = strict_exit
         self.show_info = show_info
         self.preview_mode = preview_mode
+        self.preview_mode = preview_mode
         self.brightness = brightness
         
+        self.sprite_pixmap = QPixmap()
+        try:
+            ba = QByteArray.fromBase64(SPRITE_B64.encode('utf-8'))
+            self.sprite_pixmap.loadFromData(ba)
+            image = self.sprite_pixmap.toImage()
+            image.invertPixels(QImage.InvertMode.InvertRgb)
+            self.sprite_pixmap = QPixmap.fromImage(image)
+        except Exception as e:
+            print("Sprite load failed", e)
+            
         self.initUI()
         
     def set_accent_color(self, hex_col):
@@ -129,20 +140,7 @@ class CrispAestheticFliqlo(QWidget):
                 if next_obs:
                     dist = next_obs['x'] - (dino_x + dino_w)
                     if dist < 120 and self.dino_y == 0:
-                        mins = self.dino_timer_msec / 60000.0
-                        die_chance = (mins // 10) * 0.10
-                        if die_chance > 1.0: die_chance = 1.0
-                        
-                        if random.random() < die_chance:
-                            self.dino_dead = True
-                        else:
-                            self.dino_vy = 12.0
-                            
-                    # Collision
-                    if not self.dino_dead:
-                        if next_obs['x'] < dino_x + dino_w - 10 and next_obs['x'] + next_obs['w'] > dino_x + 10:
-                            if self.dino_y < next_obs['h'] - 5:
-                                self.dino_dead = True
+                        self.dino_vy = 12.0
                                 
             self.dino_frame = (self.dino_frame + 1) % 20
         
@@ -580,17 +578,21 @@ class CrispAestheticFliqlo(QWidget):
         now = QTime.currentTime()
         time_str = f"{now.hour():02d}:{now.minute():02d}"
         
+        base_size = int(h * 0.18)
+        scaled_size = int(base_size * (self.clock_scale / 0.45))
         font_time = QFont(["Bungee", "Arial Black"])
-        font_time.setPixelSize(int(h * 0.18))
+        font_time.setPixelSize(scaled_size)
         font_time.setWeight(QFont.Weight.Bold)
         
         painter.setFont(font_time)
         painter.setPen(QColor(255, 255, 255))
         painter.drawText(QRectF(0, h * 0.1, w, h * 0.2), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter, time_str)
         
+        base_date = int(h * 0.025)
+        scaled_date = int(base_date * (self.clock_scale / 0.45))
         date_str = QDate.currentDate().toString("dddd, d MMMM")
         font_date = QFont(["Google Sans", "Product Sans", "Segoe UI"])
-        font_date.setPixelSize(int(h * 0.025))
+        font_date.setPixelSize(scaled_date)
         font_date.setWeight(QFont.Weight.Medium)
         
         painter.setFont(font_date)
@@ -601,45 +603,30 @@ class CrispAestheticFliqlo(QWidget):
             painter.setFont(QFont("Segoe UI", 12))
             painter.drawText(QRectF(w - 100, 20, 80, 30), Qt.AlignmentFlag.AlignRight, "Sound: ON")
             
-        ground_y = h * 0.8
+        ground_y = h * 0.95
         painter.setPen(QPen(QColor(100, 100, 100), 2))
         painter.drawLine(0, int(ground_y), w, int(ground_y))
         
         dino_x = w * 0.2
-        dino_w = 40
-        dino_h = 44
+        dino_w = 44
+        dino_h = 47
         
-        painter.save()
-        painter.translate(dino_x, ground_y - self.dino_y - dino_h)
-        painter.setBrush(QColor(255, 255, 255))
-        painter.setPen(Qt.PenStyle.NoPen)
-        
-        painter.drawRect(8, 0, 24, 20)
-        painter.setBrush(QColor(0, 0, 0))
-        painter.drawRect(24, 4, 4, 4) 
-        painter.setBrush(QColor(255, 255, 255))
-        painter.drawRect(0, 16, 24, 20)
-        painter.drawRect(24, 16, 8, 12)
-        
-        if self.dino_dead:
-            painter.drawRect(4, 36, 8, 8)
-            painter.drawRect(16, 36, 8, 8)
-        else:
+        if not self.sprite_pixmap.isNull():
             if self.dino_y > 0:
-                painter.drawRect(4, 36, 8, 8)
-                painter.drawRect(16, 36, 8, 8)
+                dino_rect = QRectF(848, 2, 44, 47) 
             else:
                 if self.dino_frame < 10:
-                    painter.drawRect(4, 36, 8, 8)
-                    painter.drawRect(16, 32, 8, 4)
+                    dino_rect = QRectF(936, 2, 44, 47) 
                 else:
-                    painter.drawRect(4, 32, 8, 4)
-                    painter.drawRect(16, 36, 8, 8)
-        painter.restore()
-        
-        painter.setBrush(QColor(255, 255, 255))
-        for obs in self.dino_obstacles:
-            painter.drawRect(QRectF(obs['x'], ground_y - obs['h'], obs['w'], obs['h']))
+                    dino_rect = QRectF(980, 2, 44, 47)
+                    
+            target_rect = QRectF(dino_x, ground_y - self.dino_y - dino_h, dino_w, dino_h)
+            painter.drawPixmap(target_rect, self.sprite_pixmap, dino_rect)
+            
+            for obs in self.dino_obstacles:
+                cactus_rect = QRectF(332, 2, 25, 50)
+                obs_target = QRectF(obs['x'], ground_y - obs['h'], obs['w'], obs['h'])
+                painter.drawPixmap(obs_target, self.sprite_pixmap, cactus_rect)
             
         if self.dino_dead:
             font_dead = QFont(["Google Sans", "Segoe UI"])
@@ -722,19 +709,11 @@ class CrispAestheticFliqlo(QWidget):
             return
             
         if event.key() == Qt.Key.Key_Equal or event.key() == Qt.Key.Key_Plus:
-            if self.clock_style == 2:
-                self.dino_sound = not self.dino_sound
-                self.update()
-            else:
-                self.clock_scale = min(0.95, self.clock_scale + 0.05)
-                self.update()
+            self.clock_scale = min(0.95, self.clock_scale + 0.05)
+            self.update()
         elif event.key() == Qt.Key.Key_Minus:
-            if self.clock_style == 2:
-                self.dino_sound = not self.dino_sound
-                self.update()
-            else:
-                self.clock_scale = max(0.15, self.clock_scale - 0.05)
-                self.update()
+            self.clock_scale = max(0.15, self.clock_scale - 0.05)
+            self.update()
         elif event.key() == Qt.Key.Key_Up or event.key() == Qt.Key.Key_Down:
             self.clock_style = (self.clock_style + (1 if event.key() == Qt.Key.Key_Up else -1)) % 3 
             self.update()
@@ -845,7 +824,8 @@ class SettingsDialog(QDialog):
             "show_info": True,
             "strict_exit": False,
             "enable_win_key": False,
-            "brightness": 100
+            "brightness": 100,
+            "clock_style": 1
         }
         if os.path.exists(self.config_path):
             try:
@@ -860,6 +840,7 @@ class SettingsDialog(QDialog):
         self.config["strict_exit"] = self.strict_cb.isChecked()
         self.config["enable_win_key"] = self.win_cb.isChecked()
         self.config["brightness"] = self.bright_slider.value()
+        self.config["clock_style"] = self.preview.clock_style
         
         os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
         with open(self.config_path, 'w') as f:
@@ -873,7 +854,16 @@ class SettingsDialog(QDialog):
             self.preview.set_accent_color(color.name())
             
     def update_brightness(self, val):
+        self.bright_val_label.setText(f"{val}%")
         self.preview.set_brightness(val)
+        
+    def next_style(self):
+        self.preview.clock_style = (self.preview.clock_style + 1) % 3
+        self.preview.update()
+        
+    def prev_style(self):
+        self.preview.clock_style = (self.preview.clock_style - 1) % 3
+        self.preview.update()
         
     def update_info(self, state):
         self.preview.set_show_info(self.info_cb.isChecked())
@@ -890,7 +880,8 @@ class SettingsDialog(QDialog):
             strict_exit=self.config["strict_exit"],
             show_info=self.config["show_info"],
             preview_mode=True,
-            brightness=self.config["brightness"]
+            brightness=self.config["brightness"],
+            clock_style=self.config["clock_style"]
         )
         main_layout.addWidget(self.preview, stretch=1)
         
@@ -905,8 +896,19 @@ class SettingsDialog(QDialog):
         self.bright_slider = QSlider(Qt.Orientation.Horizontal)
         self.bright_slider.setRange(10, 100)
         self.bright_slider.setValue(self.config["brightness"])
-        self.bright_slider.setFixedWidth(120)
+        self.bright_slider.setFixedWidth(100)
         self.bright_slider.valueChanged.connect(self.update_brightness)
+        
+        self.bright_val_label = QLabel(f"{self.config['brightness']}%")
+        self.bright_val_label.setFixedWidth(35)
+        
+        style_prev = QPushButton("▲")
+        style_prev.setFixedSize(30, 30)
+        style_prev.clicked.connect(self.prev_style)
+        
+        style_next = QPushButton("▼")
+        style_next.setFixedSize(30, 30)
+        style_next.clicked.connect(self.next_style)
         
         color_btn = QPushButton("🎨 Color")
         color_btn.clicked.connect(self.pick_color)
@@ -927,9 +929,13 @@ class SettingsDialog(QDialog):
         
         control_layout.addWidget(bright_label)
         control_layout.addWidget(self.bright_slider)
-        control_layout.addSpacing(20)
+        control_layout.addWidget(self.bright_val_label)
+        control_layout.addSpacing(10)
+        control_layout.addWidget(style_prev)
+        control_layout.addWidget(style_next)
+        control_layout.addSpacing(10)
         control_layout.addWidget(color_btn)
-        control_layout.addSpacing(20)
+        control_layout.addSpacing(10)
         control_layout.addWidget(self.info_cb)
         control_layout.addSpacing(10)
         control_layout.addWidget(self.strict_cb)
@@ -983,7 +989,9 @@ if __name__ == '__main__':
         "accent_color": "#8F96BF",
         "show_info": True,
         "strict_exit": False,
-        "enable_win_key": False
+        "enable_win_key": False,
+        "brightness": 100,
+        "clock_style": 1
     }
     
     if os.path.exists(config_path):
@@ -998,6 +1006,9 @@ if __name__ == '__main__':
         enable_win_key=default_config["enable_win_key"], 
         strict_exit=default_config["strict_exit"],
         show_info=default_config["show_info"],
-        brightness=default_config.get("brightness", 100)
+        brightness=default_config.get("brightness", 100),
+        clock_style=default_config.get("clock_style", 1)
     )
     sys.exit(app.exec())
+
+SPRITE_B64 = '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'
