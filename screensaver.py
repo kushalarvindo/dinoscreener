@@ -10,7 +10,7 @@ from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainter
 
 SPRITE_B64 = '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'
 class CrispAestheticFliqlo(QWidget):
-    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zero=False, config_path=None, full_config=None, ignore_media_keys=False):
+    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zero=False, config_path=None, full_config=None, ignore_media_keys=False, dino_font="Bungee"):
         super().__init__()
         self.last_pos = None
         self.clock_scales = clock_scales if clock_scales else {"0": 0.45, "1": 0.45, "2": 0.45}
@@ -53,6 +53,7 @@ class CrispAestheticFliqlo(QWidget):
         self.use_24hr = use_24hr
         self.leading_zero = leading_zero
         self.ignore_media_keys = ignore_media_keys
+        self.dino_font = dino_font
         
         self.sprite_pixmap = QPixmap()
         try:
@@ -88,6 +89,18 @@ class CrispAestheticFliqlo(QWidget):
         
     def update_media_keys(self, state=None):
         self.preview.ignore_media_keys = self.ignore_media_cb.isChecked()
+        
+    def update_dino_font(self, font):
+        self.preview.dino_font = font.family()
+        self.preview.update()
+        
+    def reset_defaults(self):
+        import os, json
+        if os.path.exists(self.config_path):
+            os.remove(self.config_path)
+        # Reload dialog
+        self.accept()
+        # Note: We rely on the user to re-open settings. Alternatively, we could reset UI elements manually.
 
     def initUI(self):
         if not self.preview_mode:
@@ -659,7 +672,7 @@ class CrispAestheticFliqlo(QWidget):
         
         base_size = int(h * 0.18)
         scaled_size = int(base_size * (self.clock_scales[str(self.clock_style)] / 0.45))
-        font_time = QFont(["Bungee", "Arial Black"])
+        font_time = QFont([self.dino_font, "Bungee", "Arial Black"])
         font_time.setPixelSize(scaled_size)
         font_time.setWeight(QFont.Weight.Bold)
         
@@ -946,7 +959,8 @@ class SettingsDialog(QDialog):
             "clock_scales": {"0": 0.45, "1": 0.45, "2": 0.45},
             "use_24hr": False,
             "leading_zero": False,
-            "ignore_media_keys": False
+            "ignore_media_keys": False,
+            "dino_font": "Bungee"
         }
         if os.path.exists(self.config_path):
             try:
@@ -966,6 +980,7 @@ class SettingsDialog(QDialog):
         self.config["use_24hr"] = self.use_24hr_cb.isChecked()
         self.config["leading_zero"] = self.leading_zero_cb.isChecked()
         self.config["ignore_media_keys"] = self.ignore_media_cb.isChecked()
+        self.config["dino_font"] = self.font_cb.currentFont().family()
         
         os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
         with open(self.config_path, 'w') as f:
@@ -1014,6 +1029,18 @@ class SettingsDialog(QDialog):
         
     def update_media_keys(self, state=None):
         self.preview.ignore_media_keys = self.ignore_media_cb.isChecked()
+        
+    def update_dino_font(self, font):
+        self.preview.dino_font = font.family()
+        self.preview.update()
+        
+    def reset_defaults(self):
+        import os, json
+        if os.path.exists(self.config_path):
+            os.remove(self.config_path)
+        # Reload dialog
+        self.accept()
+        # Note: We rely on the user to re-open settings. Alternatively, we could reset UI elements manually.
 
     def initUI(self):
         main_layout = QVBoxLayout()
@@ -1032,12 +1059,13 @@ class SettingsDialog(QDialog):
             clock_scales=self.config.get("clock_scales", {"0": 0.45, "1": 0.45, "2": 0.45}),
             use_24hr=self.config.get("use_24hr", False),
             leading_zero=self.config.get("leading_zero", False),
-            ignore_media_keys=self.config.get("ignore_media_keys", False)
+            ignore_media_keys=self.config.get("ignore_media_keys", False),
+            dino_font=self.config.get("dino_font", "Bungee")
         )
         main_layout.addWidget(self.preview, stretch=1)
         
         # 2. CONTROL BAR (Floating Bottom)
-        from PyQt6.QtWidgets import QGridLayout
+        from PyQt6.QtWidgets import QGridLayout, QFontComboBox
         control_bar = QWidget()
         control_bar.setObjectName("controlBar")
         control_bar.setStyleSheet("QWidget#controlBar { background: transparent; border-top: 1px solid #313244; }")
@@ -1094,6 +1122,16 @@ class SettingsDialog(QDialog):
         self.ignore_media_cb.setChecked(self.config.get("ignore_media_keys", False))
         self.ignore_media_cb.stateChanged.connect(self.update_media_keys)
         
+        # Row 2: Font Config & Actions
+        font_label = QLabel("Dino Font:")
+        self.font_cb = QFontComboBox()
+        self.font_cb.setCurrentFont(QFont(self.config.get("dino_font", "Bungee")))
+        self.font_cb.currentFontChanged.connect(self.update_dino_font)
+        
+        reset_btn = QPushButton("Reset Defaults")
+        reset_btn.setStyleSheet("color: #FF5555;")
+        reset_btn.clicked.connect(self.reset_defaults)
+        
         save_btn = QPushButton("OK")
         save_btn.setStyleSheet("background-color: #8F96BF; color: #11111B; font-weight: bold; padding: 6px 20px;")
         save_btn.clicked.connect(self.save_config)
@@ -1109,7 +1147,6 @@ class SettingsDialog(QDialog):
         top_row.addSpacing(15)
         top_row.addWidget(color_btn)
         top_row.addStretch()
-        top_row.addWidget(save_btn)
         
         # Bottom Row Assembly
         bottom_row = QHBoxLayout()
@@ -1121,8 +1158,18 @@ class SettingsDialog(QDialog):
         bottom_row.addWidget(self.ignore_media_cb)
         bottom_row.addStretch()
         
+        # Action Row Assembly
+        action_row = QHBoxLayout()
+        action_row.addWidget(font_label)
+        action_row.addWidget(self.font_cb)
+        action_row.addStretch()
+        action_row.addWidget(reset_btn)
+        action_row.addSpacing(10)
+        action_row.addWidget(save_btn)
+        
         control_layout.addLayout(top_row, 0, 0)
         control_layout.addLayout(bottom_row, 1, 0)
+        control_layout.addLayout(action_row, 2, 0)
         
         control_bar.setLayout(control_layout)
         main_layout.addWidget(control_bar)
@@ -1174,7 +1221,8 @@ if __name__ == '__main__':
         "clock_style": 1,
         "clock_scales": {"0": 0.45, "1": 0.45, "2": 0.45},
         "use_24hr": False,
-        "leading_zero": False
+        "leading_zero": False,
+        "dino_font": "Bungee"
     }
     
     if os.path.exists(config_path):
@@ -1196,7 +1244,8 @@ if __name__ == '__main__':
         leading_zero=default_config.get("leading_zero", False),
         config_path=config_path,
         full_config=default_config,
-        ignore_media_keys=default_config.get("ignore_media_keys", False)
+        ignore_media_keys=default_config.get("ignore_media_keys", False),
+        dino_font=default_config.get("dino_font", "Bungee")
     )
     sys.exit(app.exec())
 

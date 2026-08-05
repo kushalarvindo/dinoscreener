@@ -15,13 +15,13 @@ Dinoscreener is built natively using **Python** and **PyQt6**. It leverages powe
 
 ### 🎨 Clock Modes
 
-Dinoscreener V3.5 Perfected Version features three distinct, meticulously crafted clock styles. Switch between them instantly using the **Up/Down arrow keys**!
+Dinoscreener V4 features three distinct, meticulously crafted clock styles. Switch between them instantly using the **Up/Down arrow keys**!
 
-| Mode | Description |
-|---|---|
-| **Modern Rotary Clock** | A dual-ring rotary interface. Calculates exact rotation angles using trigonometry for a seamless spinning wheel effect. The opacity of each number fades gracefully based on distance from the exact time. |
-| **Classic Fliqlo** | A retro mechanical flip-clock style! The flip animation utilizes scaling to visually compress the numbers, giving a 3D perspective effect as the card falls. |
-| **Chrome Dino Game** | A beautiful, ambient auto-playing Chrome Dino game! Features authentic sprite rendering, exact gravity physics, randomly generated cacti/crows, and day/night clouds. Time is displayed cleanly at the top. |
+| Mode | Description | Preview |
+|---|---|---|
+| **Modern Rotary** | A dual-ring rotary interface calculating exact rotation angles using trigonometry for a seamless spinning wheel effect. | <img src="https://raw.githubusercontent.com/kushalarvindo/screensaver/main/rotary.png" width="250" alt="Rotary Clock"> |
+| **Classic Fliqlo** | A retro mechanical flip-clock style utilizing 3D perspective scaling to visually compress the numbers. | <img src="https://raw.githubusercontent.com/kushalarvindo/screensaver/main/fliqlo.png" width="250" alt="Fliqlo Clock"> |
+| **Chrome Dino Game** | A beautiful auto-playing Chrome Dino game featuring authentic sprite rendering, exact gravity physics, and randomly generated cacti/crows. Time is displayed cleanly at the top. | <img src="https://raw.githubusercontent.com/kushalarvindo/screensaver/main/dino.png" width="250" alt="Dino Clock"> |
 
 - **Ambient Lighting System**: Subtle, color-shifting ambient orbs float in the background. These are drawn using `QRadialGradient`, and their coordinates drift organically using trigonometric phase shifts over a 15-second loop.
 - **System Integrations**: 
