@@ -111,27 +111,24 @@ class CrispAestheticFliqlo(QWidget):
             self.dino_timer_msec += 16
             
             if not self.dino_dead:
-                gs = self.height() / 300.0
-                current_dino_speed = self.dino_speed * gs
                 # Physics
-                gs = self.height() / 300.0
                 self.dino_y += self.dino_vy
                 if self.dino_y > 0:
-                    self.dino_vy -= 0.6 * gs # gravity
+                    self.dino_vy -= 0.6 # gravity
                 else:
                     self.dino_y = 0
                     self.dino_vy = 0
                 
                 # Obstacle Generation
                 # Ground scroll
-                self.ground_x -= current_dino_speed
+                self.ground_x -= self.dino_speed
                 if self.ground_x <= -1200:
                     self.ground_x += 1200
 
                 # Clouds
                 if len(self.dino_clouds) < 3:
                     if random.random() < 0.01:
-                        self.dino_clouds.append({'x': self.width() + 100, 'y': random.randint(int(self.height()*0.3), int(self.height()*0.6)), 'speed': current_dino_speed * 0.2, 'w': 46 * gs, 'h': 14 * gs})
+                        self.dino_clouds.append({'x': self.width() + 100, 'y': random.randint(int(self.height()*0.5), int(self.height()*0.75)), 'speed': self.dino_speed * 0.2})
                 for c in self.dino_clouds:
                     c['x'] -= c['speed']
                 self.dino_clouds = [c for c in self.dino_clouds if c['x'] > -100]
@@ -142,31 +139,33 @@ class CrispAestheticFliqlo(QWidget):
                     last_obs = self.dino_obstacles[-1]
                     if self.width() - last_obs['x'] > 400 + random.randint(0, 400):
                         obs_type = random.randint(0, 8)
-                        gs = self.height() / 300.0
-                        if obs_type in [0, 4]:
-                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 17 * gs, 'h': 35 * gs, 'type': 'small1'})
-                        elif obs_type in [1, 5]:
-                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 34 * gs, 'h': 35 * gs, 'type': 'small2'})
-                        elif obs_type in [2]:
-                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 51 * gs, 'h': 35 * gs, 'type': 'small3'})
-                        elif obs_type in [3]:
-                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 25 * gs, 'h': 50 * gs, 'type': 'large1'})
+                        if obs_type == 0:
+                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 17, 'h': 35, 'type': 'small1'})
+                        elif obs_type == 1:
+                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 34, 'h': 35, 'type': 'small2'})
+                        elif obs_type == 2:
+                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 51, 'h': 35, 'type': 'small3'})
+                        elif obs_type == 3:
+                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 25, 'h': 50, 'type': 'large1'})
+                        elif obs_type == 4:
+                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 50, 'h': 50, 'type': 'large2'})
+                        elif obs_type == 5:
+                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 75, 'h': 50, 'type': 'large3'})
                         elif obs_type == 6:
-                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 46 * gs, 'h': 40 * gs, 'type': 'crow', 'y_off': 20 * gs})
+                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 46, 'h': 40, 'type': 'crow', 'y_off': 20})
                         elif obs_type == 7:
-                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 46 * gs, 'h': 40 * gs, 'type': 'crow', 'y_off': 50 * gs})
+                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 46, 'h': 40, 'type': 'crow', 'y_off': 50})
                         elif obs_type == 8:
-                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 46 * gs, 'h': 40 * gs, 'type': 'crow', 'y_off': 80 * gs})
+                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 46, 'h': 40, 'type': 'crow', 'y_off': 80})
                 
                 for obs in self.dino_obstacles:
-                    obs['x'] -= current_dino_speed
+                    obs['x'] -= self.dino_speed
                 
                 self.dino_obstacles = [o for o in self.dino_obstacles if o['x'] > -100]
                 
                 # Auto-play AI
-                gs = self.height() / 300.0
                 dino_x = self.width() * 0.2
-                dino_w = 40 * gs
+                dino_w = 40
                 
                 next_obs = None
                 for obs in self.dino_obstacles:
@@ -176,8 +175,8 @@ class CrispAestheticFliqlo(QWidget):
                         
                 if next_obs:
                     dist = next_obs['x'] - (dino_x + dino_w)
-                    if dist < 120 * gs and self.dino_y == 0:
-                        self.dino_vy = 12.0 * gs
+                    if dist < 120 and self.dino_y == 0:
+                        self.dino_vy = 12.0
                                 
             self.dino_frame = (self.dino_frame + 1) % 20
         
@@ -658,14 +657,26 @@ class CrispAestheticFliqlo(QWidget):
             painter.drawText(QRectF(w - 100, 20, 80, 30), Qt.AlignmentFlag.AlignRight, "Sound: ON")
             
         ground_y = h * 0.95
-        painter.setPen(QPen(QColor(100, 100, 100), 2))
-        painter.drawLine(0, int(ground_y), w, int(ground_y))
         
         dino_x = w * 0.2
         dino_w = 44
         dino_h = 47
         
         if not self.sprite_pixmap.isNull():
+            # Draw ground
+            ground_rect = QRectF(2, 54, 1200, 12)
+            gx = self.ground_x
+            while gx < w:
+                painter.drawPixmap(QRectF(gx, ground_y - 10, 1200, 12), self.sprite_pixmap, ground_rect)
+                gx += 1200
+                
+            # Draw clouds
+            cloud_rect = QRectF(86, 2, 46, 14)
+            for c in self.dino_clouds:
+                painter.drawPixmap(QRectF(c['x'], c['y'], 46, 14), self.sprite_pixmap, cloud_rect)
+                
+            dino_w = 44
+            dino_h = 47
             if self.dino_y > 0:
                 dino_rect = QRectF(848, 2, 44, 47) 
             else:
@@ -679,16 +690,23 @@ class CrispAestheticFliqlo(QWidget):
             
             for obs in self.dino_obstacles:
                 t = obs.get('type', 'large1')
-                if t == 'small1': cactus_rect = QRectF(228, 2, 17, 35)
-                elif t == 'small2': cactus_rect = QRectF(228, 2, 34, 35)
-                elif t == 'small3': cactus_rect = QRectF(228, 2, 51, 35)
-                elif t == 'large1': cactus_rect = QRectF(332, 2, 25, 50)
-                elif t == 'large2': cactus_rect = QRectF(332, 2, 50, 50)
-                elif t == 'large3': cactus_rect = QRectF(332, 2, 75, 50)
-                else: cactus_rect = QRectF(332, 2, 25, 50)
+                if t == 'crow':
+                    if (self.dino_frame // 10) % 2 == 0:
+                        obs_rect = QRectF(134, 2, 46, 40)
+                    else:
+                        obs_rect = QRectF(180, 2, 46, 40)
+                    obs_target = QRectF(obs['x'], ground_y - obs.get('y_off', 0) - obs['h'], obs['w'], obs['h'])
+                else:
+                    if t == 'small1': obs_rect = QRectF(228, 2, 17, 35)
+                    elif t == 'small2': obs_rect = QRectF(228, 2, 34, 35)
+                    elif t == 'small3': obs_rect = QRectF(228, 2, 51, 35)
+                    elif t == 'large1': obs_rect = QRectF(332, 2, 25, 50)
+                    elif t == 'large2': obs_rect = QRectF(332, 2, 50, 50)
+                    elif t == 'large3': obs_rect = QRectF(332, 2, 75, 50)
+                    else: obs_rect = QRectF(332, 2, 25, 50)
+                    obs_target = QRectF(obs['x'], ground_y - obs['h'], obs['w'], obs['h'])
                 
-                obs_target = QRectF(obs['x'], ground_y - obs['h'], obs['w'], obs['h'])
-                painter.drawPixmap(obs_target, self.sprite_pixmap, cactus_rect)
+                painter.drawPixmap(obs_target, self.sprite_pixmap, obs_rect)
             
         if self.dino_dead:
             font_dead = QFont(["Google Sans", "Segoe UI"])
