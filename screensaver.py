@@ -375,40 +375,52 @@ class CrispAestheticFliqlo(QWidget):
         
         painter.setFont(font_date_1)
         painter.setPen(accent_color)
-        painter.drawText(QRectF(date_x, cy - h * 0.10, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom, date_str_1)
+        painter.drawText(QRectF(date_x, cy - h * 0.12, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom, date_str_1)
         
         painter.setFont(font_date_2)
         painter.setPen(pure_white)
-        painter.drawText(QRectF(date_x, cy - h * 0.03, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str_2)
+        painter.drawText(QRectF(date_x, cy - h * 0.01, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str_2)
         
-        # Weather Display Below Date
-        weather_text = "26°C Clear"
-        weather_y = cy + h * 0.12
-        icon_size = h * 0.016
+        # Unified Weather & Battery Display
+        info_y = cy + h * 0.12
+        info_h = h * 0.04
+        
+        # Center dot
+        font_info = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
+        font_info.setPixelSize(int(h * 0.016))
+        font_info.setWeight(QFont.Weight.Medium)
+        font_info.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 1.0)
+        painter.setFont(font_info)
+        painter.setPen(QColor(120, 125, 130))
+        painter.drawText(QRectF(center_x - w*0.01, info_y, w*0.02, info_h), Qt.AlignmentFlag.AlignCenter, "•")
+        
+        # Weather
+        weather_text = "26°C"
+        w_icon_size = h * 0.016
+        fm = painter.fontMetrics()
+        w_text_width = fm.horizontalAdvance(weather_text)
+        
+        weather_end = center_x - w * 0.015
+        weather_text_x = weather_end - w_text_width
+        weather_icon_x = weather_text_x - w_icon_size - w * 0.005
         
         painter.save()
-        painter.translate(center_x - w * 0.03, weather_y)
+        painter.translate(weather_icon_x + w_icon_size/2, info_y + info_h/2)
         painter.setPen(QPen(accent_color, 1.5))
         painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.drawEllipse(QRectF(-icon_size*0.4, -icon_size*0.4, icon_size*0.8, icon_size*0.8))
+        painter.drawEllipse(QRectF(-w_icon_size*0.4, -w_icon_size*0.4, w_icon_size*0.8, w_icon_size*0.8))
         for i in range(8):
             painter.rotate(45)
-            painter.drawLine(int(icon_size*0.5), 0, int(icon_size*0.8), 0)
+            painter.drawLine(int(w_icon_size*0.5), 0, int(w_icon_size*0.8), 0)
         painter.restore()
         
-        font_weather = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-        font_weather.setPixelSize(int(h * 0.015))
-        font_weather.setWeight(QFont.Weight.Medium)
-        font_weather.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 1.0)
-        painter.setFont(font_weather)
         painter.setPen(QColor(180, 185, 190))
-        text_rect = QRectF(center_x - w * 0.015, weather_y - h * 0.015, w * 0.15, h * 0.03)
-        painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, weather_text)
+        painter.drawText(QRectF(weather_text_x, info_y, w_text_width, info_h), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, weather_text)
         
-        # Battery Display Below Weather
-        battery_y = cy + h * 0.18
+        # Battery
         bat_text = "100%"
         bat_val = 100
+        is_charging = False
         try:
             class SYSTEM_POWER_STATUS(ctypes.Structure):
                 _fields_ = [
@@ -427,34 +439,48 @@ class CrispAestheticFliqlo(QWidget):
                 bat_text = f"{sys_pwr.BatteryLifePercent}%"
                 bat_val = sys_pwr.BatteryLifePercent
                 if sys_pwr.ACLineStatus == 1:
-                    bat_text += " CHG"
+                    is_charging = True
         except Exception:
             pass
             
+        bat_start = center_x + w * 0.015
         bat_icon_w = w * 0.02
         bat_icon_h = h * 0.015
-        bat_x = center_x - w * 0.032
-        bat_y = battery_y - bat_icon_h / 2
+        bat_icon_x = bat_start
+        bat_text_x = bat_icon_x + bat_icon_w + w * 0.005
+        bat_icon_y = info_y + info_h/2 - bat_icon_h/2
         
         painter.setPen(QPen(accent_color, 1.5))
         painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.drawRoundedRect(QRectF(bat_x, bat_y, bat_icon_w, bat_icon_h), 2, 2)
-        painter.drawRect(QRectF(bat_x + bat_icon_w, bat_y + bat_icon_h*0.25, w*0.0015, bat_icon_h*0.5))
+        painter.drawRoundedRect(QRectF(bat_icon_x, bat_icon_y, bat_icon_w, bat_icon_h), 2, 2)
+        painter.drawRect(QRectF(bat_icon_x + bat_icon_w, bat_icon_y + bat_icon_h*0.25, w*0.0015, bat_icon_h*0.5))
         
-        fill_w = (bat_icon_w - w*0.002) * (bat_val / 100.0)
-        if fill_w > 0:
+        if is_charging:
+            painter.save()
+            painter.translate(bat_icon_x + bat_icon_w/2, bat_icon_y + bat_icon_h/2)
+            bolt = QPainterPath()
+            bw = bat_icon_w * 0.2
+            bh = bat_icon_h * 0.4
+            bolt.moveTo(bw*0.3, -bh)
+            bolt.lineTo(-bw*0.8, 0)
+            bolt.lineTo(0, 0)
+            bolt.lineTo(-bw*0.3, bh)
+            bolt.lineTo(bw*0.8, 0)
+            bolt.lineTo(0, 0)
+            bolt.closeSubpath()
             painter.setBrush(accent_color)
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawRect(QRectF(bat_x + w*0.001, bat_y + h*0.002, fill_w, bat_icon_h - h*0.004))
-            
-        font_bat = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-        font_bat.setPixelSize(int(h * 0.015))
-        font_bat.setWeight(QFont.Weight.Medium)
-        font_bat.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 1.0)
-        painter.setFont(font_bat)
+            painter.drawPath(bolt)
+            painter.restore()
+        else:
+            fill_w = (bat_icon_w - w*0.002) * (bat_val / 100.0)
+            if fill_w > 0:
+                painter.setBrush(accent_color)
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.drawRect(QRectF(bat_icon_x + w*0.001, bat_icon_y + h*0.002, fill_w, bat_icon_h - h*0.004))
+                
         painter.setPen(QColor(180, 185, 190))
-        bat_text_rect = QRectF(center_x - w * 0.005, battery_y - h * 0.015, w * 0.15, h * 0.03)
-        painter.drawText(bat_text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, bat_text)
+        painter.drawText(QRectF(bat_text_x, info_y, w*0.1, info_h), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, bat_text)
 
     # ==========================================
     # AMBIENT ORBS & MAIN PAINT EVENT
