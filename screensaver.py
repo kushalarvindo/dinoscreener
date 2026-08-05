@@ -3,12 +3,12 @@ import math
 import ctypes
 import json
 import os
-from PyQt6.QtWidgets import QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout
+from PyQt6.QtWidgets import QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider
 from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate
 from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath
 
 class CrispAestheticFliqlo(QWidget):
-    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True):
+    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100):
         super().__init__()
         self.last_pos = None
         self.clock_scale = 0.45 
@@ -30,14 +30,29 @@ class CrispAestheticFliqlo(QWidget):
         self.enable_win_key = enable_win_key
         self.strict_exit = strict_exit
         self.show_info = show_info
+        self.preview_mode = preview_mode
+        self.brightness = brightness
         
         self.initUI()
         
+    def set_accent_color(self, hex_col):
+        self.rotary_accent = QColor(hex_col)
+        self.update()
+        
+    def set_show_info(self, show):
+        self.show_info = show
+        self.update()
+        
+    def set_brightness(self, val):
+        self.brightness = val
+        self.update()
+        
     def initUI(self):
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
-        self.showFullScreen()
-        self.setCursor(Qt.CursorShape.BlankCursor)
-        self.setMouseTracking(True)
+        if not self.preview_mode:
+            self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+            self.showFullScreen()
+            self.setCursor(Qt.CursorShape.BlankCursor)
+            self.setMouseTracking(True)
         
         self.sync_timer = QTimer(self)
         self.sync_timer.timeout.connect(self.checkTime)
@@ -545,8 +560,14 @@ class CrispAestheticFliqlo(QWidget):
             self.draw_fliqlo_style(painter, w, h)
         else:
             self.draw_rotary_style(painter, w, h)
+            
+        # Apply brightness overlay
+        if self.brightness < 100:
+            overlay_alpha = 255 - int((self.brightness / 100.0) * 255)
+            painter.fillRect(self.rect(), QColor(0, 0, 0, overlay_alpha))
 
     def keyPressEvent(self, event):
+        if self.preview_mode: return
         if self.strict_exit and event.key() == Qt.Key.Key_Z and (event.modifiers() & Qt.KeyboardModifier.ControlModifier):
             self.close()
             return
@@ -569,6 +590,7 @@ class CrispAestheticFliqlo(QWidget):
                 self.close()
 
     def mouseMoveEvent(self, event):
+        if self.preview_mode: return
         if self.strict_exit: return
         if self.last_pos is None:
             self.last_pos = event.pos()
@@ -578,6 +600,7 @@ class CrispAestheticFliqlo(QWidget):
             self.close()
 
     def mousePressEvent(self, event):
+        if self.preview_mode: return
         if self.strict_exit: return
         self.close()
 
@@ -585,6 +608,46 @@ class SettingsDialog(QDialog):
     def __init__(self, config_path):
         super().__init__()
         self.setWindowTitle("Dinoscreener Settings")
+        self.setFixedSize(850, 600)
+        
+        # Sleek dark theme
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #11111B;
+            }
+            QLabel {
+                color: #CDD6F4;
+                font-family: 'Segoe UI', sans-serif;
+                font-weight: bold;
+            }
+            QCheckBox {
+                color: #A6ADC8;
+                font-family: 'Segoe UI', sans-serif;
+            }
+            QPushButton {
+                background-color: #313244;
+                color: #CDD6F4;
+                border: 1px solid #45475A;
+                border-radius: 4px;
+                padding: 6px 12px;
+            }
+            QPushButton:hover {
+                background-color: #45475A;
+            }
+            QSlider::groove:horizontal {
+                border: 1px solid #45475A;
+                height: 4px;
+                background: #313244;
+                border-radius: 2px;
+            }
+            QSlider::handle:horizontal {
+                background: #8F96BF;
+                width: 14px;
+                margin: -5px 0;
+                border-radius: 7px;
+            }
+        """)
+        
         self.config_path = config_path
         self.config = self.load_config()
         self.initUI()
@@ -594,7 +657,8 @@ class SettingsDialog(QDialog):
             "accent_color": "#8F96BF",
             "show_info": True,
             "strict_exit": False,
-            "enable_win_key": False
+            "enable_win_key": False,
+            "brightness": 100
         }
         if os.path.exists(self.config_path):
             try:
@@ -605,10 +669,10 @@ class SettingsDialog(QDialog):
         return default_config
         
     def save_config(self):
-        self.config["accent_color"] = self.color_input.text()
         self.config["show_info"] = self.info_cb.isChecked()
         self.config["strict_exit"] = self.strict_cb.isChecked()
         self.config["enable_win_key"] = self.win_cb.isChecked()
+        self.config["brightness"] = self.bright_slider.value()
         
         os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
         with open(self.config_path, 'w') as f:
@@ -616,45 +680,82 @@ class SettingsDialog(QDialog):
         self.accept()
         
     def pick_color(self):
-        color = QColorDialog.getColor(QColor(self.color_input.text()), self, "Select Accent Color")
+        color = QColorDialog.getColor(QColor(self.config["accent_color"]), self, "Select Accent Color")
         if color.isValid():
-            self.color_input.setText(color.name())
+            self.config["accent_color"] = color.name()
+            self.preview.set_accent_color(color.name())
+            
+    def update_brightness(self, val):
+        self.preview.set_brightness(val)
+        
+    def update_info(self, state):
+        self.preview.set_show_info(self.info_cb.isChecked())
             
     def initUI(self):
-        layout = QFormLayout()
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
         
-        self.color_input = QLineEdit(self.config["accent_color"])
-        color_btn = QPushButton("Pick Color")
+        # 1. LIVE PREVIEW
+        self.preview = CrispAestheticFliqlo(
+            accent_color=self.config["accent_color"],
+            enable_win_key=self.config["enable_win_key"],
+            strict_exit=self.config["strict_exit"],
+            show_info=self.config["show_info"],
+            preview_mode=True,
+            brightness=self.config["brightness"]
+        )
+        main_layout.addWidget(self.preview, stretch=1)
+        
+        # 2. CONTROL BAR (Floating Bottom)
+        control_bar = QWidget()
+        control_bar.setStyleSheet("background-color: #181825; border-top: 1px solid #313244;")
+        control_layout = QHBoxLayout()
+        control_layout.setContentsMargins(20, 15, 20, 15)
+        
+        # Controls
+        bright_label = QLabel("🔆")
+        self.bright_slider = QSlider(Qt.Orientation.Horizontal)
+        self.bright_slider.setRange(10, 100)
+        self.bright_slider.setValue(self.config["brightness"])
+        self.bright_slider.setFixedWidth(120)
+        self.bright_slider.valueChanged.connect(self.update_brightness)
+        
+        color_btn = QPushButton("🎨 Color")
         color_btn.clicked.connect(self.pick_color)
-        c_layout = QHBoxLayout()
-        c_layout.addWidget(self.color_input)
-        c_layout.addWidget(color_btn)
         
-        layout.addRow("Accent Color (Hex):", c_layout)
+        self.info_cb = QCheckBox("Weather/Battery")
+        self.info_cb.setChecked(self.config["show_info"])
+        self.info_cb.stateChanged.connect(self.update_info)
         
-        self.info_cb = QCheckBox()
-        self.info_cb.setChecked(self.config.get("show_info", True))
-        layout.addRow("Show Weather & Battery:", self.info_cb)
+        self.strict_cb = QCheckBox("Lock Screen (Ctrl+Z)")
+        self.strict_cb.setChecked(self.config["strict_exit"])
         
-        self.strict_cb = QCheckBox()
-        self.strict_cb.setChecked(self.config.get("strict_exit", False))
-        layout.addRow("Screenshot Mode (Ctrl+Z to exit):", self.strict_cb)
+        self.win_cb = QCheckBox("Win Key")
+        self.win_cb.setChecked(self.config["enable_win_key"])
         
-        self.win_cb = QCheckBox()
-        self.win_cb.setChecked(self.config.get("enable_win_key", False))
-        layout.addRow("Enable Windows Key Toggle:", self.win_cb)
-        
-        btn_layout = QHBoxLayout()
-        save_btn = QPushButton("Save")
+        save_btn = QPushButton("OK")
+        save_btn.setStyleSheet("background-color: #8F96BF; color: #11111B; font-weight: bold; padding: 6px 20px;")
         save_btn.clicked.connect(self.save_config)
-        cancel_btn = QPushButton("Cancel")
-        cancel_btn.clicked.connect(self.reject)
         
-        btn_layout.addWidget(save_btn)
-        btn_layout.addWidget(cancel_btn)
+        control_layout.addWidget(bright_label)
+        control_layout.addWidget(self.bright_slider)
+        control_layout.addSpacing(20)
+        control_layout.addWidget(color_btn)
+        control_layout.addSpacing(20)
+        control_layout.addWidget(self.info_cb)
+        control_layout.addSpacing(10)
+        control_layout.addWidget(self.strict_cb)
+        control_layout.addSpacing(10)
+        control_layout.addWidget(self.win_cb)
         
-        layout.addRow(btn_layout)
-        self.setLayout(layout)
+        control_layout.addStretch()
+        control_layout.addWidget(save_btn)
+        
+        control_bar.setLayout(control_layout)
+        main_layout.addWidget(control_bar)
+        
+        self.setLayout(main_layout)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
@@ -701,6 +802,7 @@ if __name__ == '__main__':
         accent_color=default_config["accent_color"], 
         enable_win_key=default_config["enable_win_key"], 
         strict_exit=default_config["strict_exit"],
-        show_info=default_config["show_info"]
+        show_info=default_config["show_info"],
+        brightness=default_config.get("brightness", 100)
     )
     sys.exit(app.exec())
