@@ -553,10 +553,10 @@ class CrispAestheticFliqlo(QWidget):
             font_info.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 1.0)
             painter.setFont(font_info)
             painter.setPen(QColor(120, 125, 130))
-            painter.drawText(QRectF(center_x - w*0.01, info_y, w*0.02, info_h), Qt.AlignmentFlag.AlignCenter, "•")
+            painter.drawText(QRectF(center_x - w*0.01, info_y, w*0.02, info_h), Qt.AlignmentFlag.AlignCenter, "â€¢")
             
             # Weather
-            weather_text = "26°C"
+            weather_text = "26Â°C"
             w_icon_size = h * 0.016
             fm = painter.fontMetrics()
             w_text_width = fm.horizontalAdvance(weather_text)
@@ -1037,12 +1037,17 @@ class SettingsDialog(QDialog):
         main_layout.addWidget(self.preview, stretch=1)
         
         # 2. CONTROL BAR (Floating Bottom)
+        from PyQt6.QtWidgets import QGridLayout
         control_bar = QWidget()
-        control_bar.setStyleSheet("background: transparent; border-top: 1px solid #313244;")
-        control_layout = QHBoxLayout()
-        control_layout.setContentsMargins(20, 15, 20, 15)
+        control_bar.setObjectName("controlBar")
+        control_bar.setStyleSheet("QWidget#controlBar { background: transparent; border-top: 1px solid #313244; }")
         
-        # Controls
+        control_layout = QGridLayout()
+        control_layout.setContentsMargins(20, 15, 20, 15)
+        control_layout.setHorizontalSpacing(15)
+        control_layout.setVerticalSpacing(10)
+        
+        # Row 0: Basic Controls
         bright_label = QLabel("🔆")
         self.bright_slider = QSlider(Qt.Orientation.Horizontal)
         self.bright_slider.setRange(10, 100)
@@ -1053,17 +1058,18 @@ class SettingsDialog(QDialog):
         self.bright_val_label = QLabel(f"{self.config['brightness']}%")
         self.bright_val_label.setFixedWidth(35)
         
-        style_prev = QPushButton("▲")
+        style_prev = QPushButton("◀")
         style_prev.setFixedSize(30, 30)
         style_prev.clicked.connect(self.prev_style)
         
-        style_next = QPushButton("▼")
+        style_next = QPushButton("▶")
         style_next.setFixedSize(30, 30)
         style_next.clicked.connect(self.next_style)
         
         color_btn = QPushButton("🎨 Color")
         color_btn.clicked.connect(self.pick_color)
         
+        # Row 1: Checkboxes
         self.info_cb = QCheckBox("Weather/Battery")
         self.info_cb.setChecked(self.config["show_info"])
         self.info_cb.stateChanged.connect(self.update_info)
@@ -1080,35 +1086,43 @@ class SettingsDialog(QDialog):
         self.use_24hr_cb.setChecked(self.config.get("use_24hr", False))
         self.use_24hr_cb.stateChanged.connect(self.update_24hr)
         
-        self.leading_zero_cb = QCheckBox("0-Pad")
+        self.leading_zero_cb = QCheckBox("Leading Zero (e.g. 09:00)")
         self.leading_zero_cb.setChecked(self.config.get("leading_zero", False))
         self.leading_zero_cb.stateChanged.connect(self.update_leading_zero)
+        
+        self.ignore_media_cb = QCheckBox("Ignore Media Keys")
+        self.ignore_media_cb.setChecked(self.config.get("ignore_media_keys", False))
+        self.ignore_media_cb.stateChanged.connect(self.update_media_keys)
         
         save_btn = QPushButton("OK")
         save_btn.setStyleSheet("background-color: #8F96BF; color: #11111B; font-weight: bold; padding: 6px 20px;")
         save_btn.clicked.connect(self.save_config)
         
-        control_layout.addWidget(bright_label)
-        control_layout.addWidget(self.bright_slider)
-        control_layout.addWidget(self.bright_val_label)
-        control_layout.addSpacing(10)
-        control_layout.addWidget(style_prev)
-        control_layout.addWidget(style_next)
-        control_layout.addSpacing(10)
-        control_layout.addWidget(color_btn)
-        control_layout.addSpacing(10)
-        control_layout.addWidget(self.info_cb)
-        control_layout.addSpacing(10)
-        control_layout.addWidget(self.strict_cb)
-        control_layout.addSpacing(10)
-        control_layout.addWidget(self.win_cb)
-        control_layout.addSpacing(10)
-        control_layout.addWidget(self.use_24hr_cb)
-        control_layout.addSpacing(10)
-        control_layout.addWidget(self.leading_zero_cb)
+        # Top Row Assembly
+        top_row = QHBoxLayout()
+        top_row.addWidget(bright_label)
+        top_row.addWidget(self.bright_slider)
+        top_row.addWidget(self.bright_val_label)
+        top_row.addSpacing(15)
+        top_row.addWidget(style_prev)
+        top_row.addWidget(style_next)
+        top_row.addSpacing(15)
+        top_row.addWidget(color_btn)
+        top_row.addStretch()
+        top_row.addWidget(save_btn)
         
-        control_layout.addStretch()
-        control_layout.addWidget(save_btn)
+        # Bottom Row Assembly
+        bottom_row = QHBoxLayout()
+        bottom_row.addWidget(self.info_cb)
+        bottom_row.addWidget(self.strict_cb)
+        bottom_row.addWidget(self.win_cb)
+        bottom_row.addWidget(self.use_24hr_cb)
+        bottom_row.addWidget(self.leading_zero_cb)
+        bottom_row.addWidget(self.ignore_media_cb)
+        bottom_row.addStretch()
+        
+        control_layout.addLayout(top_row, 0, 0)
+        control_layout.addLayout(bottom_row, 1, 0)
         
         control_bar.setLayout(control_layout)
         main_layout.addWidget(control_bar)
