@@ -2,7 +2,7 @@ import sys
 import math
 from PyQt6.QtWidgets import QApplication, QWidget
 from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate
-from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QConicalGradient, QBrush
+from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath
 
 class CrispAestheticFliqlo(QWidget):
     def __init__(self):
@@ -210,38 +210,12 @@ class CrispAestheticFliqlo(QWidget):
         off_white = QColor("#F5F4EE")
         muted_grey = QColor(145, 150, 155) 
 
-        # --- BACKGROUND DIAL TRACKS ---
-        # Draw tracks that gracefully fade out using a conical gradient, matching the ticks perfectly.
-        track_grad = QConicalGradient(cx, cy, 0)
-        track_grad.setColorAt(0.0, QColor(120, 125, 130, 80))
-        track_grad.setColorAt(75.0 / 360.0, QColor(120, 125, 130, 0))
-        track_grad.setColorAt(180.0 / 360.0, QColor(120, 125, 130, 0))
-        track_grad.setColorAt(285.0 / 360.0, QColor(120, 125, 130, 0))
-        track_grad.setColorAt(1.0, QColor(120, 125, 130, 80))
-        
-        track_pen = QPen(QBrush(track_grad), 1.5)
-        painter.setPen(track_pen)
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        
-        min_tick_offset = float(w) * 0.045
-        sec_tick_offset = float(w) * 0.022
-        
-        # Minute track
-        min_track_radius = R_min + min_tick_offset
-        painter.drawEllipse(QRectF(cx - min_track_radius, cy - min_track_radius, min_track_radius * 2, min_track_radius * 2))
-        
-        # Second track
-        sec_track_radius = R_sec + sec_tick_offset
-        painter.drawEllipse(QRectF(cx - sec_track_radius, cy - sec_track_radius, sec_track_radius * 2, sec_track_radius * 2))
-
-
         # --- MINUTE WHEEL ---
         def draw_minute_wheel(radius, val_float, font_size):
             font = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
             font.setPixelSize(int(font_size))
             font.setWeight(QFont.Weight.Medium)
             
-            # INCREASED GAP: Gives the dial design more breathing room
             tick_offset = w * 0.045 
             
             for i in range(60):
@@ -249,11 +223,9 @@ class CrispAestheticFliqlo(QWidget):
                 norm_angle = (angle_deg + 180) % 360 - 180
                 dist = abs(norm_angle)
                 
-                # OPACITY SEPARATION: Ticks pass continuously through the pill
                 opacity = max(0.0, 1.0 - dist / 75.0) 
                 if opacity <= 0.01: continue
                 
-                # TEXT OPACITY: Cleanly hides just the numbers behind the pill
                 if dist < 8.0:
                     text_opacity = 0.0
                 elif dist < 18.0:
@@ -265,7 +237,6 @@ class CrispAestheticFliqlo(QWidget):
                 painter.translate(cx, cy)
                 painter.rotate(angle_deg)
                 
-                # Draw Text (Only if outside pill boundary)
                 if i % 5 == 0 and text_opacity > 0.01:
                     painter.save()
                     painter.translate(radius, 0)
@@ -281,7 +252,6 @@ class CrispAestheticFliqlo(QWidget):
                     painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, f"{i:02d}")
                     painter.restore()
 
-                # Draw Tick Mark (Passes continuously through)
                 painter.translate(radius + tick_offset, 0)
                 tick_color = QColor(120, 125, 130)
                 
@@ -321,7 +291,8 @@ class CrispAestheticFliqlo(QWidget):
                     painter.translate(radius, 0)
                     painter.rotate(-angle_deg) 
                     
-                    color = QColor(muted_grey)
+                    # Blue accent text matching the image design
+                    color = QColor(accent_color)
                     color.setAlpha(int(255 * opacity))
                     painter.setPen(color)
                     painter.setFont(font)
@@ -379,30 +350,95 @@ class CrispAestheticFliqlo(QWidget):
         hr_rect = QRectF(cx - w * 0.15, cy - h * 0.25, w * 0.30, h * 0.50)
         painter.drawText(hr_rect, Qt.AlignmentFlag.AlignCenter, hour_str)
 
-        # 5. Right Side Date Engine
-        date_now = QDate.currentDate()
-        date_str_1 = date_now.toString("dd MMM yyyy").upper()
-        date_str_2 = date_now.toString("dddd").upper()
+        # 5. Right Side Circular Widgets
+        dial_radius = h * 0.07
+        dial_spacing = h * 0.23
+        dial_x = pill_right + w * 0.12
         
-        # SYMMETRY FIX: Shifted further to the right to balance the large hour on the left
-        date_x = pill_right + w * 0.10 
-        
-        font_date_1 = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-        font_date_1.setPixelSize(int(h * 0.022))
-        font_date_1.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 4.0)
-        
-        font_date_2 = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-        font_date_2.setPixelSize(int(h * 0.032))
-        font_date_2.setWeight(QFont.Weight.Bold)
-        font_date_2.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 2.0)
+        def draw_widget_dial(cy_offset, icon_draw_func, top_text, bottom_text, top_color, bottom_color, track_color, track_progress=None):
+            center_y = cy + cy_offset
+            
+            painter.setPen(QPen(track_color, 2.5))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            
+            # The circle is broken at the top for the icon. Gap from ~70 to 110 degrees.
+            painter.drawArc(QRectF(dial_x - dial_radius, center_y - dial_radius, dial_radius*2, dial_radius*2), int(115 * 16), int(310 * 16))
+            
+            if track_progress is not None:
+                painter.setPen(QPen(accent_color, 2.5))
+                painter.drawArc(QRectF(dial_x - dial_radius, center_y - dial_radius, dial_radius*2, dial_radius*2), int(115 * 16), int(track_progress * 16))
+                
+            painter.save()
+            painter.translate(dial_x, center_y - dial_radius)
+            icon_draw_func()
+            painter.restore()
+            
+            if top_text and bottom_text:
+                font_top = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
+                font_top.setPixelSize(int(dial_radius * 0.28))
+                font_top.setWeight(QFont.Weight.Bold)
+                font_top.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 1.0)
+                painter.setFont(font_top)
+                painter.setPen(top_color)
+                painter.drawText(QRectF(dial_x - dial_radius, center_y - dial_radius*0.25, dial_radius*2, dial_radius*0.4), Qt.AlignmentFlag.AlignCenter, top_text)
+                
+                font_bot = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
+                font_bot.setPixelSize(int(dial_radius * 0.35))
+                font_bot.setWeight(QFont.Weight.Bold)
+                painter.setFont(font_bot)
+                painter.setPen(bottom_color)
+                painter.drawText(QRectF(dial_x - dial_radius, center_y + dial_radius*0.15, dial_radius*2, dial_radius*0.4), Qt.AlignmentFlag.AlignCenter, bottom_text)
+            elif bottom_text: 
+                font_bot = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
+                font_bot.setPixelSize(int(dial_radius * 0.40))
+                font_bot.setWeight(QFont.Weight.Bold)
+                painter.setFont(font_bot)
+                painter.setPen(bottom_color)
+                painter.drawText(QRectF(dial_x - dial_radius, center_y - dial_radius*0.2, dial_radius*2, dial_radius*0.4), Qt.AlignmentFlag.AlignCenter, bottom_text)
 
-        painter.setFont(font_date_1)
-        painter.setPen(accent_color)
-        painter.drawText(QRectF(date_x, cy - h * 0.05, w * 0.3, h * 0.05), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignBottom, date_str_1)
+        # Weather Widget (Top)
+        def draw_weather_icon():
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(accent_color)
+            painter.drawEllipse(QRectF(-8, -4, 16, 10))
+            painter.drawEllipse(QRectF(-12, 0, 10, 6))
+            painter.drawEllipse(QRectF(2, 0, 10, 6))
+            painter.setPen(QPen(accent_color, 2.0))
+            painter.drawLine(-4, 8, -6, 12)
+            painter.drawLine(4, 8, 2, 12)
+            
+        draw_widget_dial(-dial_spacing, draw_weather_icon, "", "26°", accent_color, pure_white, QColor(accent_color.red(), accent_color.green(), accent_color.blue(), 80), track_progress=100)
         
-        painter.setFont(font_date_2)
-        painter.setPen(pure_white)
-        painter.drawText(QRectF(date_x, cy + h * 0.01, w * 0.3, h * 0.05), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop, date_str_2)
+        # Date Widget (Middle)
+        def draw_calendar_icon():
+            painter.setPen(QPen(accent_color, 1.5))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawRoundedRect(QRectF(-9, -5, 18, 14), 2, 2)
+            painter.drawLine(-5, -7, -5, -5)
+            painter.drawLine(5, -7, 5, -5)
+            painter.drawLine(-9, 1, 9, 1)
+            painter.setPen(QPen(accent_color, 1.5))
+            painter.drawPoint(-4, 5)
+            painter.drawPoint(0, 5)
+            painter.drawPoint(4, 5)
+            
+        date_now = QDate.currentDate()
+        date_str_top = date_now.toString("ddd").upper()
+        date_str_bot = date_now.toString("dd MMM").upper()
+        draw_widget_dial(0, draw_calendar_icon, date_str_top, date_str_bot, accent_color, pure_white, QColor(120, 125, 130, 80))
+        
+        # Heart Rate Widget (Bottom)
+        def draw_heart_icon():
+            painter.setPen(QPen(accent_color, 2.0, Qt.PenStyle.SolidLine, Qt.PenCapStyle.SquareCap))
+            pixels = [
+                (-3, -3), (-2, -4), (-1, -4), (0, -3), (1, -4), (2, -4), (3, -3),
+                (-4, -2), (4, -2), (-4, -1), (4, -1), (-3, 0), (3, 0),
+                (-2, 1), (2, 1), (-1, 2), (1, 2), (0, 3)
+            ]
+            for px, py in pixels:
+                painter.drawPoint(int(px * 1.5), int(py * 1.5))
+            
+        draw_widget_dial(dial_spacing, draw_heart_icon, "", "--", accent_color, pure_white, QColor(120, 125, 130, 80))
 
     # ==========================================
     # AMBIENT ORBS & MAIN PAINT EVENT
