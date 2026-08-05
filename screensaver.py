@@ -3,9 +3,10 @@ import math
 import ctypes
 import json
 import os
+import random
 from PyQt6.QtWidgets import QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider
-from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate
-from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath
+from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate, QPointF
+from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath, QFontDatabase
 
 class CrispAestheticFliqlo(QWidget):
     def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100):
@@ -23,7 +24,18 @@ class CrispAestheticFliqlo(QWidget):
         # States
         self.show_bg = False
         self.bg_opacity = 1.0
-        self.clock_style = 1 # 0 = Fliqlo Flip Clock, 1 = Modern Rotary
+        self.clock_style = 1 # 0 = Fliqlo Flip Clock, 1 = Modern Rotary, 2 = Dino Game
+        
+        # Dino Game State
+        self.dino_active = False
+        self.dino_y = 0.0 
+        self.dino_vy = 0.0
+        self.dino_frame = 0
+        self.dino_obstacles = [] 
+        self.dino_speed = 8.0 
+        self.dino_dead = False
+        self.dino_timer_msec = 0
+        self.dino_sound = False
         
         # --- CUSTOMIZATION ---
         self.rotary_accent = QColor(accent_color) 
@@ -77,6 +89,62 @@ class CrispAestheticFliqlo(QWidget):
             self.bg_opacity = max(0.0, self.bg_opacity - 0.04)
             
         self.time_elapsed += 0.016 
+        
+        # Dino Game Loop
+        if self.clock_style == 2:
+            self.dino_timer_msec += 16
+            
+            if not self.dino_dead:
+                # Physics
+                if self.dino_y > 0 or self.dino_vy < 0:
+                    self.dino_vy -= 0.6 # gravity
+                    self.dino_y += self.dino_vy
+                    if self.dino_y <= 0:
+                        self.dino_y = 0
+                        self.dino_vy = 0
+                
+                # Obstacle Generation
+                if len(self.dino_obstacles) == 0:
+                    self.dino_obstacles.append({'x': self.width() + 200, 'w': 20, 'h': 40})
+                else:
+                    last_obs = self.dino_obstacles[-1]
+                    if self.width() - last_obs['x'] > 400 + random.randint(0, 400):
+                        self.dino_obstacles.append({'x': self.width() + 50, 'w': random.randint(20, 30), 'h': random.randint(30, 50)})
+                
+                for obs in self.dino_obstacles:
+                    obs['x'] -= self.dino_speed
+                
+                self.dino_obstacles = [o for o in self.dino_obstacles if o['x'] > -100]
+                
+                # Auto-play AI
+                dino_x = self.width() * 0.2
+                dino_w = 40
+                
+                next_obs = None
+                for obs in self.dino_obstacles:
+                    if obs['x'] + obs['w'] > dino_x:
+                        next_obs = obs
+                        break
+                        
+                if next_obs:
+                    dist = next_obs['x'] - (dino_x + dino_w)
+                    if dist < 120 and self.dino_y == 0:
+                        mins = self.dino_timer_msec / 60000.0
+                        die_chance = (mins // 10) * 0.10
+                        if die_chance > 1.0: die_chance = 1.0
+                        
+                        if random.random() < die_chance:
+                            self.dino_dead = True
+                        else:
+                            self.dino_vy = 12.0
+                            
+                    # Collision
+                    if not self.dino_dead:
+                        if next_obs['x'] < dino_x + dino_w - 10 and next_obs['x'] + next_obs['w'] > dino_x + 10:
+                            if self.dino_y < next_obs['h'] - 5:
+                                self.dino_dead = True
+                                
+            self.dino_frame = (self.dino_frame + 1) % 20
         
         if self.animating:
             self.anim_progress += 0.035 
@@ -506,6 +574,85 @@ class CrispAestheticFliqlo(QWidget):
             painter.drawText(QRectF(bat_text_x, info_y, w*0.1, info_h), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, bat_text)
 
     # ==========================================
+    # DESIGN 3: DINO GAME CLOCK
+    # ==========================================
+    def draw_dino_style(self, painter, w, h):
+        now = QTime.currentTime()
+        time_str = f"{now.hour():02d}:{now.minute():02d}"
+        
+        font_time = QFont(["Bungee", "Arial Black"])
+        font_time.setPixelSize(int(h * 0.18))
+        font_time.setWeight(QFont.Weight.Bold)
+        
+        painter.setFont(font_time)
+        painter.setPen(QColor(255, 255, 255))
+        painter.drawText(QRectF(0, h * 0.1, w, h * 0.2), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter, time_str)
+        
+        date_str = QDate.currentDate().toString("dddd, d MMMM")
+        font_date = QFont(["Google Sans", "Product Sans", "Segoe UI"])
+        font_date.setPixelSize(int(h * 0.025))
+        font_date.setWeight(QFont.Weight.Medium)
+        
+        painter.setFont(font_date)
+        painter.drawText(QRectF(0, h * 0.28, w, h * 0.1), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str)
+        
+        if self.dino_sound:
+            painter.setPen(QColor(100, 100, 100))
+            painter.setFont(QFont("Segoe UI", 12))
+            painter.drawText(QRectF(w - 100, 20, 80, 30), Qt.AlignmentFlag.AlignRight, "Sound: ON")
+            
+        ground_y = h * 0.8
+        painter.setPen(QPen(QColor(100, 100, 100), 2))
+        painter.drawLine(0, int(ground_y), w, int(ground_y))
+        
+        dino_x = w * 0.2
+        dino_w = 40
+        dino_h = 44
+        
+        painter.save()
+        painter.translate(dino_x, ground_y - self.dino_y - dino_h)
+        painter.setBrush(QColor(255, 255, 255))
+        painter.setPen(Qt.PenStyle.NoPen)
+        
+        painter.drawRect(8, 0, 24, 20)
+        painter.setBrush(QColor(0, 0, 0))
+        painter.drawRect(24, 4, 4, 4) 
+        painter.setBrush(QColor(255, 255, 255))
+        painter.drawRect(0, 16, 24, 20)
+        painter.drawRect(24, 16, 8, 12)
+        
+        if self.dino_dead:
+            painter.drawRect(4, 36, 8, 8)
+            painter.drawRect(16, 36, 8, 8)
+        else:
+            if self.dino_y > 0:
+                painter.drawRect(4, 36, 8, 8)
+                painter.drawRect(16, 36, 8, 8)
+            else:
+                if self.dino_frame < 10:
+                    painter.drawRect(4, 36, 8, 8)
+                    painter.drawRect(16, 32, 8, 4)
+                else:
+                    painter.drawRect(4, 32, 8, 4)
+                    painter.drawRect(16, 36, 8, 8)
+        painter.restore()
+        
+        painter.setBrush(QColor(255, 255, 255))
+        for obs in self.dino_obstacles:
+            painter.drawRect(QRectF(obs['x'], ground_y - obs['h'], obs['w'], obs['h']))
+            
+        if self.dino_dead:
+            font_dead = QFont(["Google Sans", "Segoe UI"])
+            font_dead.setPixelSize(24)
+            font_dead.setWeight(QFont.Weight.Bold)
+            painter.setFont(font_dead)
+            painter.setPen(QColor(255, 50, 50))
+            painter.drawText(QRectF(0, ground_y - 150, w, 50), Qt.AlignmentFlag.AlignHCenter, "G A M E   O V E R")
+            font_dead.setPixelSize(16)
+            painter.setPen(QColor(150, 150, 150))
+            painter.drawText(QRectF(0, ground_y - 100, w, 50), Qt.AlignmentFlag.AlignHCenter, "Press SPACE to restart")
+
+    # ==========================================
     # AMBIENT ORBS & MAIN PAINT EVENT
     # ==========================================
     def draw_ambient_orb(self, painter, w, h, duration, start_x, start_y, start_size, end_x, end_y, end_size, color):
@@ -558,8 +705,10 @@ class CrispAestheticFliqlo(QWidget):
         
         if self.clock_style == 0:
             self.draw_fliqlo_style(painter, w, h)
-        else:
+        elif self.clock_style == 1:
             self.draw_rotary_style(painter, w, h)
+        else:
+            self.draw_dino_style(painter, w, h)
             
         # Apply brightness overlay
         if self.brightness < 100:
@@ -573,16 +722,29 @@ class CrispAestheticFliqlo(QWidget):
             return
             
         if event.key() == Qt.Key.Key_Equal or event.key() == Qt.Key.Key_Plus:
-            self.clock_scale = min(0.95, self.clock_scale + 0.05)
-            self.update()
+            if self.clock_style == 2:
+                self.dino_sound = not self.dino_sound
+                self.update()
+            else:
+                self.clock_scale = min(0.95, self.clock_scale + 0.05)
+                self.update()
         elif event.key() == Qt.Key.Key_Minus:
-            self.clock_scale = max(0.15, self.clock_scale - 0.05)
-            self.update()
+            if self.clock_style == 2:
+                self.dino_sound = not self.dino_sound
+                self.update()
+            else:
+                self.clock_scale = max(0.15, self.clock_scale - 0.05)
+                self.update()
         elif event.key() == Qt.Key.Key_Up or event.key() == Qt.Key.Key_Down:
-            self.clock_style = 1 - self.clock_style 
+            self.clock_style = (self.clock_style + (1 if event.key() == Qt.Key.Key_Up else -1)) % 3 
             self.update()
         elif event.key() in (Qt.Key.Key_Space, Qt.Key.Key_F23):
-            self.show_bg = not self.show_bg
+            if self.clock_style == 2 and self.dino_dead:
+                self.dino_dead = False
+                self.dino_obstacles = []
+                self.dino_timer_msec = 0
+            else:
+                self.show_bg = not self.show_bg
         elif self.enable_win_key and event.key() in (Qt.Key.Key_Meta, Qt.Key.Key_Super_L, Qt.Key.Key_Super_R):
             self.show_bg = not self.show_bg
         else:
@@ -667,6 +829,15 @@ class SettingsDialog(QDialog):
         self.config_path = config_path
         self.config = self.load_config()
         self.initUI()
+        self.installEventFilter(self)
+        
+    def eventFilter(self, obj, event):
+        if event.type() == event.Type.KeyPress:
+            if event.key() == Qt.Key.Key_Up or event.key() == Qt.Key.Key_Down:
+                self.preview.clock_style = (self.preview.clock_style + (1 if event.key() == Qt.Key.Key_Up else -1)) % 3
+                self.preview.update()
+                return True
+        return super().eventFilter(obj, event)
         
     def load_config(self):
         default_config = {
@@ -774,14 +945,15 @@ class SettingsDialog(QDialog):
         self.setLayout(main_layout)
         
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key.Key_Up or event.key() == Qt.Key.Key_Down:
-            self.preview.clock_style = 1 - self.preview.clock_style
-            self.preview.update()
-        else:
-            super().keyPressEvent(event)
+        super().keyPressEvent(event)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    
+    font_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Bungee-Regular.ttf")
+    if getattr(sys, 'frozen', False):
+        font_path = os.path.join(sys._MEIPASS, "Bungee-Regular.ttf")
+    QFontDatabase.addApplicationFont(font_path)
     
     # Parse Windows screensaver arguments manually
     # Windows passes things like '/c', '/p65535', or '/s'
