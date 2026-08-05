@@ -2,7 +2,7 @@ import sys
 import math
 from PyQt6.QtWidgets import QApplication, QWidget
 from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate
-from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient
+from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QConicalGradient, QBrush
 
 class CrispAestheticFliqlo(QWidget):
     def __init__(self):
@@ -211,14 +211,20 @@ class CrispAestheticFliqlo(QWidget):
         muted_grey = QColor(145, 150, 155) 
 
         # --- BACKGROUND DIAL TRACKS ---
-        # Draw the solid faint grey tracks matching the position of the ticks
-        min_tick_offset = float(w) * 0.045
-        sec_tick_offset = float(w) * 0.022
+        # Draw tracks that gracefully fade out using a conical gradient, matching the ticks perfectly.
+        track_grad = QConicalGradient(cx, cy, 0)
+        track_grad.setColorAt(0.0, QColor(120, 125, 130, 80))
+        track_grad.setColorAt(75.0 / 360.0, QColor(120, 125, 130, 0))
+        track_grad.setColorAt(180.0 / 360.0, QColor(120, 125, 130, 0))
+        track_grad.setColorAt(285.0 / 360.0, QColor(120, 125, 130, 0))
+        track_grad.setColorAt(1.0, QColor(120, 125, 130, 80))
         
-        track_pen = QPen(QColor(120, 125, 130, 40)) # Faint grey, matched to tick color but highly transparent
-        track_pen.setWidthF(1.5)
+        track_pen = QPen(QBrush(track_grad), 1.5)
         painter.setPen(track_pen)
         painter.setBrush(Qt.BrushStyle.NoBrush)
+        
+        min_tick_offset = float(w) * 0.045
+        sec_tick_offset = float(w) * 0.022
         
         # Minute track
         min_track_radius = R_min + min_tick_offset
@@ -227,6 +233,7 @@ class CrispAestheticFliqlo(QWidget):
         # Second track
         sec_track_radius = R_sec + sec_tick_offset
         painter.drawEllipse(QRectF(cx - sec_track_radius, cy - sec_track_radius, sec_track_radius * 2, sec_track_radius * 2))
+
 
         # --- MINUTE WHEEL ---
         def draw_minute_wheel(radius, val_float, font_size):
