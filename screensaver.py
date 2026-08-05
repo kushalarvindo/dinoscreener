@@ -381,9 +381,9 @@ class CrispAestheticFliqlo(QWidget):
         center_x = date_x + box_w / 2
         
         if self.show_info:
-            offset_y = cy + h * 0.03
+            offset_y = cy - h * 0.02
         else:
-            offset_y = cy + h * 0.09
+            offset_y = cy + h * 0.015
         
         # Draw Center Aligned Date Text
         font_date_1 = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
@@ -609,11 +609,23 @@ class SettingsDialog(QDialog):
         super().__init__()
         self.setWindowTitle("Dinoscreener Settings")
         self.setFixedSize(850, 600)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
-        # Sleek dark theme
+        # Try to apply Windows 11 Mica & Dark Title Bar
+        try:
+            hwnd = int(self.winId())
+            backdrop_type = ctypes.c_int(2) # DWMSBT_MAINWINDOW (Mica)
+            ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 38, ctypes.byref(backdrop_type), ctypes.sizeof(backdrop_type))
+            
+            dark_mode = ctypes.c_int(1)
+            ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 20, ctypes.byref(dark_mode), ctypes.sizeof(dark_mode))
+        except Exception:
+            pass
+        
+        # Sleek dark theme with semi-transparent background for Mica to show through
         self.setStyleSheet("""
             QDialog {
-                background-color: #11111B;
+                background-color: rgba(17, 17, 27, 160);
             }
             QLabel {
                 color: #CDD6F4;
@@ -623,21 +635,25 @@ class SettingsDialog(QDialog):
             QCheckBox {
                 color: #A6ADC8;
                 font-family: 'Segoe UI', sans-serif;
+                background: transparent;
             }
             QPushButton {
-                background-color: #313244;
+                background-color: rgba(49, 50, 68, 200);
                 color: #CDD6F4;
                 border: 1px solid #45475A;
                 border-radius: 4px;
                 padding: 6px 12px;
             }
             QPushButton:hover {
-                background-color: #45475A;
+                background-color: rgba(69, 71, 90, 200);
+            }
+            QSlider {
+                background: transparent;
             }
             QSlider::groove:horizontal {
                 border: 1px solid #45475A;
                 height: 4px;
-                background: #313244;
+                background: rgba(49, 50, 68, 200);
                 border-radius: 2px;
             }
             QSlider::handle:horizontal {
@@ -756,6 +772,13 @@ class SettingsDialog(QDialog):
         main_layout.addWidget(control_bar)
         
         self.setLayout(main_layout)
+        
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Up or event.key() == Qt.Key.Key_Down:
+            self.preview.clock_style = 1 - self.preview.clock_style
+            self.preview.update()
+        else:
+            super().keyPressEvent(event)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

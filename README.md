@@ -9,16 +9,28 @@
   <img src="https://raw.githubusercontent.com/kushalarvindo/screensaver/main/screenshot.png" alt="Dinoscreener Screenshot" width="800">
 </div>
 
-## ✨ Features
+## ✨ Features & Architecture
 
-- **Modern Rotary Interface**: A smooth, elegant dual-ring rotary clock design.
-- **Ambient Lighting**: Subtle, color-shifting ambient orbs float in the background.
+Dinoscreener is built natively using **Python** and **PyQt6**. It leverages powerful graphics engines to render 60 FPS antialiased shapes, drawing the interface using complex `QPainter` geometry rather than loading static images.
+
+- **Modern Rotary Clock Engine**: The primary clock face is a dual-ring rotary interface. Using trigonometry (`math.sin` / `math.cos`), Dinoscreener calculates the exact rotation angle for each minute and second, creating a seamless spinning wheel effect. The opacity of each number fades gracefully based on its distance from the exact current time.
+- **Classic Fliqlo Flip Clock**: By pressing the **Up/Down arrow keys**, you can instantly switch the rendering engine over to a retro mechanical flip-clock style! The flip animation utilizes `QPainter.scale` to visually compress the numbers, giving a 3D perspective effect as the card falls.
+- **Ambient Lighting System**: Subtle, color-shifting ambient orbs float in the background. These are drawn using `QRadialGradient`, and their coordinates drift organically using trigonometric phase shifts over a 15-second loop.
 - **System Integrations**: 
   - Dynamic local weather display ☀️
-  - Real-time battery tracking with custom charging icons 🔋
-- **Interactive Toggles**: Press spacebar to toggle ambient backgrounds on/off.
-- **Screenshot Mode**: True "Strict Exit" support, allowing you to lock the screensaver on-screen purely for screenshots without mouse movements interrupting it.
-- **Native GUI Settings**: Configure everything visually straight from the Windows Screen Saver panel!
+  - Real-time battery tracking with custom charging icons 🔋 (Using Windows `ctypes.windll.kernel32.GetSystemPowerStatus`)
+- **Native GUI Settings**: Configure everything visually straight from the Windows Screen Saver panel! The settings window itself applies Windows 11's transparent **Mica** material natively to its background via `DwmSetWindowAttribute`.
+
+---
+
+## ⌨️ Controls & Keyboard Shortcuts
+
+While the screensaver is running, you can use these keyboard shortcuts to modify it in real time:
+
+- **`Arrow Up` / `Arrow Down`**: Toggle between the Modern Rotary Clock and the Classic Fliqlo Flip Clock styles.
+- **`Spacebar` / `Windows Key`**: Toggle the background Ambient Lighting orbs on or off.
+- **`+` (Plus) / `-` (Minus)**: Scale the size of the Fliqlo flip clock up or down.
+- **`Ctrl + Z`**: If you enabled "Screenshot Mode" (Strict Exit) in the settings, moving your mouse will no longer close the screensaver. You must press this exact keybind to close it and return to your desktop.
 
 ---
 
@@ -68,12 +80,6 @@ If you'd prefer to build the `.scr` file yourself from the source code rather th
 5. **Install**: Right-click `Dinoscreener.scr` and select **Install**.
 
 ---
-
-## ⚙️ Configuration Options
-Clicking the **Settings...** button in the Windows Screen Saver dialog lets you configure:
-- **Accent Color**: Pass any Hex code (e.g. `#8F96BF`, `#FF5733`) to instantly reskin the UI.
-- **Show Weather & Battery**: Toggle the extra information line on or off. The layout will dynamically re-center itself!
-- **Screenshot Mode**: When enabled, the screensaver will *only* close if you explicitly press `Ctrl+Z`. Moving the mouse or mashing keys won't close it. 
 
 <div align="center">
   <p>Built with ❤️ using Python & PyQt6</p>
