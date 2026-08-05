@@ -15,7 +15,7 @@ Dinoscreener is built natively using **Python** and **PyQt6**. It leverages powe
 
 ### 🎨 Clock Modes
 
-Dinoscreener V2 features three distinct, meticulously crafted clock styles. Switch between them instantly using the **Up/Down arrow keys**!
+Dinoscreener V3.5 Perfected Version features three distinct, meticulously crafted clock styles. Switch between them instantly using the **Up/Down arrow keys**!
 
 | Mode | Description |
 |---|---|
@@ -25,9 +25,13 @@ Dinoscreener V2 features three distinct, meticulously crafted clock styles. Swit
 
 - **Ambient Lighting System**: Subtle, color-shifting ambient orbs float in the background. These are drawn using `QRadialGradient`, and their coordinates drift organically using trigonometric phase shifts over a 15-second loop.
 - **System Integrations**: 
-  - Dynamic local weather display ☀️
+  - Dynamic local weather display ☁️
   - Real-time battery tracking with custom charging icons 🔋 (Using Windows `ctypes.windll.kernel32.GetSystemPowerStatus`)
-- **Native GUI Settings**: Configure everything visually straight from the Windows Screen Saver panel! The settings window itself applies Windows 11's transparent **Mica** material natively to its background via `DwmSetWindowAttribute`.
+- **Native GUI Settings**: Configure everything visually straight from the Windows Screen Saver panel! 
+  - Toggle 24-Hour mode and Leading Zeros (e.g., 09:00).
+  - Enable "Ignore Media Keys" so volume/music changes don't dismiss the screensaver.
+  - Independent zoom/scaling remembered separately for each clock style!
+  - The settings window itself applies Windows 11's transparent **Mica** material natively to its background via `DwmSetWindowAttribute`.
 
 ---
 
