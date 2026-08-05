@@ -108,20 +108,32 @@ class CrispAestheticFliqlo(QWidget):
             
             if not self.dino_dead:
                 # Physics
-                if self.dino_y > 0 or self.dino_vy < 0:
+                self.dino_y += self.dino_vy
+                if self.dino_y > 0:
                     self.dino_vy -= 0.6 # gravity
-                    self.dino_y += self.dino_vy
-                    if self.dino_y <= 0:
-                        self.dino_y = 0
-                        self.dino_vy = 0
+                else:
+                    self.dino_y = 0
+                    self.dino_vy = 0
                 
                 # Obstacle Generation
                 if len(self.dino_obstacles) == 0:
-                    self.dino_obstacles.append({'x': self.width() + 200, 'w': 20, 'h': 40})
+                    self.dino_obstacles.append({'x': self.width() + 200, 'w': 25, 'h': 50, 'type': 'large1'})
                 else:
                     last_obs = self.dino_obstacles[-1]
                     if self.width() - last_obs['x'] > 400 + random.randint(0, 400):
-                        self.dino_obstacles.append({'x': self.width() + 50, 'w': random.randint(20, 30), 'h': random.randint(30, 50)})
+                        obs_type = random.randint(0, 5)
+                        if obs_type == 0:
+                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 17, 'h': 35, 'type': 'small1'})
+                        elif obs_type == 1:
+                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 34, 'h': 35, 'type': 'small2'})
+                        elif obs_type == 2:
+                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 51, 'h': 35, 'type': 'small3'})
+                        elif obs_type == 3:
+                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 25, 'h': 50, 'type': 'large1'})
+                        elif obs_type == 4:
+                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 50, 'h': 50, 'type': 'large2'})
+                        elif obs_type == 5:
+                            self.dino_obstacles.append({'x': self.width() + 50, 'w': 75, 'h': 50, 'type': 'large3'})
                 
                 for obs in self.dino_obstacles:
                     obs['x'] -= self.dino_speed
@@ -587,7 +599,8 @@ class CrispAestheticFliqlo(QWidget):
         
         painter.setFont(font_time)
         painter.setPen(QColor(255, 255, 255))
-        painter.drawText(QRectF(0, h * 0.1, w, h * 0.2), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter, time_str)
+        time_rect = QRectF(0, h * 0.05, w, scaled_size * 1.2)
+        painter.drawText(time_rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, time_str)
         
         base_date = int(h * 0.025)
         scaled_date = int(base_date * (self.clock_scale / 0.45))
@@ -597,7 +610,9 @@ class CrispAestheticFliqlo(QWidget):
         font_date.setWeight(QFont.Weight.Medium)
         
         painter.setFont(font_date)
-        painter.drawText(QRectF(0, h * 0.28, w, h * 0.1), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str)
+        date_y = h * 0.05 + scaled_size
+        date_rect = QRectF(0, date_y, w, scaled_date * 2)
+        painter.drawText(date_rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str)
         
         if self.dino_sound:
             painter.setPen(QColor(100, 100, 100))
@@ -625,7 +640,15 @@ class CrispAestheticFliqlo(QWidget):
             painter.drawPixmap(target_rect, self.sprite_pixmap, dino_rect)
             
             for obs in self.dino_obstacles:
-                cactus_rect = QRectF(332, 2, 25, 50)
+                t = obs.get('type', 'large1')
+                if t == 'small1': cactus_rect = QRectF(228, 2, 17, 35)
+                elif t == 'small2': cactus_rect = QRectF(228, 2, 34, 35)
+                elif t == 'small3': cactus_rect = QRectF(228, 2, 51, 35)
+                elif t == 'large1': cactus_rect = QRectF(332, 2, 25, 50)
+                elif t == 'large2': cactus_rect = QRectF(332, 2, 50, 50)
+                elif t == 'large3': cactus_rect = QRectF(332, 2, 75, 50)
+                else: cactus_rect = QRectF(332, 2, 25, 50)
+                
                 obs_target = QRectF(obs['x'], ground_y - obs['h'], obs['w'], obs['h'])
                 painter.drawPixmap(obs_target, self.sprite_pixmap, cactus_rect)
             
@@ -670,10 +693,7 @@ class CrispAestheticFliqlo(QWidget):
         w = self.width()
         h = self.height()
         
-        if self.preview_mode:
-            painter.fillRect(self.rect(), QColor(0, 0, 0, 0))
-        else:
-            painter.fillRect(self.rect(), QColor(0, 0, 0))
+        painter.fillRect(self.rect(), QColor(0, 0, 0))
         
         self.draw_ambient_orb(
             painter, w, h, duration=12.0,
@@ -897,7 +917,7 @@ class SettingsDialog(QDialog):
         
         # 2. CONTROL BAR (Floating Bottom)
         control_bar = QWidget()
-        control_bar.setStyleSheet("background-color: #181825; border-top: 1px solid #313244;")
+        control_bar.setStyleSheet("background: transparent; border-top: 1px solid #313244;")
         control_layout = QHBoxLayout()
         control_layout.setContentsMargins(20, 15, 20, 15)
         
