@@ -365,9 +365,9 @@ class CrispAestheticFliqlo(QWidget):
         center_x = date_x + box_w / 2
         
         if self.show_info:
-            base_y = cy - h * 0.04
+            offset_y = cy - h * 0.02
         else:
-            base_y = cy
+            offset_y = cy + h * 0.01
         
         # Draw Center Aligned Date Text
         font_date_1 = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
@@ -381,15 +381,15 @@ class CrispAestheticFliqlo(QWidget):
         
         painter.setFont(font_date_1)
         painter.setPen(accent_color)
-        painter.drawText(QRectF(date_x, base_y - h * 0.10, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom, date_str_1)
+        painter.drawText(QRectF(date_x, offset_y - h * 0.10, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom, date_str_1)
         
         painter.setFont(font_date_2)
         painter.setPen(pure_white)
-        painter.drawText(QRectF(date_x, base_y - h * 0.01, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str_2)
+        painter.drawText(QRectF(date_x, offset_y - h * 0.01, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str_2)
         
         if self.show_info:
             # Unified Weather & Battery Display
-            info_y = base_y + h * 0.10
+            info_y = offset_y + h * 0.07
             info_h = h * 0.04
             
             # Center dot
