@@ -666,7 +666,8 @@ class CrispAestheticFliqlo(QWidget):
                 
             painter.setFont(font_info)
             painter.setPen(QColor(230, 235, 240))
-            painter.drawText(QRectF(bat_text_x, info_y, w*0.1, info_h), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, bat_text)
+            # Align text exactly with the battery icon height
+            painter.drawText(QRectF(bat_text_x, bat_icon_y, w*0.1, bat_icon_h), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, bat_text)
 
     # ==========================================
     # DESIGN 3: DINO GAME CLOCK
@@ -1092,7 +1093,7 @@ class SettingsDialog(QDialog):
         control_layout = QGridLayout()
         control_layout.setContentsMargins(20, 15, 20, 15)
         control_layout.setHorizontalSpacing(15)
-        control_layout.setVerticalSpacing(10)
+        control_layout.setVerticalSpacing(15)
         
         # Row 0: Basic Controls
         bright_label = QLabel("🔆")
@@ -1113,7 +1114,9 @@ class SettingsDialog(QDialog):
         style_next.setStyleSheet("padding: 5px 15px; font-size: 14px;")
         style_next.clicked.connect(self.next_style)
         
-        self.color_btn = QPushButton("🎨 Color")
+        self.color_btn = QPushButton("🎨")
+        self.color_btn.setStyleSheet("padding: 5px 15px; font-size: 14px;")
+        self.color_btn.setToolTip("Pick Accent Color")
         self.color_btn.clicked.connect(self.pick_color)
         
         # Row 1: Checkboxes
@@ -1148,11 +1151,11 @@ class SettingsDialog(QDialog):
         self.font_cb.currentFontChanged.connect(self.update_dino_font)
         
         reset_btn = QPushButton("Reset Defaults")
-        reset_btn.setStyleSheet("color: #FF5555;")
+        reset_btn.setStyleSheet("color: #FF7777; background: transparent; border: 1px solid #FF7777; padding: 6px 15px; border-radius: 4px;")
         reset_btn.clicked.connect(self.reset_defaults)
         
         save_btn = QPushButton("OK")
-        save_btn.setStyleSheet("background-color: #8F96BF; color: #11111B; font-weight: bold; padding: 6px 20px;")
+        save_btn.setStyleSheet("background-color: #8F96BF; color: #11111B; font-weight: bold; padding: 6px 25px; border-radius: 4px;")
         save_btn.clicked.connect(self.save_config)
         
         # Top Row Assembly
@@ -1170,7 +1173,13 @@ class SettingsDialog(QDialog):
         
         # Bottom Row Assembly
         bottom_row = QHBoxLayout()
-        bottom_row.setSpacing(15) # Add spacing between checkboxes
+        bottom_row.setSpacing(20) # Add spacing between checkboxes
+        
+        # Add a subtle separator before checkboxes
+        line = QFrame()
+        line.setFrameShape(QFrame.Shape.VLine)
+        line.setStyleSheet("border-left: 1px solid #414254; margin: 0 10px;")
+        
         bottom_row.addWidget(self.info_cb)
         bottom_row.addWidget(self.strict_cb)
         bottom_row.addWidget(self.win_cb)
@@ -1182,6 +1191,9 @@ class SettingsDialog(QDialog):
         # Action Row Assembly
         action_row = QHBoxLayout()
         action_row.addWidget(self.font_label)
+        
+        # Style font combobox slightly
+        self.font_cb.setStyleSheet("padding: 3px 5px; background: #313244; color: white; border-radius: 3px;")
         action_row.addWidget(self.font_cb)
         action_row.addStretch()
         action_row.addWidget(reset_btn)
