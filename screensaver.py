@@ -107,9 +107,9 @@ class CrispAestheticFlipClock(QWidget):
         self.brightness = val
         self.update()
         
-    def on_weather_updated(self, temp, code):
-        self.weather_temp = temp
-        self.weather_code = code
+    def on_weather_updated(self, data):
+        self.weather_temp = data.get("temp", 0)
+        self.weather_code = data.get("code", 0)
         self.weather_loaded = True
         self.update()
 
