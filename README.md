@@ -6,7 +6,7 @@
 <br />
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/kushalarvindo/screensaver/main/screenshot.png" alt="Dinoscreener Screenshot" width="800">
+  <img src="https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Dino_non-birthday_version.gif" alt="Dinoscreener Screenshot" width="800">
 </div>
 
 ## ✨ Features & Architecture
