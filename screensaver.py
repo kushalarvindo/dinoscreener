@@ -1314,24 +1314,19 @@ class SettingsDialog(QDialog):
         top_row.addWidget(self.color_btn)
         top_row.addStretch()
         
-        # Bottom Row Assembly
-        bottom_row = QHBoxLayout()
-        bottom_row.setSpacing(20) # Add spacing between checkboxes
+        # Checkbox Grid Assembly
+        cb_layout = QGridLayout()
+        cb_layout.setHorizontalSpacing(20)
+        cb_layout.setVerticalSpacing(10)
         
-        # Add a subtle separator before checkboxes
-        line = QFrame()
-        line.setFrameShape(QFrame.Shape.VLine)
-        line.setStyleSheet("border-left: 1px solid #414254; margin: 0 10px;")
-        
-        bottom_row.addWidget(self.info_cb)
-        bottom_row.addWidget(self.strict_cb)
-        bottom_row.addWidget(self.win_cb)
-        bottom_row.addWidget(self.use_24hr_cb)
-        bottom_row.addWidget(self.leading_zero_cb)
-        bottom_row.addWidget(self.ignore_media_cb)
-        bottom_row.addWidget(self.live_weather_cb)
-        bottom_row.addWidget(self.pixel_shift_cb)
-        bottom_row.addStretch()
+        cb_layout.addWidget(self.info_cb, 0, 0)
+        cb_layout.addWidget(self.strict_cb, 0, 1)
+        cb_layout.addWidget(self.win_cb, 0, 2)
+        cb_layout.addWidget(self.use_24hr_cb, 0, 3)
+        cb_layout.addWidget(self.leading_zero_cb, 1, 0)
+        cb_layout.addWidget(self.ignore_media_cb, 1, 1)
+        cb_layout.addWidget(self.live_weather_cb, 1, 2)
+        cb_layout.addWidget(self.pixel_shift_cb, 1, 3)
         
         # Action Row Assembly
         action_row = QHBoxLayout()
@@ -1358,7 +1353,7 @@ class SettingsDialog(QDialog):
         action_row.addWidget(save_btn)
         
         control_layout.addLayout(top_row, 0, 0)
-        control_layout.addLayout(bottom_row, 1, 0)
+        control_layout.addLayout(cb_layout, 1, 0)
         control_layout.addLayout(action_row, 2, 0)
         
         control_bar.setLayout(control_layout)
