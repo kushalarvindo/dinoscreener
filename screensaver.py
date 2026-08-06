@@ -51,7 +51,12 @@ class CrispAestheticFliqlo(QWidget):
         self.preview_mode = preview_mode
         self.brightness = brightness
         self.use_24hr = use_24hr
-        self.leading_zero = leading_zero
+        if leading_zeros is None:
+            self.leading_zeros = {"0": False, "1": False, "2": False}
+        elif isinstance(leading_zeros, bool):
+            self.leading_zeros = {"0": leading_zeros, "1": leading_zeros, "2": leading_zeros}
+        else:
+            self.leading_zeros = leading_zeros
         self.ignore_media_keys = ignore_media_keys
         self.dino_font = dino_font
         
@@ -84,7 +89,7 @@ class CrispAestheticFliqlo(QWidget):
         self.preview.update()
         
     def update_leading_zero(self, state=None):
-        self.preview.leading_zero = self.leading_zero_cb.isChecked()
+        self.preview.leading_zeros[str(self.preview.clock_style)] = self.leading_zero_cb.isChecked()
         self.preview.update()
         
     def update_media_keys(self, state=None):
@@ -234,13 +239,15 @@ class CrispAestheticFliqlo(QWidget):
         hour = time_obj.hour()
         minute = time_obj.minute()
         is_pm = hour >= 12
+        lz = self.leading_zeros.get(str(self.clock_style), False)
         if self.use_24hr:
-            hour_str = f"{hour:02d}" if self.leading_zero else str(hour)
+            hour_str = f"{hour:02d}" if lz else str(hour)
             return hour_str, f"{minute:02d}", ""
         else:
             hour_12 = hour % 12
             if hour_12 == 0: hour_12 = 12
-            return str(hour_12), f"{minute:02d}", "PM" if is_pm else "AM"
+            hour_str = f"{hour_12:02d}" if lz else str(hour_12)
+            return hour_str, f"{minute:02d}", "PM" if is_pm else "AM"
 
     # ==========================================
     # DESIGN 1: FLIQLO FLIP CLOCK
@@ -365,12 +372,13 @@ class CrispAestheticFliqlo(QWidget):
         min_val = now.minute() + sec_val / 60.0
         
         hour = now.hour()
+        lz = self.leading_zeros.get(str(self.clock_style), False)
         if self.use_24hr:
-            hour_str = f"{hour:02d}" if self.leading_zero else str(hour)
+            hour_str = f"{hour:02d}" if lz else str(hour)
         else:
             hour_12 = hour % 12
             if hour_12 == 0: hour_12 = 12
-            hour_str = f"{hour_12:02d}"
+            hour_str = f"{hour_12:02d}" if lz else str(hour_12)
 
         cx = float(w) * 0.10 
         cy = float(h) * 0.5
@@ -675,12 +683,13 @@ class CrispAestheticFliqlo(QWidget):
     def draw_dino_style(self, painter, w, h):
         now = QTime.currentTime()
         hour = now.hour()
+        lz = self.leading_zeros.get(str(self.clock_style), False)
         if self.use_24hr:
-            hour_str = f"{hour:02d}" if self.leading_zero else str(hour)
+            hour_str = f"{hour:02d}" if lz else str(hour)
         else:
             hour_12 = hour % 12
             if hour_12 == 0: hour_12 = 12
-            hour_str = str(hour_12)
+            hour_str = f"{hour_12:02d}" if lz else str(hour_12)
         time_str = f"{hour_str}:{now.minute():02d}"
         
         base_size = int(h * 0.18)
@@ -993,7 +1002,7 @@ class SettingsDialog(QDialog):
         self.config["clock_style"] = self.preview.clock_style
         self.config["clock_scales"] = self.preview.clock_scales
         self.config["use_24hr"] = self.use_24hr_cb.isChecked()
-        self.config["leading_zero"] = self.leading_zero_cb.isChecked()
+        self.config["leading_zeros"] = self.preview.leading_zeros
         self.config["ignore_media_keys"] = self.ignore_media_cb.isChecked()
         self.config["dino_font"] = self.font_cb.currentFont().family()
         
@@ -1020,6 +1029,11 @@ class SettingsDialog(QDialog):
         is_rotary = self.preview.clock_style == 1
         self.color_btn.setVisible(is_rotary)
         
+        # Update leading zero cb state for this style
+        self.leading_zero_cb.blockSignals(True)
+        self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(self.preview.clock_style), False))
+        self.leading_zero_cb.blockSignals(False)
+        
     def next_style(self):
         self.preview.clock_style = (self.preview.clock_style + 1) % 3
         self.preview.update()
@@ -1044,7 +1058,7 @@ class SettingsDialog(QDialog):
         self.preview.update()
         
     def update_leading_zero(self, state=None):
-        self.preview.leading_zero = self.leading_zero_cb.isChecked()
+        self.preview.leading_zeros[str(self.preview.clock_style)] = self.leading_zero_cb.isChecked()
         self.preview.update()
         
     def update_media_keys(self, state=None):
@@ -1078,7 +1092,7 @@ class SettingsDialog(QDialog):
             clock_style=self.config["clock_style"],
             clock_scales=self.config.get("clock_scales", {"0": 0.45, "1": 0.45, "2": 0.45}),
             use_24hr=self.config.get("use_24hr", False),
-            leading_zero=self.config.get("leading_zero", False),
+            leading_zeros=self.config.get("leading_zeros", self.config.get("leading_zero", False)),
             ignore_media_keys=self.config.get("ignore_media_keys", False),
             dino_font=self.config.get("dino_font", "Bungee")
         )
@@ -1137,7 +1151,7 @@ class SettingsDialog(QDialog):
         self.use_24hr_cb.stateChanged.connect(self.update_24hr)
         
         self.leading_zero_cb = QCheckBox("Leading Zero (e.g. 09:00)")
-        self.leading_zero_cb.setChecked(self.config.get("leading_zero", False))
+        self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(self.preview.clock_style), False))
         self.leading_zero_cb.stateChanged.connect(self.update_leading_zero)
         
         self.ignore_media_cb = QCheckBox("Ignore Media Keys")
