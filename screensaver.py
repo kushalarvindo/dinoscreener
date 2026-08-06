@@ -1164,6 +1164,23 @@ class SettingsDialog(QDialog):
     def update_media_keys(self, state=None):
         self.preview.ignore_media_keys = self.ignore_media_cb.isChecked()
         
+    def update_live_weather(self, state=None):
+        self.preview.live_weather = self.live_weather_cb.isChecked()
+        self.preview.update()
+        
+    def update_pixel_shift(self, state=None):
+        self.preview.pixel_shift = self.pixel_shift_cb.isChecked()
+        self.preview.update()
+        
+    def import_primary_font(self):
+        file, _ = QFileDialog.getOpenFileName(self, "Select Font File", "", "Font Files (*.ttf *.otf)")
+        if file:
+            self.primary_font = file
+            self.primary_font_label.setText(os.path.basename(file))
+            QFontDatabase.addApplicationFont(file)
+            self.preview.primary_font = file
+            self.preview.update()
+            
     def update_dino_font(self, font):
         self.preview.dino_font = font.family()
         self.preview.update()
@@ -1258,6 +1275,14 @@ class SettingsDialog(QDialog):
         self.ignore_media_cb.setChecked(self.config.get("ignore_media_keys", False))
         self.ignore_media_cb.stateChanged.connect(self.update_media_keys)
         
+        self.live_weather_cb = QCheckBox("Live Weather")
+        self.live_weather_cb.setChecked(self.config.get("live_weather", False))
+        self.live_weather_cb.stateChanged.connect(self.update_live_weather)
+        
+        self.pixel_shift_cb = QCheckBox("OLED Burn-in Protection")
+        self.pixel_shift_cb.setChecked(self.config.get("pixel_shift", False))
+        self.pixel_shift_cb.stateChanged.connect(self.update_pixel_shift)
+        
         # Row 2: Font Config & Actions
         self.font_label = QLabel("Dino Font:")
         self.font_cb = QFontComboBox()
@@ -1300,10 +1325,24 @@ class SettingsDialog(QDialog):
         bottom_row.addWidget(self.use_24hr_cb)
         bottom_row.addWidget(self.leading_zero_cb)
         bottom_row.addWidget(self.ignore_media_cb)
+        bottom_row.addWidget(self.live_weather_cb)
+        bottom_row.addWidget(self.pixel_shift_cb)
         bottom_row.addStretch()
         
         # Action Row Assembly
         action_row = QHBoxLayout()
+        
+        self.primary_font = self.config.get("primary_font", "")
+        self.primary_font_btn = QPushButton("Import Primary Font...")
+        self.primary_font_btn.setStyleSheet("background: transparent; border: 1px solid #45475A;")
+        self.primary_font_btn.clicked.connect(self.import_primary_font)
+        self.primary_font_label = QLabel(os.path.basename(self.primary_font) if self.primary_font else "Default")
+        self.primary_font_label.setStyleSheet("color: #A6ADC8; font-weight: normal; font-size: 12px;")
+        
+        action_row.addWidget(self.primary_font_btn)
+        action_row.addSpacing(5)
+        action_row.addWidget(self.primary_font_label)
+        action_row.addSpacing(15)
         action_row.addWidget(self.font_label)
         
         # Style font combobox slightly
