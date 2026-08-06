@@ -1079,7 +1079,7 @@ class SettingsDialog(QDialog):
             "leading_zero": False,
         "live_weather": False,
         "pixel_shift": False,
-        "primary_font": ""
+        "primary_font": "",
             "ignore_media_keys": False,
             "dino_font": "Bungee"
         }
@@ -1100,6 +1100,9 @@ class SettingsDialog(QDialog):
         self.config["clock_scales"] = self.preview.clock_scales
         self.config["use_24hr"] = self.use_24hr_cb.isChecked()
         self.config["leading_zeros"] = self.preview.leading_zeros
+        self.config["live_weather"] = self.live_weather_cb.isChecked()
+        self.config["pixel_shift"] = self.pixel_shift_cb.isChecked()
+        self.config["primary_font"] = getattr(self, 'primary_font', "")
         self.config["ignore_media_keys"] = self.ignore_media_cb.isChecked()
         self.config["dino_font"] = self.font_cb.currentFont().family()
         
