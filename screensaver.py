@@ -978,7 +978,7 @@ class WeatherWorker(QThread):
             
             if lat and lon:
                 # 2. Get Weather
-                weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
+                weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true&temperature_unit=celsius"
                 req2 = urllib.request.Request(weather_url, headers={'User-Agent': 'Mozilla/5.0'})
                 with urllib.request.urlopen(req2, timeout=5) as response2:
                     weather_data = json.loads(response2.read().decode())
@@ -1126,8 +1126,12 @@ class SettingsDialog(QDialog):
         is_dino = self.preview.clock_style == 2
         self.font_label.setVisible(is_dino)
         self.font_cb.setVisible(is_dino)
+        self.primary_font_btn.setVisible(is_dino)
+        self.primary_font_label.setVisible(is_dino)
+        
         is_rotary = self.preview.clock_style == 1
         self.color_btn.setVisible(is_rotary)
+        self.live_weather_cb.setVisible(is_rotary)
         
         # Update leading zero cb state for this style
         self.leading_zero_cb.blockSignals(True)
