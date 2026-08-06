@@ -566,10 +566,10 @@ class CrispAestheticFliqlo(QWidget):
             font_info.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 1.0)
             painter.setFont(font_info)
             painter.setPen(QColor(120, 125, 130))
-            painter.drawText(QRectF(center_x - w*0.01, info_y, w*0.02, info_h), Qt.AlignmentFlag.AlignCenter, "â€¢")
+            painter.drawText(QRectF(center_x - w*0.01, info_y, w*0.02, info_h), Qt.AlignmentFlag.AlignCenter, "\u2022")
             
             # Weather
-            weather_text = "26Â°C"
+            weather_text = "26\u00B0C"
             w_icon_size = h * 0.016
             fm = painter.fontMetrics()
             w_text_width = fm.horizontalAdvance(weather_text)
@@ -892,10 +892,12 @@ class SettingsDialog(QDialog):
         except Exception:
             pass
         
-        # Sleek dark theme with semi-transparent background for Mica to show through
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        
+        # Sleek dark theme with fully transparent dialog background for native Mica
         self.setStyleSheet("""
             QDialog {
-                background-color: rgba(17, 17, 27, 160);
+                background: transparent;
             }
             QLabel {
                 color: #CDD6F4;
@@ -999,6 +1001,9 @@ class SettingsDialog(QDialog):
         
     def update_style_ui(self):
         self.info_cb.setVisible(self.preview.clock_style == 1)
+        is_dino = self.preview.clock_style == 2
+        self.font_label.setVisible(is_dino)
+        self.font_cb.setVisible(is_dino)
         
     def next_style(self):
         self.preview.clock_style = (self.preview.clock_style + 1) % 3
@@ -1087,11 +1092,11 @@ class SettingsDialog(QDialog):
         self.bright_val_label.setFixedWidth(35)
         
         style_prev = QPushButton("◀")
-        style_prev.setFixedSize(30, 30)
+        style_prev.setStyleSheet("padding: 5px 15px; font-size: 14px;")
         style_prev.clicked.connect(self.prev_style)
         
         style_next = QPushButton("▶")
-        style_next.setFixedSize(30, 30)
+        style_next.setStyleSheet("padding: 5px 15px; font-size: 14px;")
         style_next.clicked.connect(self.next_style)
         
         color_btn = QPushButton("🎨 Color")
@@ -1123,7 +1128,7 @@ class SettingsDialog(QDialog):
         self.ignore_media_cb.stateChanged.connect(self.update_media_keys)
         
         # Row 2: Font Config & Actions
-        font_label = QLabel("Dino Font:")
+        self.font_label = QLabel("Dino Font:")
         self.font_cb = QFontComboBox()
         self.font_cb.setCurrentFont(QFont(self.config.get("dino_font", "Bungee")))
         self.font_cb.currentFontChanged.connect(self.update_dino_font)
@@ -1160,7 +1165,7 @@ class SettingsDialog(QDialog):
         
         # Action Row Assembly
         action_row = QHBoxLayout()
-        action_row.addWidget(font_label)
+        action_row.addWidget(self.font_label)
         action_row.addWidget(self.font_cb)
         action_row.addStretch()
         action_row.addWidget(reset_btn)
