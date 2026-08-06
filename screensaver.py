@@ -1371,7 +1371,7 @@ if __name__ == '__main__':
         "leading_zero": False,
         "live_weather": False,
         "pixel_shift": False,
-        "primary_font": ""
+        "primary_font": "",
         "dino_font": "Bungee"
     }
     
