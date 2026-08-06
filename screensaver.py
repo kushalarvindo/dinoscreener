@@ -1288,7 +1288,7 @@ if __name__ == '__main__':
         clock_style=default_config.get("clock_style", 1),
         clock_scales=default_config.get("clock_scales", {"0": 0.45, "1": 0.45, "2": 0.45}),
         use_24hr=default_config.get("use_24hr", False),
-        leading_zero=default_config.get("leading_zero", False),
+        leading_zeros=default_config.get("leading_zeros", default_config.get("leading_zero", False)),
         config_path=config_path,
         full_config=default_config,
         ignore_media_keys=default_config.get("ignore_media_keys", False),
