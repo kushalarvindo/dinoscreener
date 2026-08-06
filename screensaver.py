@@ -10,7 +10,7 @@ from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainter
 
 SPRITE_B64 = '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'
 class CrispAestheticFliqlo(QWidget):
-    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zeros=None, config_path=None, full_config=None, ignore_media_keys=False, dino_font="Bungee"):
+    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zeros=None, config_path=None, full_config=None, ignore_media_keys=False, dino_font="Bungee", live_weather=False, pixel_shift=False, primary_font=""):
         super().__init__()
         self.last_pos = None
         self.clock_scales = clock_scales if clock_scales else {"0": 0.45, "1": 0.45, "2": 0.45}
@@ -59,6 +59,29 @@ class CrispAestheticFliqlo(QWidget):
             self.leading_zeros = leading_zeros
         self.ignore_media_keys = ignore_media_keys
         self.dino_font = dino_font
+        self.live_weather = live_weather
+        self.pixel_shift = pixel_shift
+        self.primary_font = primary_font
+        self.primary_font_family = getattr(self, "primary_font_family", "Google Sans")
+        
+        if self.primary_font:
+            import os
+            if os.path.exists(self.primary_font):
+                font_id = QFontDatabase.addApplicationFont(self.primary_font)
+                if font_id != -1:
+                    families = QFontDatabase.applicationFontFamilies(font_id)
+                    if families:
+                        self.primary_font_family = families[0]
+                        
+        self.weather_temp = 72
+        self.weather_code = 0  # 0 is clear sky
+        self.weather_loaded = False
+        
+        if getattr(self, "live_weather", False):
+            self.weather_thread = WeatherWorker()
+            self.weather_thread.weather_updated.connect(self.on_weather_updated)
+            self.weather_thread.start()
+
         
         self.sprite_pixmap = QPixmap()
         try:
@@ -577,14 +600,14 @@ class CrispAestheticFliqlo(QWidget):
             painter.drawText(QRectF(center_x - w*0.01, info_y, w*0.02, info_h), Qt.AlignmentFlag.AlignCenter, "\u2022")
             
             # Weather
-            weather_text = "26\u00B0C"
+            weather_text = f"{getattr(self, 'weather_temp', 26)}\u00B0C" if getattr(self, "live_weather", False) else "26\u00B0C"
             fm = painter.fontMetrics()
             w_text_width = fm.horizontalAdvance(weather_text)
             
             weather_end = center_x - w * 0.02 # Pushed out a bit
             weather_text_x = weather_end - w_text_width
             
-            # Clean Professional Weather Icon (Sunny)
+            # Dynamic Weather Icon
             emoji_w = w * 0.012
             weather_icon_x = weather_text_x - emoji_w - w * 0.003
             
@@ -592,8 +615,47 @@ class CrispAestheticFliqlo(QWidget):
             painter.translate(weather_icon_x + emoji_w/2, info_y + info_h/2)
             w_icon_size = h * 0.016
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QColor(255, 210, 80)) # Clean golden sun
-            painter.drawEllipse(QRectF(-w_icon_size*0.4, -w_icon_size*0.4, w_icon_size*0.8, w_icon_size*0.8))
+            
+            code = getattr(self, 'weather_code', 0) if getattr(self, "live_weather", False) else 0
+            
+            # WMO Code Mapping
+            if code in [0, 1]: # Clear / Mostly Clear
+                painter.setBrush(QColor(255, 210, 80)) # Sun
+                painter.drawEllipse(QRectF(-w_icon_size*0.4, -w_icon_size*0.4, w_icon_size*0.8, w_icon_size*0.8))
+            elif code in [2, 3, 45, 48]: # Cloudy / Fog
+                painter.setBrush(QColor(180, 190, 200)) # Cloud
+                painter.drawEllipse(QRectF(-w_icon_size*0.4, -w_icon_size*0.2, w_icon_size*0.8, w_icon_size*0.5))
+                painter.drawEllipse(QRectF(-w_icon_size*0.2, -w_icon_size*0.4, w_icon_size*0.5, w_icon_size*0.5))
+            elif 50 <= code <= 67 or 80 <= code <= 82: # Rain
+                painter.setBrush(QColor(100, 150, 255)) # Raindrop
+                path = QPainterPath()
+                path.moveTo(0, -w_icon_size*0.4)
+                path.lineTo(-w_icon_size*0.3, w_icon_size*0.1)
+                path.arcTo(QRectF(-w_icon_size*0.3, -w_icon_size*0.2, w_icon_size*0.6, w_icon_size*0.6), 180, 180)
+                path.closeSubpath()
+                painter.drawPath(path)
+            elif 70 <= code <= 77 or 85 <= code <= 86: # Snow
+                painter.setPen(QPen(QColor(255, 255, 255), 2))
+                painter.drawLine(int(-w_icon_size*0.3), 0, int(w_icon_size*0.3), 0)
+                painter.drawLine(0, int(-w_icon_size*0.3), 0, int(w_icon_size*0.3))
+                painter.drawLine(int(-w_icon_size*0.2), int(-w_icon_size*0.2), int(w_icon_size*0.2), int(w_icon_size*0.2))
+                painter.drawLine(int(-w_icon_size*0.2), int(w_icon_size*0.2), int(w_icon_size*0.2), int(-w_icon_size*0.2))
+            elif 95 <= code <= 99: # Thunder
+                painter.setBrush(QColor(200, 100, 255))
+                path = QPainterPath()
+                path.moveTo(0, -w_icon_size*0.4)
+                path.lineTo(-w_icon_size*0.3, w_icon_size*0.1)
+                path.lineTo(0, 0)
+                path.lineTo(0, w_icon_size*0.4)
+                path.lineTo(w_icon_size*0.3, -w_icon_size*0.1)
+                path.lineTo(0, 0)
+                path.closeSubpath()
+                painter.drawPath(path)
+            else:
+                # Default Sun
+                painter.setBrush(QColor(255, 210, 80))
+                painter.drawEllipse(QRectF(-w_icon_size*0.4, -w_icon_size*0.4, w_icon_size*0.8, w_icon_size*0.8))
+                
             painter.restore()
             
             # Weather Temp
@@ -896,6 +958,38 @@ class CrispAestheticFliqlo(QWidget):
         if self.strict_exit: return
         self.close()
 
+
+import urllib.request
+import threading
+import json
+import traceback
+
+class WeatherWorker(QThread):
+    weather_updated = pyqtSignal(dict)
+
+    def run(self):
+        try:
+            # 1. Get Location
+            req = urllib.request.Request("http://ip-api.com/json/", headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=5) as response:
+                ip_data = json.loads(response.read().decode())
+                lat = ip_data.get("lat")
+                lon = ip_data.get("lon")
+            
+            if lat and lon:
+                # 2. Get Weather
+                weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
+                req2 = urllib.request.Request(weather_url, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req2, timeout=5) as response2:
+                    weather_data = json.loads(response2.read().decode())
+                    current = weather_data.get("current_weather", {})
+                    self.weather_updated.emit({
+                        "temp": current.get("temperature", 0),
+                        "code": current.get("weathercode", 0)
+                    })
+        except Exception as e:
+            print("Weather fetch failed:", e)
+
 class SettingsDialog(QDialog):
     def __init__(self, config_path):
         super().__init__()
@@ -983,6 +1077,9 @@ class SettingsDialog(QDialog):
             "clock_scales": {"0": 0.45, "1": 0.45, "2": 0.45},
             "use_24hr": False,
             "leading_zero": False,
+        "live_weather": False,
+        "pixel_shift": False,
+        "primary_font": ""
             "ignore_media_keys": False,
             "dino_font": "Bungee"
         }
@@ -1269,6 +1366,9 @@ if __name__ == '__main__':
         "clock_scales": {"0": 0.45, "1": 0.45, "2": 0.45},
         "use_24hr": False,
         "leading_zero": False,
+        "live_weather": False,
+        "pixel_shift": False,
+        "primary_font": ""
         "dino_font": "Bungee"
     }
     
@@ -1292,7 +1392,10 @@ if __name__ == '__main__':
         config_path=config_path,
         full_config=default_config,
         ignore_media_keys=default_config.get("ignore_media_keys", False),
-        dino_font=default_config.get("dino_font", "Bungee")
+        dino_font=default_config.get("dino_font", "Bungee"),
+        live_weather=default_config.get("live_weather", False),
+        pixel_shift=default_config.get("pixel_shift", False),
+        primary_font=default_config.get("primary_font", "")
     )
     sys.exit(app.exec())
 
