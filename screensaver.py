@@ -556,7 +556,7 @@ class CrispAestheticFliqlo(QWidget):
         
         if self.show_info:
             # Unified Weather & Battery Display
-            info_y = offset_y + h * 0.07
+            info_y = offset_y + h * 0.05 # Reduced spacing (closer to date)
             info_h = h * 0.04
             
             # Center dot
@@ -570,25 +570,30 @@ class CrispAestheticFliqlo(QWidget):
             
             # Weather
             weather_text = "26\u00B0C"
-            w_icon_size = h * 0.016
             fm = painter.fontMetrics()
             w_text_width = fm.horizontalAdvance(weather_text)
             
-            weather_end = center_x - w * 0.015
+            weather_end = center_x - w * 0.02 # Pushed out a bit
             weather_text_x = weather_end - w_text_width
-            weather_icon_x = weather_text_x - w_icon_size - w * 0.005
+            
+            # Manual Colorful Weather Icon (Sunny)
+            emoji_w = w * 0.015
+            weather_icon_x = weather_text_x - emoji_w - w * 0.002
             
             painter.save()
-            painter.translate(weather_icon_x + w_icon_size/2, info_y + info_h/2)
-            painter.setPen(QPen(accent_color, 1.5))
-            painter.setBrush(Qt.BrushStyle.NoBrush)
-            painter.drawEllipse(QRectF(-w_icon_size*0.4, -w_icon_size*0.4, w_icon_size*0.8, w_icon_size*0.8))
+            painter.translate(weather_icon_x + emoji_w/2, info_y + info_h/2)
+            w_icon_size = h * 0.018
+            painter.setPen(QPen(QColor(255, 180, 50), 1.5))
+            painter.setBrush(QColor(255, 210, 80))
+            painter.drawEllipse(QRectF(-w_icon_size*0.35, -w_icon_size*0.35, w_icon_size*0.7, w_icon_size*0.7))
             for i in range(8):
                 painter.rotate(45)
-                painter.drawLine(int(w_icon_size*0.5), 0, int(w_icon_size*0.8), 0)
+                painter.drawLine(int(w_icon_size*0.45), 0, int(w_icon_size*0.7), 0)
             painter.restore()
             
-            painter.setPen(QColor(180, 185, 190))
+            # Weather Temp (Subtle grey)
+            painter.setFont(font_info)
+            painter.setPen(QColor(160, 165, 170))
             painter.drawText(QRectF(weather_text_x, info_y, w_text_width, info_h), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, weather_text)
             
             # Battery
@@ -617,17 +622,32 @@ class CrispAestheticFliqlo(QWidget):
             except Exception:
                 pass
                 
-            bat_start = center_x + w * 0.015
-            bat_icon_w = w * 0.02
+            bat_start = center_x + w * 0.02
+            bat_icon_w = w * 0.019
             bat_icon_h = h * 0.015
             bat_icon_x = bat_start
             bat_text_x = bat_icon_x + bat_icon_w + w * 0.005
             bat_icon_y = info_y + info_h/2 - bat_icon_h/2
             
-            painter.setPen(QPen(accent_color, 1.5))
+            # Modern Battery Shell (Subtle grey)
+            painter.setPen(QPen(QColor(160, 165, 170, 160), 1.5))
             painter.setBrush(Qt.BrushStyle.NoBrush)
             painter.drawRoundedRect(QRectF(bat_icon_x, bat_icon_y, bat_icon_w, bat_icon_h), 2, 2)
-            painter.drawRect(QRectF(bat_icon_x + bat_icon_w, bat_icon_y + bat_icon_h*0.25, w*0.0015, bat_icon_h*0.5))
+            # Battery Cap
+            painter.drawRoundedRect(QRectF(bat_icon_x + bat_icon_w + 1.5, bat_icon_y + bat_icon_h*0.3, w*0.0015, bat_icon_h*0.4), 1, 1)
+            
+            # Battery Fill
+            fill_margin = 2.5
+            fill_w = (bat_icon_w - fill_margin * 2) * (bat_val / 100.0)
+            fill_h = bat_icon_h - fill_margin * 2
+            if bat_val <= 20:
+                painter.setBrush(QColor(255, 80, 80)) # Red alert
+                painter.setPen(Qt.PenStyle.NoPen)
+            else:
+                painter.setBrush(QColor(160, 165, 170)) # Subtle grey fill
+                painter.setPen(Qt.PenStyle.NoPen)
+            if fill_w > 0:
+                painter.drawRoundedRect(QRectF(bat_icon_x + fill_margin, bat_icon_y + fill_margin, fill_w, fill_h), 1, 1)
             
             if is_charging:
                 painter.save()
@@ -642,18 +662,13 @@ class CrispAestheticFliqlo(QWidget):
                 bolt.lineTo(bw*0.8, 0)
                 bolt.lineTo(0, 0)
                 bolt.closeSubpath()
-                painter.setBrush(accent_color)
-                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(QColor(255, 200, 50)) # Golden bolt
+                painter.setPen(QPen(QColor(25, 25, 30), 0.5))
                 painter.drawPath(bolt)
                 painter.restore()
-            else:
-                fill_w = (bat_icon_w - w*0.002) * (bat_val / 100.0)
-                if fill_w > 0:
-                    painter.setBrush(accent_color)
-                    painter.setPen(Qt.PenStyle.NoPen)
-                    painter.drawRect(QRectF(bat_icon_x + w*0.001, bat_icon_y + h*0.002, fill_w, bat_icon_h - h*0.004))
-                    
-            painter.setPen(QColor(180, 185, 190))
+                
+            painter.setFont(font_info)
+            painter.setPen(QColor(160, 165, 170))
             painter.drawText(QRectF(bat_text_x, info_y, w*0.1, info_h), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, bat_text)
 
     # ==========================================
