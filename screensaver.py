@@ -1004,7 +1004,7 @@ class SettingsDialog(QDialog):
         is_dino = self.preview.clock_style == 2
         self.font_label.setVisible(is_dino)
         self.font_cb.setVisible(is_dino)
-        is_rotary = self.preview.clock_style == 0
+        is_rotary = self.preview.clock_style == 1
         self.color_btn.setVisible(is_rotary)
         
     def next_style(self):
@@ -1158,6 +1158,7 @@ class SettingsDialog(QDialog):
         
         # Bottom Row Assembly
         bottom_row = QHBoxLayout()
+        bottom_row.setSpacing(15) # Add spacing between checkboxes
         bottom_row.addWidget(self.info_cb)
         bottom_row.addWidget(self.strict_cb)
         bottom_row.addWidget(self.win_cb)
