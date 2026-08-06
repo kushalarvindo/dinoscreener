@@ -576,24 +576,21 @@ class CrispAestheticFliqlo(QWidget):
             weather_end = center_x - w * 0.02 # Pushed out a bit
             weather_text_x = weather_end - w_text_width
             
-            # Manual Colorful Weather Icon (Sunny)
-            emoji_w = w * 0.015
-            weather_icon_x = weather_text_x - emoji_w - w * 0.002
+            # Clean Professional Weather Icon (Sunny)
+            emoji_w = w * 0.012
+            weather_icon_x = weather_text_x - emoji_w - w * 0.003
             
             painter.save()
             painter.translate(weather_icon_x + emoji_w/2, info_y + info_h/2)
-            w_icon_size = h * 0.018
-            painter.setPen(QPen(QColor(255, 180, 50), 1.5))
-            painter.setBrush(QColor(255, 210, 80))
-            painter.drawEllipse(QRectF(-w_icon_size*0.35, -w_icon_size*0.35, w_icon_size*0.7, w_icon_size*0.7))
-            for i in range(8):
-                painter.rotate(45)
-                painter.drawLine(int(w_icon_size*0.45), 0, int(w_icon_size*0.7), 0)
+            w_icon_size = h * 0.016
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(255, 210, 80)) # Clean golden sun
+            painter.drawEllipse(QRectF(-w_icon_size*0.4, -w_icon_size*0.4, w_icon_size*0.8, w_icon_size*0.8))
             painter.restore()
             
-            # Weather Temp (Subtle grey)
+            # Weather Temp
             painter.setFont(font_info)
-            painter.setPen(QColor(160, 165, 170))
+            painter.setPen(QColor(230, 235, 240)) # Crisp almost white
             painter.drawText(QRectF(weather_text_x, info_y, w_text_width, info_h), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, weather_text)
             
             # Battery
@@ -629,11 +626,13 @@ class CrispAestheticFliqlo(QWidget):
             bat_text_x = bat_icon_x + bat_icon_w + w * 0.005
             bat_icon_y = info_y + info_h/2 - bat_icon_h/2
             
-            # Modern Battery Shell (Subtle grey)
-            painter.setPen(QPen(QColor(160, 165, 170, 160), 1.5))
+            # Professional Battery Shell (White, solid border)
+            painter.setPen(QPen(QColor(255, 255, 255), 1.5))
             painter.setBrush(Qt.BrushStyle.NoBrush)
             painter.drawRoundedRect(QRectF(bat_icon_x, bat_icon_y, bat_icon_w, bat_icon_h), 2, 2)
             # Battery Cap
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(255, 255, 255))
             painter.drawRoundedRect(QRectF(bat_icon_x + bat_icon_w + 1.5, bat_icon_y + bat_icon_h*0.3, w*0.0015, bat_icon_h*0.4), 1, 1)
             
             # Battery Fill
@@ -642,10 +641,8 @@ class CrispAestheticFliqlo(QWidget):
             fill_h = bat_icon_h - fill_margin * 2
             if bat_val <= 20:
                 painter.setBrush(QColor(255, 80, 80)) # Red alert
-                painter.setPen(Qt.PenStyle.NoPen)
             else:
-                painter.setBrush(QColor(160, 165, 170)) # Subtle grey fill
-                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(QColor(160, 230, 160)) # Professional light green
             if fill_w > 0:
                 painter.drawRoundedRect(QRectF(bat_icon_x + fill_margin, bat_icon_y + fill_margin, fill_w, fill_h), 1, 1)
             
@@ -653,8 +650,8 @@ class CrispAestheticFliqlo(QWidget):
                 painter.save()
                 painter.translate(bat_icon_x + bat_icon_w/2, bat_icon_y + bat_icon_h/2)
                 bolt = QPainterPath()
-                bw = bat_icon_w * 0.2
-                bh = bat_icon_h * 0.4
+                bw = bat_icon_w * 0.15
+                bh = bat_icon_h * 0.35
                 bolt.moveTo(bw*0.3, -bh)
                 bolt.lineTo(-bw*0.8, 0)
                 bolt.lineTo(0, 0)
@@ -662,13 +659,13 @@ class CrispAestheticFliqlo(QWidget):
                 bolt.lineTo(bw*0.8, 0)
                 bolt.lineTo(0, 0)
                 bolt.closeSubpath()
-                painter.setBrush(QColor(255, 200, 50)) # Golden bolt
-                painter.setPen(QPen(QColor(25, 25, 30), 0.5))
+                painter.setBrush(QColor(255, 255, 255)) # Pure white bolt
+                painter.setPen(Qt.PenStyle.NoPen)
                 painter.drawPath(bolt)
                 painter.restore()
                 
             painter.setFont(font_info)
-            painter.setPen(QColor(160, 165, 170))
+            painter.setPen(QColor(230, 235, 240))
             painter.drawText(QRectF(bat_text_x, info_y, w*0.1, info_h), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, bat_text)
 
     # ==========================================
