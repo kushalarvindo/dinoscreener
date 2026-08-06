@@ -1004,6 +1004,8 @@ class SettingsDialog(QDialog):
         is_dino = self.preview.clock_style == 2
         self.font_label.setVisible(is_dino)
         self.font_cb.setVisible(is_dino)
+        is_rotary = self.preview.clock_style == 0
+        self.color_btn.setVisible(is_rotary)
         
     def next_style(self):
         self.preview.clock_style = (self.preview.clock_style + 1) % 3
@@ -1099,8 +1101,8 @@ class SettingsDialog(QDialog):
         style_next.setStyleSheet("padding: 5px 15px; font-size: 14px;")
         style_next.clicked.connect(self.next_style)
         
-        color_btn = QPushButton("🎨 Color")
-        color_btn.clicked.connect(self.pick_color)
+        self.color_btn = QPushButton("🎨 Color")
+        self.color_btn.clicked.connect(self.pick_color)
         
         # Row 1: Checkboxes
         self.info_cb = QCheckBox("Weather/Battery")
@@ -1148,9 +1150,10 @@ class SettingsDialog(QDialog):
         top_row.addWidget(self.bright_val_label)
         top_row.addSpacing(15)
         top_row.addWidget(style_prev)
+        top_row.addSpacing(5)
         top_row.addWidget(style_next)
         top_row.addSpacing(15)
-        top_row.addWidget(color_btn)
+        top_row.addWidget(self.color_btn)
         top_row.addStretch()
         
         # Bottom Row Assembly
