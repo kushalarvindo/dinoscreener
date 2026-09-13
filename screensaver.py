@@ -1117,6 +1117,7 @@ class SettingsDialog(QDialog):
         self.config["primary_font"] = getattr(self, 'primary_font', "")
         self.config["ignore_media_keys"] = self.ignore_media_cb.isChecked()
         self.config["dino_font"] = self.font_cb.currentFont().family()
+        self.config["dino_icon"] = getattr(self, 'dino_icon_cb', QComboBox()).currentText() if hasattr(self, 'dino_icon_cb') else self.config.get("dino_icon", "Dino")
         
         os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
         with open(self.config_path, 'w') as f:
@@ -1138,6 +1139,9 @@ class SettingsDialog(QDialog):
         is_dino = self.preview.clock_style == 2
         self.font_label.setVisible(is_dino)
         self.font_cb.setVisible(is_dino)
+        if hasattr(self, 'dino_icon_label'):
+            self.dino_icon_label.setVisible(is_dino)
+            self.dino_icon_cb.setVisible(is_dino)
         self.primary_font_btn.setVisible(is_dino)
         self.primary_font_label.setVisible(is_dino)
         
@@ -1199,6 +1203,20 @@ class SettingsDialog(QDialog):
             
     def update_dino_font(self, font):
         self.preview.dino_font = font.family()
+        self.preview.update()
+        
+    def on_dino_icon_changed(self, icon_name):
+        if icon_name == "Custom Image...":
+            path, _ = QFileDialog.getOpenFileName(self, "Select Custom Image", "", "Images (*.png *.jpg *.jpeg *.bmp)")
+            if path:
+                self.config["custom_dino_path"] = path
+                self.preview.custom_dino_path = path
+                self.preview.custom_pixmap.load(path)
+                self.preview.custom_pixmap = self.preview.custom_pixmap.scaled(44, 47, Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            else:
+                self.dino_icon_cb.setCurrentText("Dino")
+                return
+        self.preview.dino_icon = self.dino_icon_cb.currentText()
         self.preview.update()
         
     def reset_defaults(self):
@@ -1359,6 +1377,18 @@ class SettingsDialog(QDialog):
         # Style font combobox slightly
         self.font_cb.setStyleSheet("padding: 3px 5px; background: #313244; color: white; border-radius: 3px;")
         action_row.addWidget(self.font_cb)
+        
+        # Dino Icon
+        self.dino_icon_label = QLabel("Dino Icon:")
+        self.dino_icon_cb = QComboBox()
+        self.dino_icon_cb.addItems(["Dino", "Neko", "F1 Car", "Custom Image..."])
+        self.dino_icon_cb.setCurrentText(self.config.get("dino_icon", "Dino"))
+        self.dino_icon_cb.currentTextChanged.connect(self.on_dino_icon_changed)
+        self.dino_icon_cb.setStyleSheet("padding: 3px 5px; background: #313244; color: white; border-radius: 3px;")
+        action_row.addSpacing(15)
+        action_row.addWidget(self.dino_icon_label)
+        action_row.addWidget(self.dino_icon_cb)
+        
         action_row.addStretch()
         action_row.addWidget(reset_btn)
         action_row.addSpacing(10)
