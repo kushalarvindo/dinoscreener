@@ -1250,7 +1250,7 @@ class SettingsDialog(QDialog):
         main_layout.addWidget(self.preview, stretch=1)
         
         # 2. CONTROL BAR (Floating Bottom)
-        from PyQt6.QtWidgets import QGridLayout, QFontComboBox, QFrame
+        from PyQt6.QtWidgets import QGridLayout, QFontComboBox, QFrame, QComboBox
         control_bar = QWidget()
         control_bar.setObjectName("controlBar")
         control_bar.setStyleSheet("QWidget#controlBar { background: transparent; border-top: 1px solid #313244; }")
