@@ -820,8 +820,10 @@ class CrispAestheticFlipClock(QWidget):
                     src_rect = QRectF(0, 0, 44, 47) if (self.dino_frame // 5) % 2 == 0 else QRectF(44, 0, 44, 47)
                 painter.drawPixmap(target_rect, self.neko_pixmap, src_rect)
             elif self.dino_icon == "F1 Car":
-                src_rect = QRectF(0, 0, 44, 47)
-                painter.drawPixmap(target_rect, self.f1_pixmap, src_rect)
+                src_rect = QRectF(0, 0, 88, 23)
+                # align right edge of visual car with right edge of 44px collision box
+                car_target = QRectF(dino_x - 44, ground_y - self.dino_y - 23, 88, 23)
+                painter.drawPixmap(car_target, self.f1_pixmap, src_rect)
             elif self.dino_icon == "Custom Image..." and not self.custom_pixmap.isNull():
                 painter.drawPixmap(target_rect.toRect(), self.custom_pixmap)
             else:
@@ -853,8 +855,7 @@ class CrispAestheticFlipClock(QWidget):
                     obs_target = QRectF(obs['x'], ground_y - obs['h'], obs['w'], obs['h'])
                 
                 if self.dino_icon == "F1 Car" and t != 'crow':
-                    tyre_rect = QRectF(0, 0, min(obs['w'], 50), min(obs['h'], 50))
-                    painter.drawPixmap(obs_target, self.tyre_pixmap, tyre_rect)
+                    painter.drawPixmap(obs_target.toRect(), self.tyre_pixmap)
                 else:
                     painter.drawPixmap(obs_target, self.sprite_pixmap, obs_rect)
             
