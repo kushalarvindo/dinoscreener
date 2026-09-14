@@ -16,7 +16,7 @@ TYRE_B64 = 'iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAA00lEQVR4nO3awQ6DIBRE
 
 
 SPRITE_B64 = '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'
-COCKPIT_B64 = '''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'''
+COCKPIT_B64 = 'iVBORw0KGgoAAAANSUhEUgAAASwAAADhCAYAAAByfIirAAANWElEQVR4nO3dy3LlphYA0HbK8/bkjvP/n5VxJu4v8C0lIaFpkJAEOgitVZVK2z4PPWBrgwB9+wYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADA9N5evQHc39fX11fta9/e3pQ5Dvvt+Fvh72D18fG/b8t/sfjnHz9+fv2V28dcXO04LA4+acBafH7++Vew+v79v6C1/PuVWdZoAVPGuc/7ztfDv5U+F6TSYFV6/xUVNRec1rZ5xAAqoP1MwOJQE7DWklFd4Q7BKWdrG9cC2tsDg5mARfNgtWRXcbCKm4Ph/WeyrLsGpyPW9uvrgdmZgEWXYLUoNQmPfHf6u/izl0C4fO+sQatldvZ28yB2641njM71NFiVAlWcYYXXlypQ6TtL3xE3PZ8WuPaILyh3DF6322DG6lzfE6zSz4oDVpoN1ATGUrZVu81P93nD4HWLjeS1TcC4YJeGL2w1AdPsKn3v0QCTa4IKWvMGL31YVPVXLT+nmU3saH/V2aASB9Uw3iuM/Xpiv9ZR8XFKs92RAtgwG8K4TcA0UNX0KcWuznj++OPPzcyOe2ZfAhaHxlfVBqsrgkapyXq2ucl4wUvAonuwuiporGWCzBG8BKwH23MX8EiwWmiSPcPnP2Wid+DS6f5QR7KqWG2w4hk+GsxgqGF5mQc6E6zW7hTmyK6e43Nn2ThChvUgR5uAR5uCzO8zc8OjZ5YlYD3A2UC1N1gFsqu5fRbGuS2/6xW0BKyJtQhUsdpgJbt6ho+VctUraAlYE2odqPb0TZgWQ8+g9T7akrGc1zJYaAoyUtD6K8Pau85R7Xtm9ZQR1HuDlaYgvVU1CZ86iTQXpK+4dTuCI5nV4onlhOuyrLezAwifnFXNGsiPBCt9V2xZW7CxloGjlcKz90JlDsFqtoxLsKJ3pnXmM9wlPCDOrGqC1t0q8pG1re62j9wzaGkS8i/ZFaOXT03Cm5/A1k1SwYqRCVg3DlQjBIoRtoHnELBuagkU8VLAZ609Wj7HmCteQaf7zYTA0jJYPTm72noiEGORYTHd0IzafV6C/hKkWj2hmv5kWDf1+++/PjPwTPbw1Eo7Qqba02emfNz5QR0C1g2FZ+7V2CqcR7Ir67Tfy48ff1/g4uAcD2G5U3+kJuFNR9yn/y6JR+aXsqinZldPu8B9//5fcFrO+R0vOjKsm6opbLXB7KnulFkc9ZEpA/FF7G4ErEml/VelKUR7s6tZmoMz7MMT913AmtjayhJ7x13BCASsibUeY/SEJhRjE7AmtRagzvRd3Lk5wf25S/gwR1cShREIWA90JFhpDjICAWvF0abTqLeLz26X5iCvpg9rRW4oQKi0owalHk1B2RWvkKtjj1hxdJS1o+7abzXL2Cv6rlCRq2dnLuxpeV3K4fvZyt0q02hdIe6WAY0crEbx1AtPbgxdzp7ni4by0HPyc48bPO/pAVg+fE9lb7ExPSpFOAHLhM/c598poJ0tTGfP0auCRHqO0rL5lOAVuiY+ov3NZR+14vf2nvzc+m70e+5Dz3zJKFfktYAUZq2/8tb+cpxqvj9MXD1SOc8G5Vedy/QCGm9P+Dk+LmcyjlerCcDxfn40GgAcH8dWarYxV+5z21CqG++5N5xZfmSUQlJ70LYCR+kAl96T/q02MJUcvQK2agpecT5zmVRue9Yyg/hmyAhLptTWm7BPy/IvW8HrI/rd0f0LQSV37HoI5y3+vvjfYf/TOlN673vuZKeLmo0ShFoJB6FVhhV/VuvPPqNlsGrZ17EVoHLHb+sCs5TZsKjhKOLtDAEplI94Tf54yZf451Lm8nHyHPSsz/Fnx8Gx9gKf1qE0ufil0/3VV6YrrnAtn9jcOqNqocXE5nT4xtmspdTMKyk1E+LCO+qFNN7XsB8h4CxBKiQF8YUh/nvu80bd1y1bQasmm479FLDuelBKairGq4PLyFrc5dkbqEqvS5sUo5+3OMCHSpu7kMR1rrRcc8v+q95yzdqaTCsn9/rHDRydJYO8ytHAcCRQ7Sm4YcnftHk1knToQE1Hd+mOdhy0PjdaD3cccJ0em7hP75c+rFnlmms9Pn/tynF1n1avda72HLtW42/Svp34d+l+jnYhirc97ctapBlTHHTTCl8zrGGEY1Bzx3PtTmju7+nDVqYNWLm7IeH3reTucNS202u9qhCGvpY42B4ZmFjajyPNw/RmwNpSv2HM1isyjtzCifFNgdxA0OXnuF8u3ccRMqctR6atpfsb9+2FcxiCfrbTfSYtTnKp4rUIJOnt3VHucsWBqrazfW3sVPq7td+n2xG/dpFmJaUL1Uh9XHGwCllUyybziGqb6end3dIwonBepw5YW44Enb2FK/S1xAV2KzAdeYRXeF/rwl8zHmutCbjWVK797q3vv4s4W8j9bWvs1cjSTHBPlrUWvMMFc/om4ZZSQQhXhfQ5bkeDXdps2Zr6VCrQR7//jK2hA72yhDT7qnlo7MgVPK5wpfO2d7u/D9Jnl2uynjkHuYvu6jisGe0ddbzYSmfPjl5fkxvh++o7XKVZ+D0zunQgc81xG02PAPoxUFCOh2yEn3t6RMDaU7FGKPQjjbvJBc4ewSrX9Gw5wJd+jk7lO1K+HxOwagPRCEFipO1o2fzLzSEr9ZGF7Opo8B55JPzsfhSGXMT9W3snSD8qYPUquCPOX+uhVSa1NlcuFvf3HMmwesx3FPzOJwe1fZBrr3tEwNoST0qNO3rTyaml9/aydyHFO9wer8l0RwkONSPT6XPuSoO+Hxuw0iZO2tHde5xMzbI2s4nv/sXjvEbpr8tJJy+zLu58P7rYYm7Q9/QDR3OZT3rQciPUe8x7OzI1Z/SKvNfWMYj39UzW2vJ46Qc7Jp1CVLpps/b+0sDTn5ZInu3kpBUkt59by8NsBaA7rBzwaunxyl0s4v6qFp36Z81WF67ql9u6SbJ1jkM5CFOVss8lnKXC5SL3stOliahbzgajUgWaPcilS8GE/29NxzlSgcLnztiE7uFHMi80jKFq2Re7dR5rpmPFP8f1dtom4SK+g1eK7K0Dx9WrM4zY4Z42A+KJrYvS8QkTrmuMNG3nbNO9FCxa7tfnSpP7ikHKR45Rbl7oNAErd9JznX7p63LNlfj3R/ufat83Y7YVZ1LpWuWlLPfIUjG5CtC6e6M286hpBgW514UyE/pursgY/9hxgTgiDjhn9mfK9bBKhSCIF3sriQ/sbEHkKunxy61btXV3dG+wyS1s1/KGRc2UoK3v2rqhkLs73atv6eOfbblDMzodRT9NwMqpOSFHAlPNe3J3IGsyuxms3ZBoHawWuYXtWh7T2uV1tiaK713UrofPAZ7rWHs84wQibOu0AavmZKx1ite8rvbvOfEwillGy5+9e7q1kkVO70rX4vPTCcI5Vwxh+RjgzueeqVZx0LK8TNQRvLaUTNyvUGtP/1WLZsBozdcjwSoeSLrHXcaq1TQZ77IvZ+1dZPFxy8sEubsji7VgVLN+Vc3vat9bK16FcQRnbh6EwB130I8WhHs3t54SrPa2TNJy9aiA1bPPKpitP2qPIzcs4vfUrns1sjN3xGYOWj+SmRu1+5lekN+fXqlaB5hZC1zLypq+ZqZZA0fL096J7ncoh63GB8bl4v3pC431OLE18xhbfc/dKnjpgjHDuLWrgsTHRh/QKDdxWozDSidCv8862XZL7/0sDYSMO/lLj32aSSmbiv+W/r/2M0cNXL19bqwPP1J5ivtZz2xT+JxHZVi9xQWllAnEt2hH6TBvaW2Sc/r7eHR3bcXLDRJ9mo9BgtFV2xuf7/c7H4haVxfutRR41mO8SNcvSn+X/i1Ip6LEY9RGfAQ914qble9XTAvY0qsSX32LfDmOT65gpYcRrC0lEg9nKGVjRzyti2N2P/VhvbovoGcHeKlZtvcz9vav9DZih3v6mPE16ZSLXDPvTHmw+N4Yahbr2xLPwxyiD6vX8halvo7eg/rSLOtpV/u9wSp4yvF5mh+VK82W/h4bImDdYS7YnqvGK9bEGkG6lEyQZl1XrL/E69VcpLfmWKZ3lX/qw6r1tIoYm2E0di9pZplrHqZl7aoxa1yvZg7u3nr0V8A609x5mpr1nHoHsxH7r3KDQNfmWZZWJJV5zeOzw0286iZh78dezTTTvNQ0ml1uKeRYaajD0QfS1i4PxGu0zpT/7XSv7cl/cqDayqRUkl+HkayVl7gwHwlWpcoQLhaalXOqHtawdw2bmeWWu1VBfu5Mzw0ETX+/9fDNvfauBMD9HOp0528qxq9CcEofplB6yk36uClo2unOa42c5cZ9d2E7c+ty5yiD1Jh+HBb9pauf5pqAAhItCFh0GZ8mUNGDgEVTAhU9CVg0YbIxV/jtkm9h+g53wYqeQv+ogMUphsRwJQGL02RXXOXt6+vr67JvA/h23P8B/+DJyRgsBWUAAAAASUVORK5CYII=''iVBORw0KGgoAAAANSUhEUgAAAyAAAAJYCAYAAACadoJwAAAX4klEQVR4nO3di24bRxIF0DjI//+yF1xHsELzMZzpRz3OARa7WMcRpemuqjs9pP76CwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB778eT/B6CBnz9//tz1tX/8+KEHATSk+AMUsjNQzCawANSgmAMkUjlgXCWgAOSgWAMEJGiMI5gAxKIoA2wkaOwjmADsofgCLCJsxCeUAMyn0AJMInDkJ5AAjKewAgwicNQnkABcp5ACnCRwIJAAfE7hBDhI4OAdgQTgPYUS4AWhg7OEEYDHFEeAO0IHowkjAL8piEB7AgerCSRAZwog0JLQQRTCCNCNoge0IngQlSACdKHYAeUJHWQjjACVKXBASUIHVQgjQDWKGlCK4EFVgghQhWIGpCd00I0wAmSmgAFpCR50J4gAGSlcQCpCBzwmjABZKFZACoIHHCOIANEpUkBoggecI4gAUSlOQEiCB4whiADRKEpAKIIHzCGIAFEoRkAIgke/odQ130MQAXZThIBtDKDzVBoyrZN5Kq0TIA+FB9jCUHmNwfE3a+kaawlYTdEBljIsfsZweJ619hlrDVhFsQGWMAy+ZwCczzp8zzoEZlNkgKkMfPGHvB3XqPv3n0GkawTUorgAUxjq9g5zlX7+fnZ7CSLAaIoKMJThbc3Q5uf8m5/1GoIIMIpiAgzRfUibNZx1/7le4ZrMIYgAVykiwGVdB7LRg1jXn+NKrtkYQghwhQICnNZt+Ko6vO4YJqt+71G+r1UEEeAMhQP4WKcha9SAtfpnVmkwzPqzs08AHlMwgI90GKqyDKCGvjw/Y/sG4DfFAjjEALXvZ2Swq3Mt7CMAAQRoPjRFGygNb/NEu1b2FdCVAgG0G5CuDEcjfyaGtP2iXE97DehEYQDaDERnh6FRPwvDWHy7r7V9B3SgKAClB6Cdg6DBK7+d68BeBKpSDICSA8+uoc+QVdeutWFfAtUoBED7AefK92+g6mv1uum+T4E6FABorsJQI3SwmzDyOfsI+rL5oamuA8zZ79uwRMQ11nUfA7nZ9NBQ9qFl1aBmMOKqVeuu454G8rLhoZnMg8qnQ4rQQSQr1mOn/Q3kZbNDE50GE8GDyASR1+xFqM8mhwayDiOzhy6DDrvNXrNd9j6Qiw0OxWUcQAQPuhFE/mSfQl02NxTVYeD45Hs0zJDFzHXdoS4A8dnUUFD1IUPwoINZ67x6fQDis6GhmGzDheABrwkiv9jTUIfNDEVUHiYEDxBEvtjjkJ9NDAVkGiAED7hGELHfITsbGJKrODQIHrBnn1SsJ0A8Ni8klmVYEDxgns5BRB2AnGxcSCrDgCB4wDpdg4iaAPnYtJBMhoFgxoBjyIBjRu+pajUH2M9mhUQyDAKCB8TQMYioF5CDjQpJVGn+ggesNXLPValDwF42KSQQvemPvINqeIA5Ru6/KjUJ2MMGheAqNHqnHhBDp9MQ9QTisjkhsMgN3qkH5NXlNERtgZhsTKjxkZrf/96slzT87qjhAPYatU+FEOATf3/0TwNLXGnmt147s98KH1BHh/0cORxBV2ELBnR1plm+6v2jem+HQQU6q34aovZAHDYjFA4fd//uMy9p2NCh+UMOI/ayEAK8YiNCgUeuPvxan/77X34Bpx5Qz4h9HTWE3KhJsJcNCJtdbdJn++i7L+vUA3AaAsxg80HD8HH3Gh79e4UP4P+EEGA0Gw82GdGQZwSQq49VaOhQ09W9L4QAX3wML2wQtRG/I3xAXyNuTkSsEVnrMWQmgEDSZrf69EP4AKp+KIUQAmuFKwJQ2cgmtyqACB5Al0ey1DNYwwkI8JTwATzj/WLAWQIIND39eMfwAHR7X0jEUxmoKMymh8pGN7VR/frRI1iCB9D9kSx1DuZyAgKTRWqq7wgfwFmVHsnKVLchIwEEkjWxXT060nAAxCSEAEeE2ehQzazmNbI/H3mJkQYCoEYN9DgW9OYEBCaI1Dyv0HiBs6r8XqEq9RwiEUAgUbNaefoRaQAAchJCgEcEEBioSpOK1PiB2iHkyqNaK1Wp7xCBAAKDVGlOkRo+UMOV93xEqklV6jzsFmZTQ2YrmtLoHvzod4AM/QIARd+crl7CNU5AAIBlqrwvBDhPAIGLotyRA8giewhR9+EaAQQSNKEA/RZgKCEE+hJA4CTNB+AaIQR6EkDgBE0HYAwhBPoRQCB4s5nRX30CFhCJEAK9CCAAwHbZQwhwnAACH3CXCyBmCNkt+uuDSAQQCNxc3NQDujkbQiKcggghcIwAAgdoKgDrCCFQmwACAISTOYQArwkgEPRulh4KdJc1hDgFgdcEEHhBEwHYSwiBegQQeELzAIhBCIFaBBAIaGbP9EsIgYyyhhDgTwIIPOCuFUA8GUOIfgJ/EkDgjmYBEJcQAvkJIBCsSXhaAOC1jI9VRegvEIUAAgCUCSFRT0GA3wQQ+Je7UwC5ZAsh+gz8IoBAoKbg5hzAZ4QQyEcAAQBSyxZCoDsBhPbcjQKoK2KNj/iaYCUBhNYiNYEVN+P8EkKgqjMfz+tRLNhDAIENDP4AMWqregzrCSC0tevu063ZufMFMEem94PoBXQlgNBStKLvBhzA3hCyS8TXBLMJILCQo36AmCFEfYZ1BBDa2fno1c6vD8BrHsWCNQQQWtkdPp782doXA9CE94NATAIIAFBWpveDQBcCCG1EOP3Q8ADWy/J+ED2CLgQQWogQPp78+bLX4pcQAhzvE0IIzCOAwCT3zet7UzH7A8Q5Bfmqz1FCCFQngFBexLtJt5ekrwGslSVQROxbMJIAAotPP/798+WvCYD3IcQpCMwngFDajrtI78IHALFFCCF6B5UJIJQVtXi7mQZA5j4GVwkgMJBHrwDyDfW32nxfnyOcgkBVAgglefQKgKPh4+g/71EsGEMAgUXcPAOIHT7UaVhDAKGciKcfu5uaX0IIdPbJyUfER7GcglCNAAIXefQKoM5jV0f+HW7iwDUCCKVEHP71KYBc4SNi3Y7Y3+AsAQQKP3oF0NXVk4+Ij2JBFQIIZey+O7T76wMw7rGro//elXZ/fRhFAIGT3t39cnMMIHf4ePf3nILAOQIIJay+K+TRK4AeJx/RHsVyCkIFAghcpBkA1H3s6ujXAo4TQEhv9+nHgz9f92IAmB4+oj2KJQCRnQBCaruLcIZHr/wSQqCyVScf7x7FWm3314crBBD4wPfhXfEH6PPY1buv7+YOHCeAwCB6D0Dt8KHOwxgCCGntfO9HhkevAKraefLx6lEs7wWBYwQQOMCjVwAx7H7s6hGPYsFnBBBSihQC9BqAXuEjUt2P1A/hKAEE3vDoFcB+UcLHs6/tFASOE0BIZ9fdHneZAPaIFj6e0Z/gGAEEXnh1Fyti8wOoJnL4ePU6nILAcwIIqUS5u5Slr/glhEBmkcNHtF9Q6BSETAQQeOJrWFfUAdbLED7evXY3feAxAYQ0ogQB/QRgrmzhI8pri9In4Z0fFivkazJH2d5ABVlqr5oLxzgBAQDCyhI+gOMEEAAgJOEDahJA4CCNEGCdjDU342uGHf65/z9sHjo/U/t9/Xd4ltd+B3Z6Vmcr1aZdfaXSz5Aavq9/JyDwQIfwARBRtcFZP4E/CSCEFuVuUcaGqOkB2WpUxlobtZfoAUQmgEBjGhSwQ9XwARwjgMAdQznAPB3Dh74C/yWAEJbHrwBq6RI+ovQUwYeoBBBoToMCVugSPoATH8MLEfjo3euqfl9ADu/qTrfwcft5fH3Pt/9eVZe/f12IQgCBFyoU7SNN7vs/U+F7Btb7ZKDuUGdWhgzIRgChtQ5N8FMekwCOODtcqye/CCh0JoAQzq6CXLURPGr2n36vQgkgcOR9HMpjWEQjgMATlYu1UAK8I3Bc55QDHhNAaEuT/C+hBHoTONYTUOhKACEUj1/FIpRAXQLHHh7DAgGEpt4VYUX6OaEEchI4Yp5yOAWhIwGEMBTgvIQSiEfg4J5TEKIQQGhP8JlDKIG1BI48BAG6E0Box+NXuUMJcI0at57HsOC/BBBCUHj7+jSUuHMIf3o33MIXNZQIBBBaE3xium+OrhN8xoAZnyBAZ3/vfgGwksevahBI4Df7IQf9B34TQIDwNGY4zn4BohNAaHP3zmM9AERy34dWhUf9j90EEPiXu4a5aKBgH2Sjz8AvAgiQgsYN79knQAYCCFt5/IorXEc6s/5r8BgWHZX5GF4biSvrw13DHPyyLnhOHctbx3bVNfU0px8F9roTEAAAYJkyJyCVUmEXHr9iBL/Mi47UsXp29Sr1M4+fhfa9ExDaU3xzcb3gT/ZFLq4X3QkgQHqV7grBO9Y7kF25R7BGf9KEv7Pu76ygcdfgzegQr75yjcdJ6cQJCFtEebZVsQdghyj9yc0cdhBAgBI0UTqwzoEKBBDa0LhrcXoF9kE1+hRdCCCUFeV4m3U0byqzvuvRp+hKAGE5TZRRNGc6s/4ZRV9mNQGEFhRXADLQr+hAAKEldw7r0rypyLquSz+iIwGEkhT0PlxrOrLu+3CtqUgAofxdPHcO+3HNqcR67kevpDoBhHbcTarHNaUT670e15RuBBAAAGAZAYTSd5IcKffl2lOBddzX92vvhIRqBBBaNVJFvC7Xlg6s87oiXNsIfZoeBBCgLM2UzKxfoCoBhLI0734i3EGEWazvfvQxqhJAaNOgNW8AItPD6EIAAUpzB5GMrFugMgGEks1U8+7LXUIqsq770j+pSAChBc27Nw2VTKzX3vQrOhBAgHI0cCqxnoFqBBDKcfcQgIp9TRilCgGE8hRsbgRTMrBOudG3qE4AAUrSwKnAOgYqEkAoxd1DXrE+iMz6JMr6sBaZTQChNHcPe3P9ycz67c31pzIBBAAgCcGECgQQoBWPFhCRdckR1glVCCCU5S4RN9YBGVm33FgHVCWAAO24i0gk1iPQjQAClOcuIplYr0QIrIIxM/3zVyNnirq/c+3v7CpgGjgAFdz6mTBANU5ASE/Y4AwNnQisQ87Q98hOACE9DZwjNGwysE45Qt8ju3KPYNmUaOB8Ui+sF3bRrzjKY1hU4wQEAABYpswJiLuYMbljQ+S1qG4Q7a62UzmgAycglKJxc5S1QgTWIUdZK1QigDCN0w+irkWNnEju16PaSRTWIrMIIEBpwgcZCCFAJwIIZRgsuWeIIzPrl3v6HFUIIEBJ3nRONo/WpxACVCSAAOUIH2QlhAAdCCCUYLjki/BBdkIIr6hnVCCAAGUIH1QhhACVCSBAWcIHmVm/QFUCCOlp0tz4uF0q8vG8PKK+kZ0AAqQnfFCZEAJUI4AAqRnG6Mi6BzITQEjNne7evOmcLrwpnXtqHZkJIEyhMTKb8EE3Qgg7WGPMIIAA6QgfdCWEABUIIKRl4OxJ+KA7IYQvah9ZCSBAahowHVn3QGYCCJCGj9uF33w8L5DVP38VofD2YvDsR/iAP932wfe9cfvf9kbvNQAZOAEBwtNc4Tj7BYiuzAnIF3d+YtAAGcWbzuHzO+BOQoDInICQjqbah/ABx/hkrN7URbIRQICQhA/4jBACZFHuEazRb2L1d2A94QPO8TgWkIETEFLRRHty3eE4+6Un151MBBAgFKd0cJ3fEQJEJoAAYQgfMI4QAkQlgJCGYbQ2wxHMZ5/Vpk+ShQACbOdN5zCHT8YCIhJAgK2ED5hLCAGiEUBIwUBak/ABawghfcyoodYKowkgDKdQcYTwAWsJIUAUAggQgvAB89lnQAQCCOFpmPX4uF3Yx8fz1qemEp0AAixl2IF47EtgJQEEWMaQA3HZn7xifTCSAELoAuUYuQ7NC+KzT+vQP4nsn90vAKjv3VBz+3PNEtawHzlLQGUUJyDAVBoW5GPfAjM5ASHs58y7A5efIQbychKS3+36HanDrjOrCSBM55dfcYRhB+ZTe1FnicAjWGwrgN//Qz1+1wfk43eE1OeaEoEAQkiG1Zrhw3WFuJ7tUwNrbuouEQkgwFBXhhWDDsxjbwJRCCBsp7HVvpbuvkGNmqxW1+FaspsAQjgG1npDy/c/c30hpvu9+uyfIR91l2gEEOCyI0PJ13BjwIH1Ru4rexS4ysfwspVGlp9rCP32pY/Nzs81ZCcBhFAUQ258hC8c5yYAI38pIawggACnrWpm3twOv0QaIN1BB84SQNgmUiMl3/UTSqhu9x47QgjJzfVjFwGEMBTBPKIORkIJWUXdU0cYYvPwGBZRCCDAR7I1L6GEaLLtoSOEEOATAghbVGzAHVS5bkIJq1TZM0cIITm5buzw4+dddcy6CL++jayvvxufcpRPp0Hqi3XJJzrukUfsm/j0YHavOycgwFtdBysnJTzTdU8c4Y468I4AwnIaN5kJJf2oWVQnNLJauQCiUeSj6MVmT70nlNRhvY9hoI3Np2GxW7kAAoyjQZ0nlMRnfc8lhADlA4gil4OGn4drNZ5Qso/1vIcQkodrxUplAgg5KXYxGdbWEUrGs35jMdjG5DEsdhJAgP/QkPYTSo6zXmP5Wqf310UIAb4TQFjGoJB/8HUN9xFKrL9oXq2/R3fXhZD4XCNWEUDYRpHLN+A+umaGwn0qhxLrKpYz60oIic9jWOwigAAPHR0ShJJYMoYS6yWWkevFgAs8IoCwhAaU6/pcHUCEklgihRLrIJYV6+A+hDgFic31YQUBhC0Ut7rh4xmhpF8ocX1j2Vl3hZC4nFKxgwACje1uOkJJnVDiuvEpIQT6EkCYzmASU6THcojL/s370bfReFN6Hq4Ls/09/SvAHUVtv8jh493ruP15lNcKq32t/+//Ofr3InDqGVOU9UEfTkCgmcjh45M7cwYZqvtkX2Za+05CAAGEqTI1xQ6yh493hBKyqrQPjxBC4nM9mEkAYSnFLJao12Pkp7IIJXTfdx32Ode5HqwkgEATqz5uN8OdOaGEVVbss8xr18fzQk8CCNNkborVVAofswglXGVfnSOExOVaMMuPnzosAACwiI/hBQAAlhFAAACAv1b5H5sYd8SnFv8MAAAAAElFTkSuQmCC'''
 
 class CrispAestheticFlipClock(QWidget):
     def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zeros=None, config_path=None, full_config=None, ignore_media_keys=False, dino_font="Bungee", live_weather=False, pixel_shift=False, primary_font="", dino_icon="Dino", custom_dino_path=""):
@@ -115,6 +115,23 @@ class CrispAestheticFlipClock(QWidget):
         
         self.tyre_pixmap = load_b64(TYRE_B64)
         self.cockpit_pixmap = load_b64(COCKPIT_B64)
+        self.primary_font_family = "Segoe UI"
+        if getattr(self, "dino_font", ""):
+            self.primary_font_family = self.dino_font
+
+        # F1 3D Mode Variables
+        self.f1_player_x = 0.0
+        self.f1_target_x = 0.0
+        self.f1_obstacles = []
+        self.f1_speed = 1.2
+        self.f1_dead = False
+        self.f1_score = 0
+        self.f1_road_z = 0.0
+        import random
+        self.f1_stars = []
+        for _ in range(80):
+            self.f1_stars.append((random.random(), random.random() * 0.50, random.choice([1, 1, 2])))
+
         
         # F1 Mode Variables
         self.f1_player_x = 0.0 # Lane from -1 to 1
@@ -893,6 +910,188 @@ class CrispAestheticFlipClock(QWidget):
     # ==========================================
     # AMBIENT ORBS & MAIN PAINT EVENT
     # ==========================================
+
+    # ==========================================
+    # F1 PSEUDO-3D COCKPIT GAME ENGINE
+    # ==========================================
+    def update_f1_logic(self):
+        if getattr(self, "f1_dead", False):
+            return
+            
+        self.f1_score = getattr(self, "f1_score", 0) + 1
+        self.f1_speed = getattr(self, "f1_speed", 1.2)
+        self.f1_road_z = (getattr(self, "f1_road_z", 0.0) + self.f1_speed * 0.08) % 1.0
+        
+        # Smooth steering toward target lane
+        target = getattr(self, "f1_target_x", 0.0)
+        curr = getattr(self, "f1_player_x", 0.0)
+        self.f1_player_x = curr + (target - curr) * 0.22
+        
+        # Spawn obstacles (tyres)
+        if not hasattr(self, "f1_obstacles"):
+            self.f1_obstacles = []
+            
+        import random
+        min_z = min([o['z'] for o in self.f1_obstacles], default=100.0)
+        if min_z > 35.0 and random.random() < 0.045:
+            lane = random.choice([-1.0, 0.0, 1.0])
+            self.f1_obstacles.append({'x': lane, 'z': 100.0})
+            
+        # Move obstacles
+        for obs in self.f1_obstacles:
+            obs['z'] -= self.f1_speed * 0.85
+            # Collision check when tyre approaches driver
+            if 3.0 < obs['z'] < 16.0:
+                if abs(obs['x'] - self.f1_player_x) < 0.48:
+                    self.f1_dead = True
+                    
+        self.f1_obstacles = [o for o in self.f1_obstacles if o['z'] > 2.0]
+        
+        # Gradual acceleration
+        if self.f1_speed < 2.8:
+            self.f1_speed += 0.0003
+
+    def draw_f1_style(self, painter, w, h):
+        # 1. Deep Space Sky
+        painter.fillRect(0, 0, int(w), int(h), QColor("#020208"))
+        
+        horizon_y = h * 0.52
+        vp_x = w * 0.50 - (getattr(self, "f1_player_x", 0.0) * 35.0) # Vanishing point shifts slightly with steering
+        
+        # 2. Glowing Galaxy / Nebula in Space (matching reference image)
+        galaxy_x = w * 0.52 - (getattr(self, "f1_player_x", 0.0) * 15.0)
+        galaxy_y = h * 0.28
+        painter.save()
+        painter.translate(galaxy_x, galaxy_y)
+        painter.rotate(-15)
+        # Outer soft glow
+        grad = QRadialGradient(0, 0, w * 0.28)
+        grad.setColorAt(0.0, QColor(140, 160, 220, 80))
+        grad.setColorAt(0.4, QColor(70, 90, 160, 45))
+        grad.setColorAt(1.0, QColor(0, 0, 0, 0))
+        painter.setBrush(grad)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawEllipse(QPointF(0, 0), w * 0.28, h * 0.09)
+        # Inner core
+        core_grad = QRadialGradient(0, 0, w * 0.12)
+        core_grad.setColorAt(0.0, QColor(255, 255, 255, 180))
+        core_grad.setColorAt(0.5, QColor(190, 210, 255, 100))
+        core_grad.setColorAt(1.0, QColor(0, 0, 0, 0))
+        painter.setBrush(core_grad)
+        painter.drawEllipse(QPointF(0, 0), w * 0.14, h * 0.04)
+        painter.restore()
+        
+        # 3. Stars
+        painter.setPen(QColor("#FFFFFF"))
+        for sx_norm, sy_norm, size in getattr(self, "f1_stars", []):
+            sx = int(sx_norm * w - (getattr(self, "f1_player_x", 0.0) * 10.0)) % int(w)
+            sy = int(sy_norm * horizon_y)
+            if size == 1:
+                painter.drawPoint(sx, sy)
+            else:
+                painter.fillRect(sx, sy, 2, 2, QColor("#FFFFFF"))
+                
+        # 4. Perspective Road Surface (dark with glowing neon/white grid)
+        painter.fillRect(0, int(horizon_y), int(w), int(h - horizon_y), QColor("#000000"))
+        
+        # Radiating Lane Lines
+        road_pen = QPen(QColor("#E0E0FF"))
+        road_pen.setWidth(2)
+        painter.setPen(road_pen)
+        
+        # Left outer, Left lane, Center lane, Right lane, Right outer
+        lanes = [-1.6, -0.8, 0.0, 0.8, 1.6]
+        for l in lanes:
+            bot_x = w * 0.50 + l * (w * 0.45) - (getattr(self, "f1_player_x", 0.0) * (w * 0.38))
+            painter.drawLine(int(vp_x), int(horizon_y), int(bot_x), int(h))
+            
+        # Moving horizontal perspective speed stripes
+        road_z = getattr(self, "f1_road_z", 0.0)
+        stripe_pen = QPen(QColor("#707090"))
+        stripe_pen.setWidth(1)
+        painter.setPen(stripe_pen)
+        for i in range(1, 14):
+            z_val = (i - road_z) * 0.08
+            if z_val <= 0: continue
+            line_y = horizon_y + (h - horizon_y) * (z_val ** 1.8)
+            if line_y >= h: continue
+            # Width at this depth
+            hw = (w * 0.90) * (z_val ** 1.4)
+            cx = vp_x + (w * 0.50 - vp_x) * z_val
+            painter.drawLine(int(cx - hw/2), int(line_y), int(cx + hw/2), int(line_y))
+            
+        # 5. Oncoming Obstacles (Tyres)
+        tyre_pm = getattr(self, "tyre_pixmap", QPixmap())
+        obstacles = sorted(getattr(self, "f1_obstacles", []), key=lambda o: o['z'], reverse=True)
+        for obs in obstacles:
+            z = obs['z']
+            if z <= 2.0: continue
+            # Perspective projection
+            t = (100.0 - z) / 100.0 # 0 at distance, 1 at player
+            t_curve = t ** 2.2 # Non-linear perspective scaling
+            
+            obs_y = horizon_y + (h - horizon_y) * t_curve
+            base_lane_x = w * 0.50 + obs['x'] * (w * 0.32)
+            obs_x = vp_x + (base_lane_x - vp_x) * t - (getattr(self, "f1_player_x", 0.0) * (w * 0.38) * t)
+            
+            # Size grows as it approaches
+            obs_scale = 0.18 + t_curve * 1.6
+            obs_w = 40 * obs_scale
+            obs_h = 58 * obs_scale
+            
+            if not tyre_pm.isNull():
+                dest_rect = QRectF(obs_x - obs_w/2, obs_y - obs_h, obs_w, obs_h)
+                painter.drawPixmap(dest_rect.toRect(), tyre_pm)
+            else:
+                # Fallback clean red/white hazard box
+                painter.fillRect(int(obs_x - obs_w/2), int(obs_y - obs_h), int(obs_w), int(obs_h), QColor("#FF4040"))
+                
+        # 6. Futuristic Cockpit & Driver Hands Overlay
+        cockpit_pm = getattr(self, "cockpit_pixmap", QPixmap())
+        if not cockpit_pm.isNull():
+            cw = w
+            # Keep original aspect ratio 300x225 = 1.33
+            ch = w * (cockpit_pm.height() / cockpit_pm.width())
+            if ch > h * 0.55:
+                ch = h * 0.55
+                cw = ch * (cockpit_pm.width() / cockpit_pm.height())
+                
+            # Shift slightly with steering for tactile driving feel
+            steer_offset = getattr(self, "f1_player_x", 0.0) * 12.0
+            cx = w * 0.50 - cw * 0.50 + steer_offset
+            cy = h - ch + 4.0
+            painter.drawPixmap(QRectF(cx, cy, cw, ch).toRect(), cockpit_pm)
+            
+        # 7. Retro Digital HUD
+        painter.setPen(QColor("#FFFFFF"))
+        time_str = QTime.currentTime().toString("HH:mm:ss")
+        score_val = int(getattr(self, "f1_score", 0))
+        speed_mph = int(85 + getattr(self, "f1_speed", 1.2) * 18)
+        
+        font_hud = QFont("Segoe UI", 13, QFont.Weight.Bold)
+        painter.setFont(font_hud)
+        painter.drawText(25, 40, f"TIME: {time_str}")
+        painter.drawText(25, 65, f"SCORE: {score_val:05d}")
+        painter.drawText(25, 90, f"SPEED: {speed_mph} MPH")
+        
+        # Steering help indicator
+        painter.setPen(QColor("#A0A0B0"))
+        font_hint = QFont("Segoe UI", 11)
+        painter.setFont(font_hint)
+        painter.drawText(QRectF(0, 20, w - 25, 30), Qt.AlignmentFlag.AlignRight, "STEER: [ ◄ LEFT ]   [ RIGHT ► ]")
+        
+        # Game Over state
+        if getattr(self, "f1_dead", False):
+            font_go = QFont("Segoe UI", 32, QFont.Weight.Bold)
+            painter.setFont(font_go)
+            painter.setPen(QColor("#FF3333"))
+            painter.drawText(QRectF(0, horizon_y - 80, w, 60), Qt.AlignmentFlag.AlignHCenter, "G A M E   O V E R")
+            
+            font_sub = QFont("Segoe UI", 15)
+            painter.setFont(font_sub)
+            painter.setPen(QColor("#FFFFFF"))
+            painter.drawText(QRectF(0, horizon_y - 20, w, 40), Qt.AlignmentFlag.AlignHCenter, "PRESS SPACE TO RESTART")
+
     def draw_ambient_orb(self, painter, w, h, duration, start_x, start_y, start_size, end_x, end_y, end_size, color):
         if self.bg_opacity <= 0.0:
             return 
@@ -946,7 +1145,10 @@ class CrispAestheticFlipClock(QWidget):
         elif self.clock_style == 1:
             self.draw_rotary_style(painter, w, h)
         else:
-            self.draw_dino_style(painter, w, h)
+            if getattr(self, 'dino_icon', '') == 'F1 Car':
+                self.draw_f1_style(painter, w, h)
+            else:
+                self.draw_dino_style(painter, w, h)
             
         # Apply brightness overlay
         if self.brightness < 100:
@@ -956,18 +1158,22 @@ class CrispAestheticFlipClock(QWidget):
     def keyPressEvent(self, event):
         if getattr(self, "dino_icon", "") == "F1 Car" and getattr(self, "clock_style", 0) == 2:
             if event.key() == Qt.Key.Key_Left:
-                self.f1_player_x = max(-1.0, self.f1_player_x - 1.0)
+                self.f1_target_x = max(-1.0, getattr(self, "f1_target_x", 0.0) - 1.0)
+                self.update()
                 return
             elif event.key() == Qt.Key.Key_Right:
-                self.f1_player_x = min(1.0, self.f1_player_x + 1.0)
+                self.f1_target_x = min(1.0, getattr(self, "f1_target_x", 0.0) + 1.0)
+                self.update()
                 return
             elif event.key() == Qt.Key.Key_Space:
                 if getattr(self, "f1_dead", False):
                     self.f1_dead = False
                     self.f1_score = 0
                     self.f1_obstacles = []
-                    self.f1_speed = 1.0
+                    self.f1_speed = 1.2
                     self.f1_player_x = 0.0
+                    self.f1_target_x = 0.0
+                    self.update()
                 return
         media_keys = [Qt.Key.Key_MediaPlay, Qt.Key.Key_MediaStop, Qt.Key.Key_MediaPrevious, Qt.Key.Key_MediaNext, Qt.Key.Key_VolumeUp, Qt.Key.Key_VolumeDown, Qt.Key.Key_VolumeMute, Qt.Key.Key_MediaPause, Qt.Key.Key_MediaTogglePlayPause]
         if self.ignore_media_keys and event.key() in media_keys:
@@ -1544,107 +1750,3 @@ if __name__ == '__main__':
         custom_dino_path=default_config.get("custom_dino_path", "")
     )
     sys.exit(app.exec())
-
-
-    def update_f1_logic(self):
-        if self.f1_dead:
-            return
-            
-        self.f1_score += 1
-        self.f1_road_z = (self.f1_road_z + self.f1_speed * 0.1) % 1.0
-        
-        # Spawn obstacles
-        import random
-        if not self.f1_obstacles or self.f1_obstacles[-1]['z'] < 80:
-            if random.random() < 0.05:
-                lane = random.choice([-1.0, 0.0, 1.0])
-                self.f1_obstacles.append({'x': lane, 'z': 100.0})
-                
-        # Move obstacles
-        for obs in self.f1_obstacles:
-            obs['z'] -= self.f1_speed
-            if obs['z'] < 5.0 and obs['z'] > 0:
-                # Collision check
-                if abs(obs['x'] - self.f1_player_x) < 0.5:
-                    self.f1_dead = True
-                    
-        self.f1_obstacles = [o for o in self.f1_obstacles if o['z'] > 0]
-        
-        # Accelerate slightly
-        if self.f1_speed < 3.0:
-            self.f1_speed += 0.0005
-
-    def draw_f1_style(self, painter, w, h):
-        # Draw sky/space background
-        painter.fillRect(0, 0, int(w), int(h/2), QColor("#050510"))
-        # Draw road area
-        painter.fillRect(0, int(h/2), int(w), int(h/2), QColor("#000000"))
-        
-        # Draw stars (simple hash based on w,h)
-        painter.setPen(QColor("#FFFFFF"))
-        import random
-        random.seed(42)
-        for i in range(100):
-            sx = random.randint(0, int(w))
-            sy = random.randint(0, int(h/2))
-            painter.drawPoint(sx, sy)
-            
-        # Draw perspective road lines
-        horizon_y = h/2
-        center_x = w/2
-        
-        pen = QPen(QColor("#FFFFFF"))
-        pen.setWidth(2)
-        painter.setPen(pen)
-        
-        # Draw grid
-        for i in range(-5, 6):
-            if i == 0: continue
-            x_bottom = center_x + i * 200
-            painter.drawLine(int(center_x), int(horizon_y), int(x_bottom), int(h))
-            
-        # Draw horizontal lines moving forward
-        for j in range(1, 10):
-            z = j * 10 - (self.f1_road_z * 10)
-            if z <= 0: continue
-            scale = 100.0 / z
-            y = horizon_y + (h/2) / z * 10
-            painter.drawLine(0, int(y), int(w), int(y))
-            
-        # Draw obstacles (tyres)
-        for obs in reversed(self.f1_obstacles): # draw furthest first
-            if obs['z'] <= 0: continue
-            scale = 100.0 / obs['z']
-            obs_w = 34 * scale * 2
-            obs_h = 50 * scale * 2
-            
-            # x position based on perspective
-            # lane: -1 is left, 0 is center, 1 is right
-            # offset from center at bottom of screen is say 300px
-            x_offset = obs['x'] * 300 * scale / 10.0
-            
-            # camera offset based on player steer
-            camera_offset = -self.f1_player_x * 300 * scale / 10.0
-            
-            x_pos = center_x + x_offset + camera_offset - obs_w/2
-            y_pos = horizon_y + (h/2) / obs['z'] * 10 - obs_h
-            
-            painter.drawPixmap(QRectF(x_pos, y_pos, obs_w, obs_h).toRect(), self.tyre_pixmap)
-            
-        # Draw cockpit overlay at bottom
-        cockpit_rect = QRectF(0, h - (w * 600/800), w, w * 600/800)
-        # to ensure it anchors to bottom and scales nicely:
-        cw = w
-        ch = w * (self.cockpit_pixmap.height() / max(1, self.cockpit_pixmap.width()))
-        if ch > h:
-            ch = h
-            cw = h * (self.cockpit_pixmap.width() / max(1, self.cockpit_pixmap.height()))
-        painter.drawPixmap(QRectF(w/2 - cw/2, h - ch, cw, ch).toRect(), self.cockpit_pixmap)
-        
-        # Draw score
-        painter.setPen(QColor("#FFFFFF"))
-        painter.setFont(QFont(self.primary_font_family, 24, QFont.Weight.Bold))
-        painter.drawText(20, 50, f"HI 00000  {int(self.f1_score):05d}")
-        
-        if self.f1_dead:
-            painter.drawText(int(w/2 - 100), int(h/2 - 50), "G A M E   O V E R")
