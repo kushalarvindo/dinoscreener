@@ -1209,7 +1209,18 @@ class SettingsDialog(QDialog):
         if file:
             self.primary_font = file
             self.primary_font_label.setText(os.path.basename(file))
-            QFontDatabase.addApplicationFont(file)
+            font_id = QFontDatabase.addApplicationFont(file)
+            
+            # Force refresh QFontComboBox by recreating its model or simply re-setting filters
+            from PyQt6.QtWidgets import QFontComboBox
+            self.font_cb.setFontFilters(QFontComboBox.FontFilter.AllFonts)
+            
+            if font_id != -1:
+                families = QFontDatabase.applicationFontFamilies(font_id)
+                if families:
+                    from PyQt6.QtGui import QFont
+                    self.font_cb.setCurrentFont(QFont(families[0]))
+                    
             self.preview.primary_font = file
             self.preview.update()
             
@@ -1330,7 +1341,7 @@ class SettingsDialog(QDialog):
         self.pixel_shift_cb.stateChanged.connect(self.update_pixel_shift)
         
         # Row 2: Font Config & Actions
-        self.font_label = QLabel("Dino Font:")
+        self.font_label = QLabel("Font:")
         self.font_cb = QFontComboBox()
         self.font_cb.setCurrentFont(QFont(self.config.get("dino_font", "Bungee")))
         self.font_cb.currentFontChanged.connect(self.update_dino_font)
@@ -1374,7 +1385,7 @@ class SettingsDialog(QDialog):
         action_row = QHBoxLayout()
         
         self.primary_font = self.config.get("primary_font", "")
-        self.primary_font_btn = QPushButton("Import Primary Font...")
+        self.primary_font_btn = QPushButton("Import Font...")
         self.primary_font_btn.setStyleSheet("background: transparent; border: 1px solid #45475A;")
         self.primary_font_btn.clicked.connect(self.import_primary_font)
         self.primary_font_label = QLabel(os.path.basename(self.primary_font) if self.primary_font else "Default")
