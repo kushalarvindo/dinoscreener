@@ -811,16 +811,28 @@ class CrispAestheticFlipClock(QWidget):
                 
             dino_w = 44
             dino_h = 47
-            if self.dino_y > 0:
-                dino_rect = QRectF(848, 2, 44, 47) 
-            else:
-                if self.dino_frame < 10:
-                    dino_rect = QRectF(936, 2, 44, 47) 
-                else:
-                    dino_rect = QRectF(980, 2, 44, 47)
-                    
             target_rect = QRectF(dino_x, ground_y - self.dino_y - dino_h, dino_w, dino_h)
-            painter.drawPixmap(target_rect, self.sprite_pixmap, dino_rect)
+            
+            if self.dino_icon == "Neko":
+                if self.dino_y > 0:
+                    src_rect = QRectF(0, 0, 44, 47)
+                else:
+                    src_rect = QRectF(0, 0, 44, 47) if (self.dino_frame // 5) % 2 == 0 else QRectF(44, 0, 44, 47)
+                painter.drawPixmap(target_rect, self.neko_pixmap, src_rect)
+            elif self.dino_icon == "F1 Car":
+                src_rect = QRectF(0, 0, 44, 47)
+                painter.drawPixmap(target_rect, self.f1_pixmap, src_rect)
+            elif self.dino_icon == "Custom Image..." and not self.custom_pixmap.isNull():
+                painter.drawPixmap(target_rect.toRect(), self.custom_pixmap)
+            else:
+                if self.dino_y > 0:
+                    dino_rect = QRectF(848, 2, 44, 47) 
+                else:
+                    if self.dino_frame < 10:
+                        dino_rect = QRectF(936, 2, 44, 47) 
+                    else:
+                        dino_rect = QRectF(980, 2, 44, 47)
+                painter.drawPixmap(target_rect, self.sprite_pixmap, dino_rect)
             
             for obs in self.dino_obstacles:
                 t = obs.get('type', 'large1')
@@ -1379,7 +1391,7 @@ class SettingsDialog(QDialog):
         action_row.addWidget(self.font_cb)
         
         # Dino Icon
-        self.dino_icon_label = QLabel("Dino Icon:")
+        self.dino_icon_label = QLabel("Icon:")
         self.dino_icon_cb = QComboBox()
         self.dino_icon_cb.addItems(["Dino", "Neko", "F1 Car", "Custom Image..."])
         self.dino_icon_cb.setCurrentText(self.config.get("dino_icon", "Dino"))
