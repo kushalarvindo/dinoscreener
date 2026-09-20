@@ -10,7 +10,7 @@ from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainter
 
 SPRITE_B64 = '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'
 class CrispAestheticFlipClock(QWidget):
-    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zeros=None, config_path=None, full_config=None, ignore_media_keys=False, dino_font="Bungee", live_weather=False, pixel_shift=False, primary_font=""):
+    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zeros=None, config_path=None, full_config=None, ignore_media_keys=False, dino_font="Bungee", live_weather=False, pixel_shift=False, primary_font="", character_type="dino", custom_character_image=""):
         super().__init__()
         self.last_pos = None
         self.clock_scales = clock_scales if clock_scales else {"0": 0.45, "1": 0.45, "2": 0.45}
@@ -64,6 +64,14 @@ class CrispAestheticFlipClock(QWidget):
         self.primary_font = primary_font
         self.primary_font_family = getattr(self, "primary_font_family", "Google Sans")
         
+        self.character_type = character_type
+        self.custom_character_image = custom_character_image
+        self.custom_char_pixmap = QPixmap()
+        if self.custom_character_image:
+            import os
+            if os.path.exists(self.custom_character_image):
+                self.custom_char_pixmap.load(self.custom_character_image)
+        
         if self.primary_font:
             import os
             if os.path.exists(self.primary_font):
@@ -105,6 +113,18 @@ class CrispAestheticFlipClock(QWidget):
         
     def set_brightness(self, val):
         self.brightness = val
+        self.update()
+        
+    def set_custom_character(self, path):
+        self.custom_character_image = path
+        if path:
+            import os
+            if os.path.exists(path):
+                self.custom_char_pixmap.load(path)
+            else:
+                self.custom_char_pixmap = QPixmap()
+        else:
+            self.custom_char_pixmap = QPixmap()
         self.update()
         
     def on_weather_updated(self, data):
@@ -786,16 +806,25 @@ class CrispAestheticFlipClock(QWidget):
                 
             dino_w = 44
             dino_h = 47
-            if self.dino_y > 0:
-                dino_rect = QRectF(848, 2, 44, 47) 
+            if getattr(self, "character_type", "dino") == "custom" and getattr(self, "custom_char_pixmap", None) and not self.custom_char_pixmap.isNull():
+                orig_w = self.custom_char_pixmap.width()
+                orig_h = self.custom_char_pixmap.height()
+                target_h = 47
+                target_w = max(20, min(65, int(orig_w * (target_h / orig_h)))) if orig_h > 0 else 44
+                char_x = dino_x + (dino_w - target_w) / 2
+                target_rect = QRectF(char_x, ground_y - self.dino_y - target_h, target_w, target_h)
+                painter.drawPixmap(target_rect, self.custom_char_pixmap, QRectF(self.custom_char_pixmap.rect()))
             else:
-                if self.dino_frame < 10:
-                    dino_rect = QRectF(936, 2, 44, 47) 
+                if self.dino_y > 0:
+                    dino_rect = QRectF(848, 2, 44, 47) 
                 else:
-                    dino_rect = QRectF(980, 2, 44, 47)
-                    
-            target_rect = QRectF(dino_x, ground_y - self.dino_y - dino_h, dino_w, dino_h)
-            painter.drawPixmap(target_rect, self.sprite_pixmap, dino_rect)
+                    if self.dino_frame < 10:
+                        dino_rect = QRectF(936, 2, 44, 47) 
+                    else:
+                        dino_rect = QRectF(980, 2, 44, 47)
+                        
+                target_rect = QRectF(dino_x, ground_y - self.dino_y - dino_h, dino_w, dino_h)
+                painter.drawPixmap(target_rect, self.sprite_pixmap, dino_rect)
             
             for obs in self.dino_obstacles:
                 t = obs.get('type', 'large1')
@@ -1041,6 +1070,14 @@ class SettingsDialog(QDialog):
         self.saved_primary_font = saved_prim if (saved_prim and os.path.exists(saved_prim)) else ""
         self.saved_dino_font = self.config.get("dino_font", "Bungee")
         
+        saved_char = self.config.get("custom_character_image", "")
+        self.saved_char_image = saved_char if (saved_char and os.path.exists(saved_char)) else ""
+        self.saved_char_type = self.config.get("character_type", "dino").capitalize()
+        if self.saved_char_type not in ["Dino", "Custom"]:
+            self.saved_char_type = "Dino"
+        if self.saved_char_type == "Custom" and not self.saved_char_image:
+            self.saved_char_type = "Dino"
+        
         bungee_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Bungee-Regular.ttf")
         if getattr(sys, 'frozen', False):
             bungee_path = os.path.join(sys._MEIPASS, "Bungee-Regular.ttf")
@@ -1051,6 +1088,7 @@ class SettingsDialog(QDialog):
         self.saved_dino_font = self.font_cb.currentFont().family()
         self.installEventFilter(self)
         self.check_font_changed()
+        self.check_char_changed()
         
     def eventFilter(self, obj, event):
         if event.type() == event.Type.KeyPress:
@@ -1072,11 +1110,13 @@ class SettingsDialog(QDialog):
             "clock_scales": {"0": 0.45, "1": 0.45, "2": 0.45},
             "use_24hr": False,
             "leading_zero": False,
-        "live_weather": False,
-        "pixel_shift": False,
-        "primary_font": "",
+            "live_weather": False,
+            "pixel_shift": False,
+            "primary_font": "",
             "ignore_media_keys": False,
-            "dino_font": "Bungee"
+            "dino_font": "Bungee",
+            "character_type": "dino",
+            "custom_character_image": ""
         }
         if os.path.exists(self.config_path):
             try:
@@ -1100,6 +1140,8 @@ class SettingsDialog(QDialog):
         self.config["primary_font"] = getattr(self, 'primary_font', "")
         self.config["ignore_media_keys"] = self.ignore_media_cb.isChecked()
         self.config["dino_font"] = self.font_cb.currentFont().family()
+        self.config["character_type"] = self.char_cb.currentText().lower()
+        self.config["custom_character_image"] = getattr(self, 'custom_character_image', "")
         
         os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
         with open(self.config_path, 'w') as f:
@@ -1124,6 +1166,13 @@ class SettingsDialog(QDialog):
         self.primary_font_btn.setVisible(is_dino)
         self.primary_font_label.setVisible(is_dino)
         self.check_font_changed()
+        
+        if hasattr(self, 'char_btn'):
+            self.char_btn.setVisible(is_dino)
+            self.char_label.setVisible(is_dino)
+            self.char_title_label.setVisible(is_dino)
+            self.char_cb.setVisible(is_dino)
+            self.check_char_changed()
         
         is_rotary = self.preview.clock_style == 1
         self.color_btn.setVisible(is_rotary)
@@ -1248,6 +1297,67 @@ class SettingsDialog(QDialog):
         self.preview.update()
         self.check_font_changed()
         
+    def import_character(self):
+        file, _ = QFileDialog.getOpenFileName(self, "Select Character Image", "", "Image Files (*.png *.jpg *.jpeg *.bmp *.webp)")
+        if file:
+            self.custom_character_image = file
+            self.char_label.setText(os.path.basename(file))
+            self.char_cb.blockSignals(True)
+            self.char_cb.setCurrentText("Custom")
+            self.char_cb.blockSignals(False)
+            self.preview.character_type = "custom"
+            self.preview.set_custom_character(file)
+            self.check_char_changed()
+            
+    def update_character_type(self, text):
+        char_type = text.lower()
+        if char_type == "custom":
+            if not getattr(self, "custom_character_image", "") or not os.path.exists(self.custom_character_image):
+                self.import_character()
+                if not getattr(self, "custom_character_image", ""):
+                    self.char_cb.blockSignals(True)
+                    self.char_cb.setCurrentText("Dino")
+                    self.char_cb.blockSignals(False)
+                    self.preview.character_type = "dino"
+                    self.preview.update()
+                    self.check_char_changed()
+                    return
+        self.preview.character_type = self.char_cb.currentText().lower()
+        self.preview.update()
+        self.check_char_changed()
+        
+    def check_char_changed(self):
+        if not hasattr(self, 'undo_char_btn') or not hasattr(self, 'char_cb'):
+            return
+        is_dino = self.preview.clock_style == 2
+        if not is_dino:
+            self.undo_char_btn.hide()
+            return
+        current_type = self.char_cb.currentText()
+        current_img = getattr(self, 'custom_character_image', "")
+        has_changed = (current_type != self.saved_char_type) or (current_img != self.saved_char_image)
+        self.undo_char_btn.setVisible(has_changed)
+
+    def revert_character(self):
+        if self.saved_char_image and os.path.exists(self.saved_char_image):
+            self.custom_character_image = self.saved_char_image
+            self.char_label.setText(os.path.basename(self.custom_character_image))
+            self.preview.set_custom_character(self.custom_character_image)
+        else:
+            self.saved_char_image = ""
+            self.custom_character_image = ""
+            self.char_label.setText("Default")
+            self.preview.set_custom_character("")
+
+        target_type = self.saved_char_type if (self.saved_char_type == "Custom" and self.custom_character_image) else "Dino"
+        self.saved_char_type = target_type
+        self.char_cb.blockSignals(True)
+        self.char_cb.setCurrentText(target_type)
+        self.char_cb.blockSignals(False)
+        self.preview.character_type = target_type.lower()
+        self.preview.update()
+        self.check_char_changed()
+        
     def reset_defaults(self):
         import os, json
         if os.path.exists(self.config_path):
@@ -1274,7 +1384,10 @@ class SettingsDialog(QDialog):
             use_24hr=self.config.get("use_24hr", False),
             leading_zeros=self.config.get("leading_zeros", self.config.get("leading_zero", False)),
             ignore_media_keys=self.config.get("ignore_media_keys", False),
-            dino_font=self.config.get("dino_font", "Bungee")
+            dino_font=self.config.get("dino_font", "Bungee"),
+            primary_font=self.config.get("primary_font", ""),
+            character_type=self.config.get("character_type", "dino"),
+            custom_character_image=self.config.get("custom_character_image", "")
         )
         main_layout.addWidget(self.preview, stretch=1)
         
@@ -1387,8 +1500,8 @@ class SettingsDialog(QDialog):
         cb_layout.addWidget(self.live_weather_cb, 1, 2)
         cb_layout.addWidget(self.pixel_shift_cb, 1, 3)
         
-        # Action Row Assembly
-        action_row = QHBoxLayout()
+        # Row 2: Font Controls
+        font_row = QHBoxLayout()
         
         self.primary_font = self.config.get("primary_font", "")
         self.primary_font_btn = QPushButton("Import Font...")
@@ -1424,24 +1537,80 @@ class SettingsDialog(QDialog):
         self.primary_font_label = QLabel(os.path.basename(self.primary_font) if self.primary_font else "Default")
         self.primary_font_label.setStyleSheet("color: #A6ADC8; font-weight: normal; font-size: 12px;")
         
-        action_row.addWidget(self.primary_font_btn)
-        action_row.addWidget(self.undo_font_btn)
-        action_row.addSpacing(5)
-        action_row.addWidget(self.primary_font_label)
-        action_row.addSpacing(15)
-        action_row.addWidget(self.font_label)
+        font_row.addWidget(self.primary_font_btn)
+        font_row.addWidget(self.undo_font_btn)
+        font_row.addSpacing(5)
+        font_row.addWidget(self.primary_font_label)
+        font_row.addSpacing(15)
+        font_row.addWidget(self.font_label)
         
         # Style font combobox slightly
         self.font_cb.setStyleSheet("padding: 3px 5px; background: #313244; color: white; border-radius: 3px;")
-        action_row.addWidget(self.font_cb)
-        action_row.addStretch()
-        action_row.addWidget(reset_btn)
-        action_row.addSpacing(10)
-        action_row.addWidget(save_btn)
+        font_row.addWidget(self.font_cb)
+        font_row.addStretch()
+        
+        # Row 3: Character Controls
+        char_row = QHBoxLayout()
+        
+        self.custom_character_image = self.config.get("custom_character_image", "")
+        self.char_btn = QPushButton("Import Character...")
+        self.char_btn.setStyleSheet("background: transparent; border: 1px solid #45475A;")
+        self.char_btn.clicked.connect(self.import_character)
+        
+        self.undo_char_btn = QPushButton("↺")
+        self.undo_char_btn.setToolTip("Revert character to saved settings")
+        self.undo_char_btn.setFixedSize(26, 26)
+        self.undo_char_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.undo_char_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(49, 50, 68, 200);
+                color: #A6ADC8;
+                border: 1px solid #45475A;
+                border-radius: 4px;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 0px;
+            }
+            QPushButton:hover {
+                background-color: rgba(69, 71, 90, 200);
+                color: #FFFFFF;
+                border-color: #8F96BF;
+            }
+            QPushButton:pressed {
+                background-color: #585B70;
+            }
+        """)
+        self.undo_char_btn.clicked.connect(self.revert_character)
+        self.undo_char_btn.hide()
+        
+        self.char_label = QLabel(os.path.basename(self.custom_character_image) if self.custom_character_image else "Default")
+        self.char_label.setStyleSheet("color: #A6ADC8; font-weight: normal; font-size: 12px;")
+        
+        self.char_title_label = QLabel("Character:")
+        from PyQt6.QtWidgets import QComboBox
+        self.char_cb = QComboBox()
+        self.char_cb.addItems(["Dino", "Custom"])
+        char_init = "Custom" if (self.config.get("character_type", "dino").lower() == "custom" and self.custom_character_image and os.path.exists(self.custom_character_image)) else "Dino"
+        self.char_cb.setCurrentText(char_init)
+        self.char_cb.setStyleSheet("padding: 3px 5px; background: #313244; color: white; border-radius: 3px;")
+        self.char_cb.currentTextChanged.connect(self.update_character_type)
+        
+        char_row.addWidget(self.char_btn)
+        char_row.addWidget(self.undo_char_btn)
+        char_row.addSpacing(5)
+        char_row.addWidget(self.char_label)
+        char_row.addSpacing(15)
+        char_row.addWidget(self.char_title_label)
+        char_row.addWidget(self.char_cb)
+        char_row.addStretch()
+        char_row.addWidget(reset_btn)
+        char_row.addSpacing(10)
+        char_row.addWidget(save_btn)
         
         control_layout.addLayout(top_row, 0, 0)
         control_layout.addLayout(cb_layout, 1, 0)
-        control_layout.addLayout(action_row, 2, 0)
+        control_layout.addLayout(font_row, 2, 0)
+        control_layout.addLayout(char_row, 3, 0)
         
         control_bar.setLayout(control_layout)
         main_layout.addWidget(control_bar)
@@ -1497,7 +1666,9 @@ if __name__ == '__main__':
         "live_weather": False,
         "pixel_shift": False,
         "primary_font": "",
-        "dino_font": "Bungee"
+        "dino_font": "Bungee",
+        "character_type": "dino",
+        "custom_character_image": ""
     }
     
     if os.path.exists(config_path):
@@ -1523,7 +1694,9 @@ if __name__ == '__main__':
         dino_font=default_config.get("dino_font", "Bungee"),
         live_weather=default_config.get("live_weather", False),
         pixel_shift=default_config.get("pixel_shift", False),
-        primary_font=default_config.get("primary_font", "")
+        primary_font=default_config.get("primary_font", ""),
+        character_type=default_config.get("character_type", "dino"),
+        custom_character_image=default_config.get("custom_character_image", "")
     )
     sys.exit(app.exec())
 
