@@ -4,7 +4,7 @@ import ctypes
 import json
 import os
 import random
-from PyQt6.QtWidgets import QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider, QFileDialog
+from PyQt6.QtWidgets import QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider, QFileDialog, QComboBox, QFontComboBox, QGridLayout
 from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate, QPointF, QByteArray, QThread, pyqtSignal
 from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath, QFontDatabase, QPixmap, QImage
 
@@ -134,13 +134,7 @@ class CrispAestheticFlipClock(QWidget):
             self.f1_stars.append((random.random(), random.random() * 0.50, random.choice([1, 1, 2])))
 
         
-        # F1 Mode Variables
-        self.f1_player_x = 0.0 # Lane from -1 to 1
-        self.f1_obstacles = [] # List of dicts: {'x': lane, 'z': distance (100 to 0)}
-        self.f1_speed = 1.0
-        self.f1_dead = False
-        self.f1_score = 0
-        self.f1_road_z = 0.0
+
 
         
         self.custom_pixmap = QPixmap()
@@ -859,8 +853,8 @@ class CrispAestheticFlipClock(QWidget):
                 painter.drawPixmap(target_rect, self.neko_pixmap, src_rect)
             elif self.dino_icon == "F1 Car":
                 src_rect = QRectF(0, 0, 296, 76)
-                # align right edge of visual car with right edge of 44px collision box
-                car_target = QRectF(dino_x - 44, ground_y - self.dino_y - 23, 88, 23)
+                # Perfectly proportioned 48x16 sleek racer matching dino hitbox
+                car_target = QRectF(dino_x - 4, ground_y - self.dino_y - 20, 50, 20)
                 painter.drawPixmap(car_target, self.f1_pixmap, src_rect)
             elif self.dino_icon == "Custom Image..." and not self.custom_pixmap.isNull():
                 painter.drawPixmap(target_rect.toRect(), self.custom_pixmap)
@@ -893,8 +887,10 @@ class CrispAestheticFlipClock(QWidget):
                     obs_target = QRectF(obs['x'], ground_y - obs['h'], obs['w'], obs['h'])
                 
                 if self.dino_icon == "F1 Car" and t != 'crow':
-                    tw = obs['h'] * 0.688
-                    tyre_target = QRectF(obs['x'] + (obs['w'] - tw)/2, ground_y - obs['h'], tw, obs['h'])
+                    # Proportional 2D tyre obstacle matching car
+                    th = obs['h']
+                    tw = th * 0.688
+                    tyre_target = QRectF(obs['x'] + (obs['w'] - tw)/2, ground_y - th, tw, th)
                     painter.drawPixmap(tyre_target.toRect(), self.tyre_pixmap)
                 else:
                     painter.drawPixmap(obs_target, self.sprite_pixmap, obs_rect)
@@ -973,12 +969,13 @@ class CrispAestheticFlipClock(QWidget):
         # 1. Deep Space Sky
         painter.fillRect(0, 0, int(w), int(h), QColor("#020208"))
         
-        horizon_y = h * 0.52
-        vp_x = w * 0.50 - (getattr(self, "f1_player_x", 0.0) * 35.0) # Vanishing point shifts slightly with steering
+        horizon_y = h * 0.44
+        steer_px = getattr(self, "f1_player_x", 0.0)
+        vp_x = w * 0.50 - (steer_px * 35.0) # Vanishing point shifts with steering
         
         # 2. Glowing Galaxy / Nebula in Space (matching reference image)
-        galaxy_x = w * 0.52 - (getattr(self, "f1_player_x", 0.0) * 15.0)
-        galaxy_y = h * 0.28
+        galaxy_x = w * 0.52 - (steer_px * 15.0)
+        galaxy_y = h * 0.22
         painter.save()
         painter.translate(galaxy_x, galaxy_y)
         painter.rotate(-15)
@@ -999,10 +996,10 @@ class CrispAestheticFlipClock(QWidget):
         painter.drawEllipse(QPointF(0, 0), w * 0.14, h * 0.04)
         painter.restore()
         
-        # 3. Stars
+        # 3. Stars (crisp pixel art)
         painter.setPen(QColor("#FFFFFF"))
         for sx_norm, sy_norm, size in getattr(self, "f1_stars", []):
-            sx = int(sx_norm * w - (getattr(self, "f1_player_x", 0.0) * 10.0)) % int(w)
+            sx = int(sx_norm * w - (steer_px * 10.0)) % int(w)
             sy = int(sy_norm * horizon_y)
             if size == 1:
                 painter.drawPoint(sx, sy)
@@ -1010,74 +1007,73 @@ class CrispAestheticFlipClock(QWidget):
                 painter.fillRect(sx, sy, 2, 2, QColor("#FFFFFF"))
                 
         # 4. Perspective Road Surface (dark with glowing neon/white grid)
-        painter.fillRect(0, int(horizon_y), int(w), int(h - horizon_y), QColor("#000000"))
+        road_bottom = h * 0.78 # Road ends at top of dashboard
+        painter.fillRect(0, int(horizon_y), int(w), int(h - horizon_y), QColor("#050510"))
         
-        # Radiating Lane Lines
-        road_pen = QPen(QColor("#E0E0FF"))
+        # Radiating Lane Lines (Left Outer, Left, Center, Right, Right Outer)
+        road_pen = QPen(QColor("#E8E8FF"))
         road_pen.setWidth(2)
         painter.setPen(road_pen)
         
-        # Left outer, Left lane, Center lane, Right lane, Right outer
-        lanes = [-1.6, -0.8, 0.0, 0.8, 1.6]
+        lanes = [-1.5, -0.75, 0.0, 0.75, 1.5]
         for l in lanes:
-            bot_x = w * 0.50 + l * (w * 0.45) - (getattr(self, "f1_player_x", 0.0) * (w * 0.38))
+            bot_x = w * 0.50 + l * (w * 0.48) - (steer_px * (w * 0.42))
             painter.drawLine(int(vp_x), int(horizon_y), int(bot_x), int(h))
             
         # Moving horizontal perspective speed stripes
         road_z = getattr(self, "f1_road_z", 0.0)
-        stripe_pen = QPen(QColor("#707090"))
+        stripe_pen = QPen(QColor("#8080A8"))
         stripe_pen.setWidth(1)
         painter.setPen(stripe_pen)
-        for i in range(1, 14):
-            z_val = (i - road_z) * 0.08
+        for i in range(1, 15):
+            z_val = (i - road_z) * 0.075
             if z_val <= 0: continue
-            line_y = horizon_y + (h - horizon_y) * (z_val ** 1.8)
+            line_y = horizon_y + (h - horizon_y) * (z_val ** 1.6)
             if line_y >= h: continue
-            # Width at this depth
-            hw = (w * 0.90) * (z_val ** 1.4)
+            hw = (w * 0.95) * (z_val ** 1.3)
             cx = vp_x + (w * 0.50 - vp_x) * z_val
             painter.drawLine(int(cx - hw/2), int(line_y), int(cx + hw/2), int(line_y))
             
-        # 5. Oncoming Obstacles (Tyres)
+        # 5. Oncoming Obstacles (Tyres) - CONTINUOUS SMOOTH PERSPECTIVE SCALING
         tyre_pm = getattr(self, "tyre_pixmap", QPixmap())
         obstacles = sorted(getattr(self, "f1_obstacles", []), key=lambda o: o['z'], reverse=True)
         for obs in obstacles:
             z = obs['z']
-            if z <= 2.0: continue
-            # Perspective projection
-            t = (100.0 - z) / 100.0 # 0 at distance, 1 at player
-            t_curve = t ** 2.2 # Non-linear perspective scaling
+            if z <= 1.0: continue
             
-            obs_y = horizon_y + (h - horizon_y) * t_curve
-            base_lane_x = w * 0.50 + obs['x'] * (w * 0.32)
-            obs_x = vp_x + (base_lane_x - vp_x) * t - (getattr(self, "f1_player_x", 0.0) * (w * 0.38) * t)
+            # Continuous reciprocal depth perspective
+            t = (100.0 - z) / 100.0
+            t_road = t ** 1.35
             
-            # Size grows as it approaches
-            obs_scale = 0.18 + t_curve * 1.6
-            obs_w = 40 * obs_scale
-            obs_h = 58 * obs_scale
+            obs_y = horizon_y + (h * 0.48) * t_road
+            base_lane_x = w * 0.50 + obs['x'] * (w * 0.36)
+            obs_x = vp_x + (base_lane_x - vp_x) * t - (steer_px * (w * 0.40) * t)
+            
+            # Smooth growth: starts at 20px at horizon and grows smoothly up to 175px at bumper
+            dist = max(3.0, z)
+            scale = 24.0 / (dist + 6.0)
+            obs_h = 18.0 + (scale * 85.0)
+            obs_w = obs_h * (435.0 / 632.0) # Exact 435x632 aspect ratio (0.688)
             
             if not tyre_pm.isNull():
                 dest_rect = QRectF(obs_x - obs_w/2, obs_y - obs_h, obs_w, obs_h)
                 painter.drawPixmap(dest_rect.toRect(), tyre_pm)
             else:
-                # Fallback clean red/white hazard box
                 painter.fillRect(int(obs_x - obs_w/2), int(obs_y - obs_h), int(obs_w), int(obs_h), QColor("#FF4040"))
                 
-        # 6. Futuristic Cockpit & Driver Hands Overlay
+        # 6. Sleek Cockpit & Driver Hands Overlay (proportional ~26% height for wide-open view)
         cockpit_pm = getattr(self, "cockpit_pixmap", QPixmap())
         if not cockpit_pm.isNull():
-            cw = w
-            # Keep original aspect ratio 300x225 = 1.33
-            ch = w * (cockpit_pm.height() / cockpit_pm.width())
-            if ch > h * 0.55:
-                ch = h * 0.55
-                cw = ch * (cockpit_pm.width() / cockpit_pm.height())
+            max_cockpit_h = h * 0.28
+            ch = max_cockpit_h
+            cw = ch * (cockpit_pm.width() / cockpit_pm.height())
+            if cw < w * 0.65:
+                cw = w * 0.65
+                ch = cw * (cockpit_pm.height() / cockpit_pm.width())
                 
-            # Shift slightly with steering for tactile driving feel
-            steer_offset = getattr(self, "f1_player_x", 0.0) * 12.0
+            steer_offset = steer_px * 15.0
             cx = w * 0.50 - cw * 0.50 + steer_offset
-            cy = h - ch + 4.0
+            cy = h - ch + 2.0
             painter.drawPixmap(QRectF(cx, cy, cw, ch).toRect(), cockpit_pm)
             
         # 7. Retro Digital HUD
@@ -1290,61 +1286,90 @@ class SettingsDialog(QDialog):
     def __init__(self, config_path):
         super().__init__()
         self.setWindowTitle("Dinoscreener Settings")
-        self.setFixedSize(850, 600)
+        self.setFixedSize(880, 640)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
-        # Try to apply Windows 11 Mica & Dark Title Bar
+        # Apply Windows 11 Mica & Dark Title Bar
         try:
             hwnd = int(self.winId())
             backdrop_type = ctypes.c_int(2) # DWMSBT_MAINWINDOW (Mica)
             ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 38, ctypes.byref(backdrop_type), ctypes.sizeof(backdrop_type))
-            
             dark_mode = ctypes.c_int(1)
             ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 20, ctypes.byref(dark_mode), ctypes.sizeof(dark_mode))
         except Exception:
             pass
         
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        
-        # Sleek dark theme with fully transparent dialog background for native Mica
+        # Modern Dark Theme
         self.setStyleSheet("""
             QDialog {
-                background: transparent;
+                background: #181825;
             }
             QLabel {
                 color: #CDD6F4;
                 font-family: 'Segoe UI', sans-serif;
-                font-weight: bold;
+            }
+            QComboBox {
+                background-color: #313244;
+                color: #FFFFFF;
+                border: 1px solid #45475A;
+                border-radius: 5px;
+                padding: 6px 12px;
+                font-size: 13px;
+                font-family: 'Segoe UI', sans-serif;
+            }
+            QComboBox::drop-down {
+                border: none;
+                width: 24px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #1E1E2E;
+                color: #FFFFFF;
+                selection-background-color: #45475A;
+                selection-color: #FFFFFF;
+                border: 1px solid #313244;
             }
             QCheckBox {
-                color: #A6ADC8;
+                color: #BAC2DE;
                 font-family: 'Segoe UI', sans-serif;
+                font-size: 13px;
                 background: transparent;
+                spacing: 8px;
+            }
+            QCheckBox::indicator {
+                width: 18px;
+                height: 18px;
+                border-radius: 4px;
+                border: 1px solid #45475A;
+                background-color: #313244;
+            }
+            QCheckBox::indicator:checked {
+                background-color: #8F96BF;
+                border: 1px solid #8F96BF;
             }
             QPushButton {
-                background-color: rgba(49, 50, 68, 200);
+                background-color: #313244;
                 color: #CDD6F4;
                 border: 1px solid #45475A;
-                border-radius: 4px;
-                padding: 6px 12px;
+                border-radius: 5px;
+                padding: 7px 16px;
+                font-family: 'Segoe UI', sans-serif;
+                font-size: 13px;
+                font-weight: bold;
             }
             QPushButton:hover {
-                background-color: rgba(69, 71, 90, 200);
-            }
-            QSlider {
-                background: transparent;
+                background-color: #45475A;
             }
             QSlider::groove:horizontal {
                 border: 1px solid #45475A;
-                height: 4px;
-                background: rgba(49, 50, 68, 200);
-                border-radius: 2px;
+                height: 6px;
+                background: #313244;
+                border-radius: 3px;
             }
             QSlider::handle:horizontal {
                 background: #8F96BF;
-                width: 14px;
+                width: 16px;
                 margin: -5px 0;
-                border-radius: 7px;
+                border-radius: 8px;
             }
         """)
         
@@ -1356,9 +1381,9 @@ class SettingsDialog(QDialog):
     def eventFilter(self, obj, event):
         if event.type() == event.Type.KeyPress:
             if event.key() == Qt.Key.Key_Up or event.key() == Qt.Key.Key_Down:
-                self.preview.clock_style = (self.preview.clock_style + (1 if event.key() == Qt.Key.Key_Up else -1)) % 3
-                self.preview.update()
-                self.update_style_ui()
+                cur = self.mode_cb.currentIndex()
+                new_idx = (cur + (1 if event.key() == Qt.Key.Key_Down else -1)) % 4
+                self.mode_cb.setCurrentIndex(new_idx)
                 return True
         return super().eventFilter(obj, event)
         
@@ -1369,32 +1394,47 @@ class SettingsDialog(QDialog):
             "strict_exit": False,
             "enable_win_key": False,
             "brightness": 100,
-            "clock_style": 1,
+            "clock_style": 2,
             "clock_scales": {"0": 0.45, "1": 0.45, "2": 0.45},
             "use_24hr": False,
             "leading_zero": False,
-        "live_weather": False,
-        "pixel_shift": False,
-        "primary_font": "",
+            "live_weather": False,
+            "pixel_shift": False,
+            "primary_font": "",
             "ignore_media_keys": False,
             "dino_font": "Bungee",
-            "dino_icon": "Dino",
-            "custom_dino_path": ""
+            "dino_icon": "F1 Car",
+            "custom_dino_path": "",
+            "leading_zeros": {"0": False, "1": False, "2": False}
         }
         if os.path.exists(self.config_path):
             try:
-                with open(self.config_path, 'r') as f:
+                with open(self.config_path, 'r', encoding='utf-8') as f:
                     default_config.update(json.load(f))
-            except Exception:
-                pass
+            except Exception as e:
+                print("Error loading config:", e)
         return default_config
         
     def save_config(self):
+        # 1. Determine active mode and icon cleanly
+        mode_idx = self.mode_cb.currentIndex()
+        if mode_idx == 0:
+            self.config["clock_style"] = 0
+        elif mode_idx == 1:
+            self.config["clock_style"] = 1
+        elif mode_idx == 2:
+            self.config["clock_style"] = 2
+            self.config["dino_icon"] = self.dino_icon_cb.currentText()
+            if self.config["dino_icon"] == "F1 Car":
+                self.config["dino_icon"] = "Dino"
+        elif mode_idx == 3:
+            self.config["clock_style"] = 2
+            self.config["dino_icon"] = "F1 Car"
+            
         self.config["show_info"] = self.info_cb.isChecked()
         self.config["strict_exit"] = self.strict_cb.isChecked()
         self.config["enable_win_key"] = self.win_cb.isChecked()
         self.config["brightness"] = self.bright_slider.value()
-        self.config["clock_style"] = self.preview.clock_style
         self.config["clock_scales"] = self.preview.clock_scales
         self.config["use_24hr"] = self.use_24hr_cb.isChecked()
         self.config["leading_zeros"] = self.preview.leading_zeros
@@ -1403,17 +1443,20 @@ class SettingsDialog(QDialog):
         self.config["primary_font"] = getattr(self, 'primary_font', "")
         self.config["ignore_media_keys"] = self.ignore_media_cb.isChecked()
         self.config["dino_font"] = self.font_cb.currentFont().family()
-        if hasattr(self, 'dino_icon_cb'):
-            self.config["dino_icon"] = self.dino_icon_cb.currentText()
         self.config["custom_dino_path"] = getattr(self.preview, "custom_dino_path", "")
         
-        os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
-        with open(self.config_path, 'w') as f:
-            json.dump(self.config, f)
+        try:
+            os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
+            with open(self.config_path, 'w', encoding='utf-8') as f:
+                json.dump(self.config, f, indent=2)
+            print("Successfully saved config to:", self.config_path)
+        except Exception as e:
+            print("Failed to save config:", e)
+            
         self.accept()
         
     def pick_color(self):
-        color = QColorDialog.getColor(QColor(self.config["accent_color"]), self, "Select Accent Color")
+        color = QColorDialog.getColor(QColor(self.config.get("accent_color", "#8F96BF")), self, "Select Accent Color")
         if color.isValid():
             self.config["accent_color"] = color.name()
             self.preview.set_accent_color(color.name())
@@ -1421,89 +1464,57 @@ class SettingsDialog(QDialog):
     def update_brightness(self, val):
         self.bright_val_label.setText(f"{val}%")
         self.preview.set_brightness(val)
-        
+
+    def on_mode_changed(self, mode_idx):
+        if mode_idx == 0:
+            self.preview.clock_style = 0
+        elif mode_idx == 1:
+            self.preview.clock_style = 1
+        elif mode_idx == 2:
+            self.preview.clock_style = 2
+            icon = self.dino_icon_cb.currentText()
+            if icon == "F1 Car":
+                icon = "Dino"
+                self.dino_icon_cb.setCurrentText("Dino")
+            self.preview.dino_icon = icon
+        elif mode_idx == 3:
+            self.preview.clock_style = 2
+            self.preview.dino_icon = "F1 Car"
+            
+        self.config["clock_style"] = self.preview.clock_style
+        self.config["dino_icon"] = self.preview.dino_icon
+        self.preview.update()
+        self.update_style_ui()
+
     def update_style_ui(self):
-        self.info_cb.setVisible(self.preview.clock_style == 1)
-        is_dino = self.preview.clock_style == 2
-        self.font_label.setVisible(is_dino)
-        self.font_cb.setVisible(is_dino)
-        if hasattr(self, 'dino_icon_label'):
-            self.dino_icon_label.setVisible(is_dino)
-            self.dino_icon_cb.setVisible(is_dino)
-        self.primary_font_btn.setVisible(is_dino)
-        self.primary_font_label.setVisible(is_dino)
+        mode_idx = self.mode_cb.currentIndex()
         
-        is_rotary = self.preview.clock_style == 1
+        # Mode description badge
+        badges = [
+            "🕒 Split-flap mechanical aesthetic flip clock with date display.",
+            "🧭 Minimalist dual rotary dial clock with customizable accent colors.",
+            "🦖 Classic Chrome Dino 2D obstacle runner (jump with SPACE or UP).",
+            "🏎️ 3D First-Person Space Highway | AUTO-PILOT ON | SPACE toggles Manual Steering."
+        ]
+        self.mode_desc_label.setText(badges[mode_idx])
+        
+        # Contextual visibility
+        is_rotary = (mode_idx == 1)
+        is_dino = (mode_idx == 2)
+        is_f1 = (mode_idx == 3)
+        
         self.color_btn.setVisible(is_rotary)
+        self.info_cb.setVisible(is_rotary)
         self.live_weather_cb.setVisible(is_rotary)
         
-        # Update leading zero cb state for this style
+        self.dino_sub_widget.setVisible(is_dino)
+        self.f1_sub_widget.setVisible(is_f1)
+        
+        # Update leading zero checkbox state
         self.leading_zero_cb.blockSignals(True)
         self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(self.preview.clock_style), False))
         self.leading_zero_cb.blockSignals(False)
-        
-    def next_style(self):
-        self.preview.clock_style = (self.preview.clock_style + 1) % 3
-        self.preview.update()
-        self.update_style_ui()
-        
-    def prev_style(self):
-        self.preview.clock_style = (self.preview.clock_style - 1) % 3
-        self.preview.update()
-        self.update_style_ui()
-        
-    def update_info(self, state=None):
-        self.preview.set_show_info(self.info_cb.isChecked())
-        
-    def update_strict(self, state=None):
-        self.preview.strict_exit = self.strict_cb.isChecked()
-        
-    def update_win(self, state=None):
-        self.preview.enable_win_key = self.win_cb.isChecked()
-            
-    def update_24hr(self, state=None):
-        self.preview.use_24hr = self.use_24hr_cb.isChecked()
-        self.preview.update()
-        
-    def update_leading_zero(self, state=None):
-        self.preview.leading_zeros[str(self.preview.clock_style)] = self.leading_zero_cb.isChecked()
-        self.preview.update()
-        
-    def update_media_keys(self, state=None):
-        self.preview.ignore_media_keys = self.ignore_media_cb.isChecked()
-        
-    def update_live_weather(self, state=None):
-        self.preview.live_weather = self.live_weather_cb.isChecked()
-        self.preview.update()
-        
-    def update_pixel_shift(self, state=None):
-        self.preview.pixel_shift = self.pixel_shift_cb.isChecked()
-        self.preview.update()
-        
-    def import_primary_font(self):
-        file, _ = QFileDialog.getOpenFileName(self, "Select Font File", "", "Font Files (*.ttf *.otf)")
-        if file:
-            self.primary_font = file
-            self.primary_font_label.setText(os.path.basename(file))
-            font_id = QFontDatabase.addApplicationFont(file)
-            
-            # Force refresh QFontComboBox by recreating its model or simply re-setting filters
-            from PyQt6.QtWidgets import QFontComboBox
-            self.font_cb.setFontFilters(QFontComboBox.FontFilter.AllFonts)
-            
-            if font_id != -1:
-                families = QFontDatabase.applicationFontFamilies(font_id)
-                if families:
-                    from PyQt6.QtGui import QFont
-                    self.font_cb.setCurrentFont(QFont(families[0]))
-                    
-            self.preview.primary_font = file
-            self.preview.update()
-            
-    def update_dino_font(self, font):
-        self.preview.dino_font = font.family()
-        self.preview.update()
-        
+
     def on_dino_icon_changed(self, icon_name):
         if icon_name == "Custom Image...":
             path, _ = QFileDialog.getOpenFileName(self, "Select Custom Image", "", "Images (*.png *.jpg *.jpeg *.bmp)")
@@ -1518,88 +1529,192 @@ class SettingsDialog(QDialog):
         self.preview.dino_icon = self.dino_icon_cb.currentText()
         self.config["dino_icon"] = self.preview.dino_icon
         self.preview.update()
-        
+
+    def update_info(self, state=None):
+        self.preview.set_show_info(self.info_cb.isChecked())
+    def update_strict(self, state=None):
+        self.preview.strict_exit = self.strict_cb.isChecked()
+    def update_win(self, state=None):
+        self.preview.enable_win_key = self.win_cb.isChecked()
+    def update_24hr(self, state=None):
+        self.preview.use_24hr = self.use_24hr_cb.isChecked()
+        self.preview.update()
+    def update_leading_zero(self, state=None):
+        self.preview.leading_zeros[str(self.preview.clock_style)] = self.leading_zero_cb.isChecked()
+        self.preview.update()
+    def update_media_keys(self, state=None):
+        self.preview.ignore_media_keys = self.ignore_media_cb.isChecked()
+    def update_live_weather(self, state=None):
+        self.preview.live_weather = self.live_weather_cb.isChecked()
+        self.preview.update()
+    def update_pixel_shift(self, state=None):
+        self.preview.pixel_shift = self.pixel_shift_cb.isChecked()
+        self.preview.update()
+    def update_dino_font(self, font):
+        self.preview.dino_font = font.family()
+        self.preview.update()
+
+    def import_primary_font(self):
+        file, _ = QFileDialog.getOpenFileName(self, "Select Font File", "", "Font Files (*.ttf *.otf)")
+        if file:
+            self.primary_font = file
+            self.primary_font_label.setText(os.path.basename(file))
+            font_id = QFontDatabase.addApplicationFont(file)
+            from PyQt6.QtWidgets import QFontComboBox
+            self.font_cb.setFontFilters(QFontComboBox.FontFilter.AllFonts)
+            if font_id != -1:
+                families = QFontDatabase.applicationFontFamilies(font_id)
+                if families:
+                    self.font_cb.setCurrentFont(QFont(families[0]))
+            self.preview.primary_font = file
+            self.preview.update()
+
     def reset_defaults(self):
-        import os, json
         if os.path.exists(self.config_path):
-            os.remove(self.config_path)
-        # Reload dialog
+            try: os.remove(self.config_path)
+            except: pass
         self.accept()
-        # Note: We rely on the user to re-open settings. Alternatively, we could reset UI elements manually.
 
     def initUI(self):
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
         
-        # 1. LIVE PREVIEW
+        # 1. LIVE PREVIEW AREA (Top 50% of window)
         self.preview = CrispAestheticFlipClock(
-            accent_color=self.config["accent_color"],
-            enable_win_key=self.config["enable_win_key"],
-            strict_exit=self.config["strict_exit"],
-            show_info=self.config["show_info"],
+            accent_color=self.config.get("accent_color", "#8F96BF"),
+            enable_win_key=self.config.get("enable_win_key", False),
+            strict_exit=self.config.get("strict_exit", False),
+            show_info=self.config.get("show_info", True),
             preview_mode=True,
-            brightness=self.config["brightness"],
-            clock_style=self.config["clock_style"],
+            brightness=self.config.get("brightness", 100),
+            clock_style=self.config.get("clock_style", 2),
             clock_scales=self.config.get("clock_scales", {"0": 0.45, "1": 0.45, "2": 0.45}),
             use_24hr=self.config.get("use_24hr", False),
-            leading_zeros=self.config.get("leading_zeros", self.config.get("leading_zero", False)),
+            leading_zeros=self.config.get("leading_zeros", {"0": False, "1": False, "2": False}),
             ignore_media_keys=self.config.get("ignore_media_keys", False),
             dino_font=self.config.get("dino_font", "Bungee"),
-            dino_icon=self.config.get("dino_icon", "Dino"),
+            dino_icon=self.config.get("dino_icon", "F1 Car"),
             custom_dino_path=self.config.get("custom_dino_path", "")
         )
         main_layout.addWidget(self.preview, stretch=1)
         
-        # 2. CONTROL BAR (Floating Bottom)
-        from PyQt6.QtWidgets import QGridLayout, QFontComboBox, QFrame, QComboBox
-        control_bar = QWidget()
-        control_bar.setObjectName("controlBar")
-        control_bar.setStyleSheet("QWidget#controlBar { background: transparent; border-top: 1px solid #313244; }")
+        # 2. CONTROL PANEL (Bottom Section)
+        control_panel = QWidget()
+        control_panel.setStyleSheet("background: #181825; border-top: 2px solid #313244;")
+        panel_layout = QVBoxLayout(control_panel)
+        panel_layout.setContentsMargins(24, 16, 24, 16)
+        panel_layout.setSpacing(14)
         
-        control_layout = QGridLayout()
-        control_layout.setContentsMargins(20, 15, 20, 15)
-        control_layout.setHorizontalSpacing(15)
-        control_layout.setVerticalSpacing(15)
+        # --- ROW 1: SCREENSAVER MODE SELECTOR ---
+        mode_row = QHBoxLayout()
+        mode_title = QLabel("Screensaver Style:")
+        mode_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #FFFFFF;")
         
-        # Row 0: Basic Controls
-        bright_label = QLabel("🔆")
-        self.bright_slider = QSlider(Qt.Orientation.Horizontal)
-        self.bright_slider.setRange(10, 100)
-        self.bright_slider.setValue(self.config["brightness"])
-        self.bright_slider.setFixedWidth(100)
-        self.bright_slider.valueChanged.connect(self.update_brightness)
+        self.mode_cb = QComboBox()
+        self.mode_cb.addItems([
+            "Flip Clock",
+            "Rotary Clock",
+            "Chrome Dino Game (2D Runner)",
+            "F1 Space Highway (3D First-Person)"
+        ])
+        self.mode_cb.setStyleSheet("padding: 7px 14px; font-size: 14px; font-weight: bold; min-width: 270px;")
         
-        self.bright_val_label = QLabel(f"{self.config['brightness']}%")
-        self.bright_val_label.setFixedWidth(35)
+        # Sync initial dropdown index from saved config
+        cur_style = self.config.get("clock_style", 2)
+        cur_icon = self.config.get("dino_icon", "F1 Car")
+        if cur_style == 0: init_idx = 0
+        elif cur_style == 1: init_idx = 1
+        elif cur_style == 2 and cur_icon == "F1 Car": init_idx = 3
+        else: init_idx = 2
+        self.mode_cb.setCurrentIndex(init_idx)
+        self.mode_cb.currentIndexChanged.connect(self.on_mode_changed)
         
-        style_prev = QPushButton("◀")
-        style_prev.setStyleSheet("padding: 5px 15px; font-size: 14px;")
-        style_prev.clicked.connect(self.prev_style)
-        
-        style_next = QPushButton("▶")
-        style_next.setStyleSheet("padding: 5px 15px; font-size: 14px;")
-        style_next.clicked.connect(self.next_style)
-        
-        self.color_btn = QPushButton("🎨")
-        self.color_btn.setStyleSheet("padding: 5px 15px; font-size: 14px;")
-        self.color_btn.setToolTip("Pick Accent Color")
+        # Accent Color (Rotary)
+        self.color_btn = QPushButton("🎨 Accent Color")
         self.color_btn.clicked.connect(self.pick_color)
         
-        # Row 1: Checkboxes
-        self.info_cb = QCheckBox("Weather/Battery")
-        self.info_cb.setChecked(self.config["show_info"])
-        self.info_cb.stateChanged.connect(self.update_info)
+        # Brightness Slider
+        bright_icon = QLabel("🔆 Brightness:")
+        bright_icon.setStyleSheet("font-size: 13px; font-weight: bold; color: #A6ADC8;")
+        self.bright_slider = QSlider(Qt.Orientation.Horizontal)
+        self.bright_slider.setRange(10, 100)
+        self.bright_slider.setValue(self.config.get("brightness", 100))
+        self.bright_slider.setFixedWidth(110)
+        self.bright_slider.valueChanged.connect(self.update_brightness)
+        self.bright_val_label = QLabel(f"{self.bright_slider.value()}%")
+        self.bright_val_label.setStyleSheet("color: #BAC2DE; font-weight: bold; min-width: 38px;")
         
-        self.strict_cb = QCheckBox("Lock Screen (Ctrl+Z)")
-        self.strict_cb.setChecked(self.config["strict_exit"])
-        self.strict_cb.stateChanged.connect(self.update_strict)
+        mode_row.addWidget(mode_title)
+        mode_row.addWidget(self.mode_cb)
+        mode_row.addWidget(self.color_btn)
+        mode_row.addStretch()
+        mode_row.addWidget(bright_icon)
+        mode_row.addWidget(self.bright_slider)
+        mode_row.addWidget(self.bright_val_label)
+        panel_layout.addLayout(mode_row)
         
-        self.win_cb = QCheckBox("Win Key")
-        self.win_cb.setChecked(self.config["enable_win_key"])
-        self.win_cb.stateChanged.connect(self.update_win)
+        # Mode Info Description Badge
+        self.mode_desc_label = QLabel("")
+        self.mode_desc_label.setStyleSheet("color: #89B4FA; font-size: 12px; font-weight: 500; padding: 2px 4px;")
+        panel_layout.addWidget(self.mode_desc_label)
         
-        self.use_24hr_cb = QCheckBox("24 Hr")
+        # --- ROW 2: CONTEXTUAL SUB-SETTINGS ---
+        # 2A: Dino sub-settings
+        self.dino_sub_widget = QWidget()
+        dino_sub_layout = QHBoxLayout(self.dino_sub_widget)
+        dino_sub_layout.setContentsMargins(0, 0, 0, 0)
+        
+        dino_icon_label = QLabel("Character:")
+        dino_icon_label.setStyleSheet("font-weight: bold; color: #CDD6F4;")
+        self.dino_icon_cb = QComboBox()
+        self.dino_icon_cb.addItems(["Dino", "Neko", "Custom Image..."])
+        dino_current = self.config.get("dino_icon", "Dino")
+        if dino_current in ["Dino", "Neko", "Custom Image..."]:
+            self.dino_icon_cb.setCurrentText(dino_current)
+        else:
+            self.dino_icon_cb.setCurrentText("Dino")
+        self.dino_icon_cb.currentTextChanged.connect(self.on_dino_icon_changed)
+        
+        font_label = QLabel("Font:")
+        font_label.setStyleSheet("font-weight: bold; color: #CDD6F4;")
+        self.font_cb = QFontComboBox()
+        self.font_cb.setCurrentFont(QFont(self.config.get("dino_font", "Bungee")))
+        self.font_cb.currentFontChanged.connect(self.update_dino_font)
+        
+        self.primary_font = self.config.get("primary_font", "")
+        self.primary_font_btn = QPushButton("Import Font...")
+        self.primary_font_btn.clicked.connect(self.import_primary_font)
+        self.primary_font_label = QLabel(os.path.basename(self.primary_font) if self.primary_font else "Default")
+        self.primary_font_label.setStyleSheet("color: #A6ADC8; font-size: 12px;")
+        
+        dino_sub_layout.addWidget(dino_icon_label)
+        dino_sub_layout.addWidget(self.dino_icon_cb)
+        dino_sub_layout.addSpacing(15)
+        dino_sub_layout.addWidget(font_label)
+        dino_sub_layout.addWidget(self.font_cb)
+        dino_sub_layout.addSpacing(10)
+        dino_sub_layout.addWidget(self.primary_font_btn)
+        dino_sub_layout.addWidget(self.primary_font_label)
+        dino_sub_layout.addStretch()
+        panel_layout.addWidget(self.dino_sub_widget)
+        
+        # 2B: F1 sub-settings
+        self.f1_sub_widget = QWidget()
+        f1_sub_layout = QHBoxLayout(self.f1_sub_widget)
+        f1_sub_layout.setContentsMargins(0, 0, 0, 0)
+        f1_info = QLabel("🟢 AUTO-PILOT ENABLED: Car automatically plays and dodges tyre obstacles. Press SPACE while running to steer manually with Left/Right keys.")
+        f1_info.setStyleSheet("color: #A6E3A1; font-weight: bold; font-size: 12px;")
+        f1_sub_layout.addWidget(f1_info)
+        f1_sub_layout.addStretch()
+        panel_layout.addWidget(self.f1_sub_widget)
+        
+        # --- ROW 3: GENERAL SETTINGS CHECKBOXES ---
+        cb_layout = QGridLayout()
+        cb_layout.setHorizontalSpacing(24)
+        cb_layout.setVerticalSpacing(10)
+        
+        self.use_24hr_cb = QCheckBox("24-Hour Time Format")
         self.use_24hr_cb.setChecked(self.config.get("use_24hr", False))
         self.use_24hr_cb.stateChanged.connect(self.update_24hr)
         
@@ -1607,107 +1722,71 @@ class SettingsDialog(QDialog):
         self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(self.preview.clock_style), False))
         self.leading_zero_cb.stateChanged.connect(self.update_leading_zero)
         
-        self.ignore_media_cb = QCheckBox("Ignore Media Keys")
-        self.ignore_media_cb.setChecked(self.config.get("ignore_media_keys", False))
-        self.ignore_media_cb.stateChanged.connect(self.update_media_keys)
-        
-        self.live_weather_cb = QCheckBox("Live Weather")
+        self.live_weather_cb = QCheckBox("Live Online Weather")
         self.live_weather_cb.setChecked(self.config.get("live_weather", False))
         self.live_weather_cb.stateChanged.connect(self.update_live_weather)
+        
+        self.info_cb = QCheckBox("Show Battery & Status")
+        self.info_cb.setChecked(self.config.get("show_info", True))
+        self.info_cb.stateChanged.connect(self.update_info)
         
         self.pixel_shift_cb = QCheckBox("OLED Burn-in Protection")
         self.pixel_shift_cb.setChecked(self.config.get("pixel_shift", False))
         self.pixel_shift_cb.stateChanged.connect(self.update_pixel_shift)
         
-        # Row 2: Font Config & Actions
-        self.font_label = QLabel("Font:")
-        self.font_cb = QFontComboBox()
-        self.font_cb.setCurrentFont(QFont(self.config.get("dino_font", "Bungee")))
-        self.font_cb.currentFontChanged.connect(self.update_dino_font)
+        self.ignore_media_cb = QCheckBox("Ignore Media Keys")
+        self.ignore_media_cb.setChecked(self.config.get("ignore_media_keys", False))
+        self.ignore_media_cb.stateChanged.connect(self.update_media_keys)
         
+        self.strict_cb = QCheckBox("Lock Screen on Exit (Ctrl+Z)")
+        self.strict_cb.setChecked(self.config.get("strict_exit", False))
+        self.strict_cb.stateChanged.connect(self.update_strict)
+        
+        self.win_cb = QCheckBox("Toggle Background with Win Key")
+        self.win_cb.setChecked(self.config.get("enable_win_key", False))
+        self.win_cb.stateChanged.connect(self.update_win)
+        
+        cb_layout.addWidget(self.use_24hr_cb, 0, 0)
+        cb_layout.addWidget(self.leading_zero_cb, 0, 1)
+        cb_layout.addWidget(self.info_cb, 0, 2)
+        cb_layout.addWidget(self.live_weather_cb, 0, 3)
+        
+        cb_layout.addWidget(self.pixel_shift_cb, 1, 0)
+        cb_layout.addWidget(self.ignore_media_cb, 1, 1)
+        cb_layout.addWidget(self.strict_cb, 1, 2)
+        cb_layout.addWidget(self.win_cb, 1, 3)
+        panel_layout.addLayout(cb_layout)
+        
+        # --- ROW 4: ACTION BUTTONS ---
+        btn_row = QHBoxLayout()
         reset_btn = QPushButton("Reset Defaults")
-        reset_btn.setStyleSheet("color: #FF7777; background: transparent; border: 1px solid #FF7777; padding: 6px 15px; border-radius: 4px;")
+        reset_btn.setStyleSheet("color: #F38BA8; border: 1px solid #F38BA8; background: transparent;")
         reset_btn.clicked.connect(self.reset_defaults)
         
-        save_btn = QPushButton("OK")
-        save_btn.setStyleSheet("background-color: #8F96BF; color: #11111B; font-weight: bold; padding: 6px 25px; border-radius: 4px;")
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.clicked.connect(self.reject)
+        
+        save_btn = QPushButton("Save & Apply")
+        save_btn.setStyleSheet("background-color: #8F96BF; color: #11111B; font-weight: bold; padding: 7px 28px;")
         save_btn.clicked.connect(self.save_config)
         
-        # Top Row Assembly
-        top_row = QHBoxLayout()
-        top_row.addWidget(bright_label)
-        top_row.addWidget(self.bright_slider)
-        top_row.addWidget(self.bright_val_label)
-        top_row.addSpacing(15)
-        top_row.addWidget(style_prev)
-        top_row.addSpacing(5)
-        top_row.addWidget(style_next)
-        top_row.addSpacing(15)
-        top_row.addWidget(self.color_btn)
-        top_row.addStretch()
+        btn_row.addWidget(reset_btn)
+        btn_row.addStretch()
+        btn_row.addWidget(cancel_btn)
+        btn_row.addSpacing(10)
+        btn_row.addWidget(save_btn)
+        panel_layout.addLayout(btn_row)
         
-        # Checkbox Grid Assembly
-        cb_layout = QGridLayout()
-        cb_layout.setHorizontalSpacing(20)
-        cb_layout.setVerticalSpacing(10)
-        
-        cb_layout.addWidget(self.info_cb, 0, 0)
-        cb_layout.addWidget(self.strict_cb, 0, 1)
-        cb_layout.addWidget(self.win_cb, 0, 2)
-        cb_layout.addWidget(self.use_24hr_cb, 0, 3)
-        cb_layout.addWidget(self.leading_zero_cb, 1, 0)
-        cb_layout.addWidget(self.ignore_media_cb, 1, 1)
-        cb_layout.addWidget(self.live_weather_cb, 1, 2)
-        cb_layout.addWidget(self.pixel_shift_cb, 1, 3)
-        
-        # Action Row Assembly
-        action_row = QHBoxLayout()
-        
-        self.primary_font = self.config.get("primary_font", "")
-        self.primary_font_btn = QPushButton("Import Font...")
-        self.primary_font_btn.setStyleSheet("background: transparent; border: 1px solid #45475A;")
-        self.primary_font_btn.clicked.connect(self.import_primary_font)
-        self.primary_font_label = QLabel(os.path.basename(self.primary_font) if self.primary_font else "Default")
-        self.primary_font_label.setStyleSheet("color: #A6ADC8; font-weight: normal; font-size: 12px;")
-        
-        action_row.addWidget(self.primary_font_btn)
-        action_row.addSpacing(5)
-        action_row.addWidget(self.primary_font_label)
-        action_row.addSpacing(15)
-        action_row.addWidget(self.font_label)
-        
-        # Style font combobox slightly
-        self.font_cb.setStyleSheet("padding: 3px 5px; background: #313244; color: white; border-radius: 3px;")
-        action_row.addWidget(self.font_cb)
-        
-        # Dino Icon
-        self.dino_icon_label = QLabel("Icon:")
-        self.dino_icon_cb = QComboBox()
-        self.dino_icon_cb.addItems(["Dino", "Neko", "F1 Car", "Custom Image..."])
-        self.dino_icon_cb.setCurrentText(self.config.get("dino_icon", "Dino"))
-        self.dino_icon_cb.currentTextChanged.connect(self.on_dino_icon_changed)
-        self.dino_icon_cb.setStyleSheet("padding: 3px 5px; background: #313244; color: white; border-radius: 3px;")
-        action_row.addSpacing(15)
-        action_row.addWidget(self.dino_icon_label)
-        action_row.addWidget(self.dino_icon_cb)
-        
-        action_row.addStretch()
-        action_row.addWidget(reset_btn)
-        action_row.addSpacing(10)
-        action_row.addWidget(save_btn)
-        
-        control_layout.addLayout(top_row, 0, 0)
-        control_layout.addLayout(cb_layout, 1, 0)
-        control_layout.addLayout(action_row, 2, 0)
-        
-        control_bar.setLayout(control_layout)
-        main_layout.addWidget(control_bar)
-        
+        main_layout.addWidget(control_panel)
         self.setLayout(main_layout)
         self.update_style_ui()
-        
+
     def keyPressEvent(self, event):
-        super().keyPressEvent(event)
+        if event.key() == Qt.Key.Key_Escape:
+            self.reject()
+        else:
+            super().keyPressEvent(event)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
