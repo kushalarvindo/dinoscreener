@@ -1037,8 +1037,20 @@ class SettingsDialog(QDialog):
         
         self.config_path = config_path
         self.config = self.load_config()
+        saved_prim = self.config.get("primary_font", "")
+        self.saved_primary_font = saved_prim if (saved_prim and os.path.exists(saved_prim)) else ""
+        self.saved_dino_font = self.config.get("dino_font", "Bungee")
+        
+        bungee_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Bungee-Regular.ttf")
+        if getattr(sys, 'frozen', False):
+            bungee_path = os.path.join(sys._MEIPASS, "Bungee-Regular.ttf")
+        if os.path.exists(bungee_path):
+            QFontDatabase.addApplicationFont(bungee_path)
+            
         self.initUI()
+        self.saved_dino_font = self.font_cb.currentFont().family()
         self.installEventFilter(self)
+        self.check_font_changed()
         
     def eventFilter(self, obj, event):
         if event.type() == event.Type.KeyPress:
@@ -1111,6 +1123,7 @@ class SettingsDialog(QDialog):
         self.font_cb.setVisible(is_dino)
         self.primary_font_btn.setVisible(is_dino)
         self.primary_font_label.setVisible(is_dino)
+        self.check_font_changed()
         
         is_rotary = self.preview.clock_style == 1
         self.color_btn.setVisible(is_rotary)
@@ -1175,13 +1188,65 @@ class SettingsDialog(QDialog):
                 if families:
                     from PyQt6.QtGui import QFont
                     self.font_cb.setCurrentFont(QFont(families[0]))
+                    self.preview.primary_font_family = families[0]
                     
             self.preview.primary_font = file
             self.preview.update()
+            self.check_font_changed()
             
     def update_dino_font(self, font):
         self.preview.dino_font = font.family()
         self.preview.update()
+        self.check_font_changed()
+        
+    def check_font_changed(self):
+        if not hasattr(self, 'undo_font_btn') or not hasattr(self, 'saved_dino_font') or not hasattr(self, 'font_cb'):
+            return
+        is_dino = self.preview.clock_style == 2
+        if not is_dino:
+            self.undo_font_btn.hide()
+            return
+        current_primary = getattr(self, 'primary_font', "")
+        current_dino = self.font_cb.currentFont().family()
+        has_changed = (current_primary != self.saved_primary_font) or (current_dino != self.saved_dino_font)
+        self.undo_font_btn.setVisible(has_changed)
+
+    def revert_font(self):
+        from PyQt6.QtGui import QFont
+        from PyQt6.QtWidgets import QFontComboBox
+        # Revert primary_font
+        if self.saved_primary_font and os.path.exists(self.saved_primary_font):
+            self.primary_font = self.saved_primary_font
+            self.primary_font_label.setText(os.path.basename(self.primary_font))
+            font_id = QFontDatabase.addApplicationFont(self.primary_font)
+            self.font_cb.setFontFilters(QFontComboBox.FontFilter.AllFonts)
+            if font_id != -1:
+                families = QFontDatabase.applicationFontFamilies(font_id)
+                if families:
+                    self.preview.primary_font_family = families[0]
+            self.preview.primary_font = self.primary_font
+        else:
+            self.saved_primary_font = ""
+            self.primary_font = ""
+            self.primary_font_label.setText("Default")
+            self.preview.primary_font = ""
+            self.preview.primary_font_family = "Google Sans"
+
+        # Revert dino_font / font_cb
+        all_families = QFontDatabase.families()
+        if self.saved_dino_font and self.saved_dino_font in all_families:
+            target_dino = self.saved_dino_font
+        else:
+            target_dino = "Bungee"
+            self.saved_dino_font = "Bungee"
+            
+        self.font_cb.blockSignals(True)
+        self.font_cb.setCurrentFont(QFont(target_dino))
+        self.font_cb.blockSignals(False)
+        self.preview.dino_font = self.font_cb.currentFont().family()
+        
+        self.preview.update()
+        self.check_font_changed()
         
     def reset_defaults(self):
         import os, json
@@ -1329,10 +1394,38 @@ class SettingsDialog(QDialog):
         self.primary_font_btn = QPushButton("Import Font...")
         self.primary_font_btn.setStyleSheet("background: transparent; border: 1px solid #45475A;")
         self.primary_font_btn.clicked.connect(self.import_primary_font)
+        
+        self.undo_font_btn = QPushButton("↺")
+        self.undo_font_btn.setToolTip("Revert font to saved settings")
+        self.undo_font_btn.setFixedSize(26, 26)
+        self.undo_font_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.undo_font_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(49, 50, 68, 200);
+                color: #A6ADC8;
+                border: 1px solid #45475A;
+                border-radius: 4px;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 0px;
+            }
+            QPushButton:hover {
+                background-color: rgba(69, 71, 90, 200);
+                color: #FFFFFF;
+                border-color: #8F96BF;
+            }
+            QPushButton:pressed {
+                background-color: #585B70;
+            }
+        """)
+        self.undo_font_btn.clicked.connect(self.revert_font)
+        self.undo_font_btn.hide()
+        
         self.primary_font_label = QLabel(os.path.basename(self.primary_font) if self.primary_font else "Default")
         self.primary_font_label.setStyleSheet("color: #A6ADC8; font-weight: normal; font-size: 12px;")
         
         action_row.addWidget(self.primary_font_btn)
+        action_row.addWidget(self.undo_font_btn)
         action_row.addSpacing(5)
         action_row.addWidget(self.primary_font_label)
         action_row.addSpacing(15)
