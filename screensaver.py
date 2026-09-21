@@ -1006,7 +1006,7 @@ class SettingsDialog(QDialog):
     def __init__(self, config_path):
         super().__init__()
         self.setWindowTitle("Dinoscreener Settings")
-        self.setFixedSize(850, 600)
+        self.setFixedSize(860, 620)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
         # Try to apply Windows 11 Mica & Dark Title Bar
@@ -1022,66 +1022,77 @@ class SettingsDialog(QDialog):
         
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
-        # Sleek dark theme matching native Windows dark mode
+        # Glass Blue theme with luminous accents and rounded corners
         self.setStyleSheet("""
             QDialog {
-                background: #101116;
+                background: #080C16;
             }
             QLabel {
-                color: #CDD6F4;
-                font-family: 'Segoe UI', sans-serif;
+                color: #F1F5F9;
+                font-family: 'Segoe UI', -apple-system, sans-serif;
+                border: none;
+                background: transparent;
             }
             QCheckBox {
-                color: #CDD6F4;
+                color: #CBD5E1;
                 font-family: 'Segoe UI', sans-serif;
                 background: transparent;
-                spacing: 6px;
+                spacing: 8px;
                 font-size: 11px;
+                border: none;
             }
-            QCheckBox::indicator {
-                width: 14px;
-                height: 14px;
-                border: 1px solid rgba(255, 255, 255, 0.25);
-                border-radius: 3px;
-                background: rgba(0, 0, 0, 0.35);
-            }
-            QCheckBox::indicator:hover {
-                border-color: rgba(255, 255, 255, 0.5);
-            }
-            QCheckBox::indicator:checked {
-                background-color: #8F96BF;
-                border-color: #8F96BF;
-            }
-            QPushButton {
-                background-color: rgba(255, 255, 255, 0.06);
-                color: #CDD6F4;
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 4px;
-                padding: 4px 10px;
-                font-family: 'Segoe UI', sans-serif;
-                font-size: 11px;
-            }
-            QPushButton:hover {
-                background-color: rgba(255, 255, 255, 0.12);
+            QCheckBox:hover {
                 color: #FFFFFF;
             }
-            QPushButton:pressed {
-                background-color: rgba(255, 255, 255, 0.18);
+            QCheckBox::indicator {
+                width: 15px;
+                height: 15px;
+                border: 1.5px solid rgba(96, 165, 250, 0.45);
+                border-radius: 4px;
+                background: rgba(15, 23, 42, 0.7);
+            }
+            QCheckBox::indicator:hover {
+                border-color: #60A5FA;
+                background: rgba(30, 58, 110, 0.5);
+            }
+            QCheckBox::indicator:checked {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3B82F6, stop:1 #2563EB);
+                border-color: #93C5FD;
             }
             QSlider {
                 background: transparent;
             }
             QSlider::groove:horizontal {
-                border: 1px solid #45475A;
-                height: 3px;
-                background: rgba(49, 50, 68, 200);
-                border-radius: 1.5px;
+                border: none;
+                height: 4px;
+                background: rgba(30, 48, 80, 0.8);
+                border-radius: 2px;
+            }
+            QSlider::sub-page:horizontal {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #2563EB, stop:1 #60A5FA);
+                border-radius: 2px;
             }
             QSlider::handle:horizontal {
-                background: #8F96BF;
-                width: 12px;
-                margin: -4.5px 0;
-                border-radius: 6px;
+                background: #60A5FA;
+                border: 2px solid #FFFFFF;
+                width: 14px;
+                margin: -5px 0;
+                border-radius: 7px;
+            }
+            QSlider::handle:horizontal:hover {
+                background: #93C5FD;
+            }
+            QFrame#controlDeck {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                    stop:0 rgba(16, 26, 48, 0.95), 
+                    stop:1 rgba(9, 15, 30, 0.98));
+                border: 1px solid rgba(96, 165, 250, 0.28);
+                border-radius: 18px;
+            }
+            QFrame#cardMode, QFrame#cardSys {
+                background: rgba(14, 22, 42, 0.6);
+                border: 1px solid rgba(96, 165, 250, 0.18);
+                border-radius: 12px;
             }
         """)
         
@@ -1123,7 +1134,7 @@ class SettingsDialog(QDialog):
         
     def load_config(self):
         default_config = {
-            "accent_color": "#8F96BF",
+            "accent_color": "#3B82F6",
             "show_info": True,
             "strict_exit": False,
             "enable_win_key": False,
@@ -1201,12 +1212,12 @@ class SettingsDialog(QDialog):
     def update_swatch_highlights(self):
         if not hasattr(self, 'swatch_buttons'):
             return
-        curr = self.config.get("accent_color", "#8F96BF").upper()
+        curr = self.config.get("accent_color", "#3B82F6").upper()
         for hex_code, btn in self.swatch_buttons:
             if hex_code.upper() == curr:
-                btn.setStyleSheet(f"background-color: {hex_code}; border: 2px solid #FFFFFF; border-radius: 7px;")
+                btn.setStyleSheet(f"background-color: {hex_code}; border: 2px solid #FFFFFF; border-radius: 8px;")
             else:
-                btn.setStyleSheet(f"background-color: {hex_code}; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 7px;")
+                btn.setStyleSheet(f"background-color: {hex_code}; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px;")
 
     def pick_color(self):
         color = QColorDialog.getColor(QColor(self.config["accent_color"]), self, "Select Accent Color")
@@ -1464,11 +1475,11 @@ class SettingsDialog(QDialog):
         # Note: We rely on the user to re-open settings. Alternatively, we could reset UI elements manually.
 
     def initUI(self):
-        main_layout = QVBoxLayout()
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(0)
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 12)
+        main_layout.setSpacing(10)
         
-        # 1. EXPANSIVE LIVE PREVIEW (~65% height)
+        # 1. LIVE PREVIEW (Flush edge-to-edge at top)
         self.preview = CrispAestheticFlipClock(
             accent_color=self.config["accent_color"],
             enable_win_key=self.config["enable_win_key"],
@@ -1488,64 +1499,62 @@ class SettingsDialog(QDialog):
             live_weather=self.config.get("live_weather", False),
             pixel_shift=self.config.get("pixel_shift", False)
         )
-        main_layout.addWidget(self.preview, stretch=6)
+        main_layout.addWidget(self.preview, stretch=1)
         
-        # 2. SLEEK, LOW-PROFILE CONTROL DECK (~35% height)
-        control_bar = QWidget()
-        control_bar.setObjectName("controlBar")
-        control_bar.setFixedHeight(215)
-        control_bar.setStyleSheet("""
-            QWidget#controlBar {
-                background-color: #121319;
-                border-top: 1px solid rgba(255, 255, 255, 0.08);
-            }
-        """)
+        # 2. FLOATING CONTROL DECK CONTAINER (Inset with 12px margins)
+        deck_container = QWidget()
+        deck_cont_layout = QVBoxLayout(deck_container)
+        deck_cont_layout.setContentsMargins(12, 0, 12, 0)
+        deck_cont_layout.setSpacing(0)
         
-        control_layout = QVBoxLayout(control_bar)
-        control_layout.setContentsMargins(18, 10, 18, 10)
-        control_layout.setSpacing(8)
+        control_deck = QFrame()
+        control_deck.setObjectName("controlDeck")
+        control_deck.setFixedHeight(215)
         
-        # Top Row: Segmented Mode Selector & Brightness
+        deck_layout = QVBoxLayout(control_deck)
+        deck_layout.setContentsMargins(16, 12, 16, 12)
+        deck_layout.setSpacing(10)
+        
+        # Top Row: Mode Switcher & Brightness
         top_bar = QHBoxLayout()
         
-        # Segmented Mode Switcher (Pill tabs)
-        seg_bar = QWidget()
-        seg_bar.setObjectName("segmentedBar")
-        seg_bar.setStyleSheet("""
-            QWidget#segmentedBar {
-                background: rgba(0, 0, 0, 0.35);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 6px;
+        # Glass pill mode switcher
+        seg_container = QWidget()
+        seg_container.setStyleSheet("""
+            QWidget {
+                background: rgba(8, 14, 28, 0.7);
+                border: 1px solid rgba(96, 165, 250, 0.25);
+                border-radius: 16px;
             }
         """)
-        seg_layout = QHBoxLayout(seg_bar)
-        seg_layout.setContentsMargins(2, 2, 2, 2)
-        seg_layout.setSpacing(2)
-        
-        self.style_group = QButtonGroup(self)
-        self.style_group.setExclusive(True)
+        seg_layout = QHBoxLayout(seg_container)
+        seg_layout.setContentsMargins(3, 3, 3, 3)
+        seg_layout.setSpacing(4)
         
         btn_style = """
             QPushButton {
                 background: transparent;
-                color: #A6ADC8;
+                color: #94A3B8;
                 border: 1px solid transparent;
-                border-radius: 4px;
-                padding: 4px 14px;
+                border-radius: 13px;
+                padding: 5px 18px;
                 font-size: 11px;
-                font-weight: 500;
+                font-weight: 600;
             }
             QPushButton:hover {
                 color: #FFFFFF;
-                background: rgba(255, 255, 255, 0.06);
+                background: rgba(255, 255, 255, 0.05);
             }
             QPushButton:checked {
-                background: rgba(255, 255, 255, 0.12);
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #2563EB, stop:1 #3B82F6);
                 color: #FFFFFF;
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(147, 197, 253, 0.5);
                 font-weight: 600;
             }
         """
+        
+        self.style_group = QButtonGroup(self)
+        self.style_group.setExclusive(True)
         
         self.btn_flip = QPushButton("Flip Clock")
         self.btn_flip.setCheckable(True)
@@ -1565,14 +1574,17 @@ class SettingsDialog(QDialog):
         self.style_group.addButton(self.btn_dino, 2)
         seg_layout.addWidget(self.btn_dino)
         
+        btn = self.style_group.button(self.config["clock_style"])
+        if btn:
+            btn.setChecked(True)
+            
         self.style_group.idClicked.connect(self.set_style)
-        top_bar.addWidget(seg_bar)
-        
+        top_bar.addWidget(seg_container)
         top_bar.addStretch()
         
-        # Brightness Slider
+        # Brightness slider
         bright_label = QLabel("Brightness")
-        bright_label.setStyleSheet("color: #A6ADC8; font-size: 11px; font-weight: normal;")
+        bright_label.setStyleSheet("color: #94A3B8; font-size: 11px; font-weight: 500;")
         self.bright_slider = QSlider(Qt.Orientation.Horizontal)
         self.bright_slider.setRange(10, 100)
         self.bright_slider.setValue(self.config["brightness"])
@@ -1581,220 +1593,181 @@ class SettingsDialog(QDialog):
         
         self.bright_val_label = QLabel(f"{self.config['brightness']}%")
         self.bright_val_label.setFixedWidth(35)
-        self.bright_val_label.setStyleSheet("color: #CDD6F4; font-size: 11px; font-weight: bold; font-family: monospace;")
+        self.bright_val_label.setStyleSheet("color: #60A5FA; font-size: 11px; font-weight: bold; font-family: monospace;")
         
         top_bar.addWidget(bright_label)
         top_bar.addSpacing(6)
         top_bar.addWidget(self.bright_slider)
         top_bar.addSpacing(4)
         top_bar.addWidget(self.bright_val_label)
+        deck_layout.addLayout(top_bar)
         
-        control_layout.addLayout(top_bar)
+        # Center Row: 2-Card Balanced Bento
+        center_row = QHBoxLayout()
+        center_row.setSpacing(12)
         
-        # 3-Column Bento Deck
-        bento_layout = QHBoxLayout()
-        bento_layout.setSpacing(8)
+        btn_action_style = """
+            QPushButton {
+                background: rgba(30, 58, 100, 0.5);
+                color: #F1F5F9;
+                border: 1px solid rgba(96, 165, 250, 0.28);
+                border-radius: 6px;
+                padding: 4px 10px;
+                font-size: 11px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background: rgba(45, 85, 145, 0.7);
+                border-color: rgba(96, 165, 250, 0.6);
+                color: #FFFFFF;
+            }
+        """
         
-        card_css = "QFrame { background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 8px; }"
-        
-        # Column 1: Display Card
-        card_display = QFrame()
-        card_display.setStyleSheet(card_css)
-        card_disp_layout = QVBoxLayout(card_display)
-        card_disp_layout.setContentsMargins(12, 8, 12, 8)
-        card_disp_layout.setSpacing(6)
-        
-        lbl_disp = QLabel("DISPLAY")
-        lbl_disp.setStyleSheet("color: #6C7086; font-size: 10px; font-weight: bold; letter-spacing: 1px;")
-        card_disp_layout.addWidget(lbl_disp)
-        
-        self.use_24hr_cb = QCheckBox("24-Hour Clock")
-        self.use_24hr_cb.setChecked(self.config.get("use_24hr", False))
-        self.use_24hr_cb.stateChanged.connect(self.update_24hr)
-        card_disp_layout.addWidget(self.use_24hr_cb)
-        
-        self.leading_zero_cb = QCheckBox("Leading Zero")
-        self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(self.preview.clock_style), False))
-        self.leading_zero_cb.stateChanged.connect(self.update_leading_zero)
-        card_disp_layout.addWidget(self.leading_zero_cb)
-        card_disp_layout.addStretch()
-        
-        bento_layout.addWidget(card_display, 1)
-        
-        # Column 2: Dynamic Mode Options Card
-        card_mode = QFrame()
-        card_mode.setStyleSheet(card_css)
-        card_mode_layout = QVBoxLayout(card_mode)
-        card_mode_layout.setContentsMargins(12, 8, 12, 8)
-        card_mode_layout.setSpacing(4)
+        # Left Card: Dynamic Mode Settings (~470px)
+        self.card_mode = QFrame()
+        self.card_mode.setObjectName("cardMode")
+        card_mode_layout = QVBoxLayout(self.card_mode)
+        card_mode_layout.setContentsMargins(14, 10, 14, 10)
+        card_mode_layout.setSpacing(6)
         
         # Subwidget 1: Dino Runner
         self.col_dino = QWidget()
         col_dino_layout = QVBoxLayout(self.col_dino)
         col_dino_layout.setContentsMargins(0, 0, 0, 0)
-        col_dino_layout.setSpacing(4)
+        col_dino_layout.setSpacing(6)
         
         dino_head = QHBoxLayout()
-        lbl_dino = QLabel("RUNNER OPTIONS")
-        lbl_dino.setStyleSheet("color: #6C7086; font-size: 10px; font-weight: bold; letter-spacing: 1px;")
-        lbl_drop = QLabel("drag & drop files")
-        lbl_drop.setStyleSheet("color: #585B70; font-size: 9px; font-family: monospace;")
+        lbl_dino = QLabel("RUNNER & FONT SETTINGS")
+        lbl_dino.setStyleSheet("color: #60A5FA; font-size: 10px; font-weight: bold; letter-spacing: 1px;")
+        lbl_drop = QLabel("drag & drop font or image files anywhere")
+        lbl_drop.setStyleSheet("color: #64748B; font-size: 9px; font-family: monospace;")
         dino_head.addWidget(lbl_dino)
         dino_head.addStretch()
         dino_head.addWidget(lbl_drop)
         col_dino_layout.addLayout(dino_head)
         
-        # Dino Font Row
-        font_row = QHBoxLayout()
-        font_row.setSpacing(4)
+        runner_grid = QGridLayout()
+        runner_grid.setHorizontalSpacing(8)
+        runner_grid.setVerticalSpacing(6)
+        
         self.primary_font = self.config.get("primary_font", "")
         self.primary_font_btn = QPushButton("Import Font...")
+        self.primary_font_btn.setStyleSheet(btn_action_style)
+        self.primary_font_btn.setFixedWidth(120)
         self.primary_font_btn.clicked.connect(self.import_primary_font)
         
         self.undo_font_btn = QPushButton("↺")
+        self.undo_font_btn.setStyleSheet("background: rgba(30,58,100,0.5); color: #60A5FA; border: 1px solid rgba(96,165,250,0.3); border-radius: 6px; font-weight: bold; font-size: 13px;")
+        self.undo_font_btn.setFixedSize(24, 24)
         self.undo_font_btn.setToolTip("Revert font to saved settings")
-        self.undo_font_btn.setFixedSize(22, 22)
         self.undo_font_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.undo_font_btn.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(49, 50, 68, 200);
-                color: #A6ADC8;
-                border: 1px solid #45475A;
-                border-radius: 4px;
-                font-size: 13px;
-                font-weight: bold;
-                padding: 0px;
-            }
-            QPushButton:hover {
-                background-color: rgba(69, 71, 90, 200);
-                color: #FFFFFF;
-                border-color: #8F96BF;
-            }
-        """)
         self.undo_font_btn.clicked.connect(self.revert_font)
-        self.undo_font_btn.hide()
         
         self.primary_font_label = QLabel(os.path.basename(self.primary_font) if self.primary_font else "Default")
-        self.primary_font_label.setStyleSheet("color: #7F849C; font-size: 10px; max-width: 60px;")
+        self.primary_font_label.setStyleSheet("color: #94A3B8; font-size: 11px;")
+        self.primary_font_label.setFixedWidth(60)
         
         self.font_label = QLabel("Font:")
-        self.font_label.setStyleSheet("color: #A6ADC8; font-size: 10px;")
+        self.font_label.setStyleSheet("color: #CBD5E1; font-size: 11px;")
         self.font_cb = QFontComboBox()
         self.font_cb.setCurrentFont(QFont(self.config.get("dino_font", "Bungee")))
-        self.font_cb.setStyleSheet("padding: 2px 4px; background: #181920; color: white; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; font-size: 10px;")
+        self.font_cb.setStyleSheet("padding: 2px 6px; background: #0B1120; color: white; border: 1px solid rgba(96,165,250,0.25); border-radius: 6px; font-size: 11px;")
+        self.font_cb.setFixedWidth(160)
         self.font_cb.currentFontChanged.connect(self.update_dino_font)
         
-        font_row.addWidget(self.primary_font_btn)
-        font_row.addWidget(self.undo_font_btn)
-        font_row.addWidget(self.primary_font_label)
-        font_row.addStretch()
-        font_row.addWidget(self.font_label)
-        font_row.addWidget(self.font_cb)
-        col_dino_layout.addLayout(font_row)
+        runner_grid.addWidget(self.primary_font_btn, 0, 0)
+        runner_grid.addWidget(self.undo_font_btn, 0, 1)
+        runner_grid.addWidget(self.primary_font_label, 0, 2)
+        runner_grid.addWidget(self.font_label, 0, 3, Qt.AlignmentFlag.AlignRight)
+        runner_grid.addWidget(self.font_cb, 0, 4)
         
-        # Dino Character Row
-        char_row = QHBoxLayout()
-        char_row.setSpacing(4)
         self.custom_character_image = self.config.get("custom_character_image", "")
         self.char_btn = QPushButton("Import Character...")
+        self.char_btn.setStyleSheet(btn_action_style)
+        self.char_btn.setFixedWidth(120)
         self.char_btn.clicked.connect(self.import_character)
         
         self.undo_char_btn = QPushButton("↺")
+        self.undo_char_btn.setStyleSheet("background: rgba(30,58,100,0.5); color: #60A5FA; border: 1px solid rgba(96,165,250,0.3); border-radius: 6px; font-weight: bold; font-size: 13px;")
+        self.undo_char_btn.setFixedSize(24, 24)
         self.undo_char_btn.setToolTip("Revert character to saved settings")
-        self.undo_char_btn.setFixedSize(22, 22)
         self.undo_char_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.undo_char_btn.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(49, 50, 68, 200);
-                color: #A6ADC8;
-                border: 1px solid #45475A;
-                border-radius: 4px;
-                font-size: 13px;
-                font-weight: bold;
-                padding: 0px;
-            }
-            QPushButton:hover {
-                background-color: rgba(69, 71, 90, 200);
-                color: #FFFFFF;
-                border-color: #8F96BF;
-            }
-        """)
         self.undo_char_btn.clicked.connect(self.revert_character)
-        self.undo_char_btn.hide()
         
         self.char_label = QLabel(os.path.basename(self.custom_character_image) if self.custom_character_image else "Default")
-        self.char_label.setStyleSheet("color: #7F849C; font-size: 10px; max-width: 60px;")
+        self.char_label.setStyleSheet("color: #94A3B8; font-size: 11px;")
+        self.char_label.setFixedWidth(60)
         
         self.char_title_label = QLabel("Character:")
-        self.char_title_label.setStyleSheet("color: #A6ADC8; font-size: 10px;")
+        self.char_title_label.setStyleSheet("color: #CBD5E1; font-size: 11px;")
         self.char_cb = QComboBox()
         self.char_cb.addItems(["Dino", "Custom"])
         char_init = "Custom" if (self.config.get("character_type", "dino").lower() == "custom" and self.custom_character_image and os.path.exists(self.custom_character_image)) else "Dino"
         self.char_cb.setCurrentText(char_init)
-        self.char_cb.setStyleSheet("padding: 2px 4px; background: #181920; color: white; border: 1px solid rgba(255,255,255,0.1); border-radius: 3px; font-size: 10px;")
+        self.char_cb.setStyleSheet("padding: 2px 8px; background: #0B1120; color: white; border: 1px solid rgba(96,165,250,0.25); border-radius: 6px; font-size: 11px;")
+        self.char_cb.setFixedWidth(160)
         self.char_cb.currentTextChanged.connect(self.update_character_type)
         
-        char_row.addWidget(self.char_btn)
-        char_row.addWidget(self.undo_char_btn)
-        char_row.addWidget(self.char_label)
-        char_row.addStretch()
-        char_row.addWidget(self.char_title_label)
-        char_row.addWidget(self.char_cb)
-        col_dino_layout.addLayout(char_row)
+        runner_grid.addWidget(self.char_btn, 1, 0)
+        runner_grid.addWidget(self.undo_char_btn, 1, 1)
+        runner_grid.addWidget(self.char_label, 1, 2)
+        runner_grid.addWidget(self.char_title_label, 1, 3, Qt.AlignmentFlag.AlignRight)
+        runner_grid.addWidget(self.char_cb, 1, 4)
         
+        col_dino_layout.addLayout(runner_grid)
         card_mode_layout.addWidget(self.col_dino)
         
         # Subwidget 2: Rotary Modern
         self.col_rotary = QWidget()
         col_rotary_layout = QVBoxLayout(self.col_rotary)
         col_rotary_layout.setContentsMargins(0, 0, 0, 0)
-        col_rotary_layout.setSpacing(6)
+        col_rotary_layout.setSpacing(8)
         
-        lbl_rotary = QLabel("DIAL OPTIONS")
-        lbl_rotary.setStyleSheet("color: #6C7086; font-size: 10px; font-weight: bold; letter-spacing: 1px;")
+        lbl_rotary = QLabel("ROTARY DIAL SETTINGS")
+        lbl_rotary.setStyleSheet("color: #60A5FA; font-size: 10px; font-weight: bold; letter-spacing: 1px;")
         col_rotary_layout.addWidget(lbl_rotary)
         
-        # Accent Color Row with Quick Swatches
         accent_row = QHBoxLayout()
-        lbl_accent = QLabel("Accent Color")
-        lbl_accent.setStyleSheet("color: #CDD6F4; font-size: 11px;")
+        lbl_accent = QLabel("Accent Dial Color")
+        lbl_accent.setStyleSheet("color: #CBD5E1; font-size: 11px;")
         accent_row.addWidget(lbl_accent)
         accent_row.addStretch()
         
         self.swatch_buttons = []
         preset_colors = [
-            ("#8F96BF", "Slate (Default)"),
-            ("#61AFEF", "Ice Blue"),
-            ("#98C379", "Sage Green"),
-            ("#E5C07B", "Warm Amber"),
-            ("#E06C75", "Coral Rose")
+            ("#3B82F6", "Electric Blue"),
+            ("#60A5FA", "Ice Blue"),
+            ("#10B981", "Emerald Green"),
+            ("#F59E0B", "Amber Gold"),
+            ("#EC4899", "Hot Pink")
         ]
         for hex_code, title in preset_colors:
             swatch = QPushButton()
-            swatch.setFixedSize(15, 15)
+            swatch.setFixedSize(16, 16)
             swatch.setCursor(Qt.CursorShape.PointingHandCursor)
             swatch.setToolTip(title)
+            is_active = (hex_code.upper() == self.config.get("accent_color", "#3B82F6").upper())
+            border = "2px solid #FFFFFF" if is_active else "1px solid rgba(255,255,255,0.3)"
+            swatch.setStyleSheet(f"background-color: {hex_code}; border: {border}; border-radius: 8px;")
             swatch.clicked.connect(lambda checked, h=hex_code: self.set_accent_color(h))
             self.swatch_buttons.append((hex_code, swatch))
             accent_row.addWidget(swatch)
             
-        self.color_btn = QPushButton("Custom...")
-        self.color_btn.setStyleSheet("padding: 2px 8px; font-size: 10px;")
+        self.color_btn = QPushButton("Custom Color...")
+        self.color_btn.setStyleSheet(btn_action_style)
         self.color_btn.clicked.connect(self.pick_color)
         accent_row.addWidget(self.color_btn)
         col_rotary_layout.addLayout(accent_row)
         
-        # Weather / Battery HUD Row
         hud_row = QHBoxLayout()
-        self.info_cb = QCheckBox("Weather/Battery")
+        self.info_cb = QCheckBox("Weather && Battery HUD")
         self.info_cb.setChecked(self.config["show_info"])
         self.info_cb.stateChanged.connect(self.update_info)
-        hud_row.addWidget(self.info_cb)
-        
-        hud_row.addSpacing(15)
-        self.live_weather_cb = QCheckBox("Live Weather")
+        self.live_weather_cb = QCheckBox("Live Weather Updates")
         self.live_weather_cb.setChecked(self.config.get("live_weather", False))
         self.live_weather_cb.stateChanged.connect(self.update_live_weather)
+        hud_row.addWidget(self.info_cb)
+        hud_row.addSpacing(20)
         hud_row.addWidget(self.live_weather_cb)
         hud_row.addStretch()
         col_rotary_layout.addLayout(hud_row)
@@ -1805,82 +1778,94 @@ class SettingsDialog(QDialog):
         self.col_flip = QWidget()
         col_flip_layout = QVBoxLayout(self.col_flip)
         col_flip_layout.setContentsMargins(0, 0, 0, 0)
-        col_flip_layout.setSpacing(4)
+        col_flip_layout.setSpacing(6)
         
-        lbl_flip = QLabel("FLIP OPTIONS")
-        lbl_flip.setStyleSheet("color: #6C7086; font-size: 10px; font-weight: bold; letter-spacing: 1px;")
+        lbl_flip = QLabel("FLIP CLOCK SETTINGS")
+        lbl_flip.setStyleSheet("color: #60A5FA; font-size: 10px; font-weight: bold; letter-spacing: 1px;")
         col_flip_layout.addWidget(lbl_flip)
         
-        lbl_desc = QLabel("Mechanical split-flap mechanical clock")
-        lbl_desc.setStyleSheet("color: #A6ADC8; font-size: 11px; padding-top: 2px;")
-        col_flip_layout.addWidget(lbl_desc)
+        lbl_flip_desc = QLabel("Classic Split-Flap Mechanical Airport Clock")
+        lbl_flip_desc.setStyleSheet("color: #F1F5F9; font-size: 11px; font-weight: 500; padding-top: 2px;")
+        col_flip_layout.addWidget(lbl_flip_desc)
         
-        lbl_sub = QLabel("Auto-balanced scale • Clean retro typography")
-        lbl_sub.setStyleSheet("color: #585B70; font-size: 10px;")
-        col_flip_layout.addWidget(lbl_sub)
+        lbl_flip_sub = QLabel("Smooth 3D page flip physics with automatic balanced scaling.")
+        lbl_flip_sub.setStyleSheet("color: #94A3B8; font-size: 10px;")
+        col_flip_layout.addWidget(lbl_flip_sub)
         col_flip_layout.addStretch()
         
         card_mode_layout.addWidget(self.col_flip)
         
-        bento_layout.addWidget(card_mode, 2)
+        center_row.addWidget(self.card_mode, stretch=4)
         
-        # Column 3: System & Hardware Protection
-        card_system = QFrame()
-        card_system.setStyleSheet(card_css)
-        card_sys_layout = QVBoxLayout(card_system)
-        card_sys_layout.setContentsMargins(12, 8, 12, 8)
+        # Right Card: Display & System (~350px)
+        self.card_sys = QFrame()
+        self.card_sys.setObjectName("cardSys")
+        card_sys_layout = QVBoxLayout(self.card_sys)
+        card_sys_layout.setContentsMargins(14, 10, 14, 10)
         card_sys_layout.setSpacing(6)
         
-        lbl_sys = QLabel("SYSTEM")
-        lbl_sys.setStyleSheet("color: #6C7086; font-size: 10px; font-weight: bold; letter-spacing: 1px;")
+        lbl_sys = QLabel("DISPLAY & SYSTEM")
+        lbl_sys.setStyleSheet("color: #60A5FA; font-size: 10px; font-weight: bold; letter-spacing: 1px;")
         card_sys_layout.addWidget(lbl_sys)
         
-        sys_grid = QGridLayout()
-        sys_grid.setHorizontalSpacing(10)
-        sys_grid.setVerticalSpacing(4)
+        grid = QGridLayout()
+        grid.setHorizontalSpacing(14)
+        grid.setVerticalSpacing(6)
         
-        self.strict_cb = QCheckBox("Lock (Ctrl+Z)")
+        self.use_24hr_cb = QCheckBox("24-Hour Clock")
+        self.use_24hr_cb.setChecked(self.config.get("use_24hr", False))
+        self.use_24hr_cb.stateChanged.connect(self.update_24hr)
+        
+        self.leading_zero_cb = QCheckBox("Leading Zero")
+        self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(self.preview.clock_style), False))
+        self.leading_zero_cb.stateChanged.connect(self.update_leading_zero)
+        
+        self.strict_cb = QCheckBox("Lock Screen (Ctrl+Z)")
         self.strict_cb.setChecked(self.config["strict_exit"])
         self.strict_cb.stateChanged.connect(self.update_strict)
-        sys_grid.addWidget(self.strict_cb, 0, 0)
         
         self.ignore_media_cb = QCheckBox("Ignore Media")
         self.ignore_media_cb.setChecked(self.config.get("ignore_media_keys", False))
         self.ignore_media_cb.stateChanged.connect(self.update_media_keys)
-        sys_grid.addWidget(self.ignore_media_cb, 0, 1)
         
         self.win_cb = QCheckBox("Win Key")
         self.win_cb.setChecked(self.config["enable_win_key"])
         self.win_cb.stateChanged.connect(self.update_win)
-        sys_grid.addWidget(self.win_cb, 1, 0)
         
-        self.pixel_shift_cb = QCheckBox("OLED Shift")
+        self.pixel_shift_cb = QCheckBox("OLED Protection")
         self.pixel_shift_cb.setChecked(self.config.get("pixel_shift", False))
         self.pixel_shift_cb.stateChanged.connect(self.update_pixel_shift)
-        sys_grid.addWidget(self.pixel_shift_cb, 1, 1)
         
-        card_sys_layout.addLayout(sys_grid)
-        card_sys_layout.addStretch()
+        grid.addWidget(self.use_24hr_cb, 0, 0)
+        grid.addWidget(self.leading_zero_cb, 0, 1)
+        grid.addWidget(self.strict_cb, 1, 0)
+        grid.addWidget(self.ignore_media_cb, 1, 1)
+        grid.addWidget(self.win_cb, 2, 0)
+        grid.addWidget(self.pixel_shift_cb, 2, 1)
         
-        bento_layout.addWidget(card_system, 1)
-        control_layout.addLayout(bento_layout)
+        card_sys_layout.addLayout(grid)
+        center_row.addWidget(self.card_sys, stretch=3)
         
-        # Bottom Action Row: Reset Defaults, Test Fullscreen, Apply
+        deck_layout.addLayout(center_row)
+        
+        # Footer Row: Actions
         action_row = QHBoxLayout()
         
         reset_btn = QPushButton("Reset Defaults")
         reset_btn.setStyleSheet("""
             QPushButton {
-                color: #F38BA8;
-                background: rgba(243, 139, 168, 0.08);
-                border: 1px solid rgba(243, 139, 168, 0.25);
-                border-radius: 4px;
-                padding: 4px 12px;
+                color: #F87171;
+                background: rgba(239, 68, 68, 0.1);
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                border-radius: 6px;
+                padding: 5px 14px;
                 font-size: 11px;
+                font-weight: 500;
             }
             QPushButton:hover {
-                background: rgba(243, 139, 168, 0.15);
-                border-color: rgba(243, 139, 168, 0.45);
+                background: rgba(239, 68, 68, 0.2);
+                border-color: rgba(239, 68, 68, 0.5);
+                color: #FECACA;
             }
         """)
         reset_btn.clicked.connect(self.reset_defaults)
@@ -1889,21 +1874,7 @@ class SettingsDialog(QDialog):
         action_row.addStretch()
         
         self.test_btn = QPushButton("Test Fullscreen")
-        self.test_btn.setStyleSheet("""
-            QPushButton {
-                color: #CDD6F4;
-                background: rgba(255, 255, 255, 0.06);
-                border: 1px solid rgba(255, 255, 255, 0.14);
-                border-radius: 4px;
-                padding: 4px 14px;
-                font-size: 11px;
-                font-weight: 500;
-            }
-            QPushButton:hover {
-                background: rgba(255, 255, 255, 0.12);
-                color: #FFFFFF;
-            }
-        """)
+        self.test_btn.setStyleSheet(btn_action_style)
         self.test_btn.clicked.connect(self.test_fullscreen)
         action_row.addWidget(self.test_btn)
         
@@ -1912,26 +1883,28 @@ class SettingsDialog(QDialog):
         self.save_btn = QPushButton("Apply")
         self.save_btn.setStyleSheet("""
             QPushButton {
-                background-color: #8F96BF;
-                color: #11111B;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #2563EB, stop:1 #3B82F6);
+                color: #FFFFFF;
                 font-weight: bold;
-                border-radius: 4px;
-                padding: 5px 22px;
+                border: 1px solid rgba(147, 197, 253, 0.5);
+                border-radius: 6px;
+                padding: 6px 26px;
                 font-size: 11px;
-                border: none;
             }
             QPushButton:hover {
-                background-color: #A6ADC8;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #1D4ED8, stop:1 #2563EB);
+                border-color: #BFDBFE;
             }
             QPushButton:pressed {
-                background-color: #7B82AA;
+                background: #1E40AF;
             }
         """)
         self.save_btn.clicked.connect(self.save_config)
         action_row.addWidget(self.save_btn)
         
-        control_layout.addLayout(action_row)
-        main_layout.addWidget(control_bar)
+        deck_layout.addLayout(action_row)
+        deck_cont_layout.addWidget(control_deck)
+        main_layout.addWidget(deck_container)
         
         self.setLayout(main_layout)
         self.update_style_ui()
