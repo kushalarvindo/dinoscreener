@@ -4,7 +4,7 @@ import ctypes
 import json
 import os
 import random
-from PyQt6.QtWidgets import QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider, QFileDialog
+from PyQt6.QtWidgets import QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider, QFileDialog, QStackedWidget, QFrame, QGridLayout, QComboBox, QFontComboBox
 from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate, QPointF, QByteArray, QThread, pyqtSignal
 from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath, QFontDatabase, QPixmap, QImage
 
@@ -1005,67 +1005,86 @@ class WeatherWorker(QThread):
 class SettingsDialog(QDialog):
     def __init__(self, config_path):
         super().__init__()
-        self.setWindowTitle("Dinoscreener Settings")
-        self.setFixedSize(850, 600)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setWindowTitle("Dinoscreener Preferences")
+        self.setFixedSize(860, 580)
+        self.setAcceptDrops(True)
         
-        # Try to apply Windows 11 Mica & Dark Title Bar
-        try:
-            hwnd = int(self.winId())
-            backdrop_type = ctypes.c_int(2) # DWMSBT_MAINWINDOW (Mica)
-            ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 38, ctypes.byref(backdrop_type), ctypes.sizeof(backdrop_type))
-            
-            dark_mode = ctypes.c_int(1)
-            ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 20, ctypes.byref(dark_mode), ctypes.sizeof(dark_mode))
-        except Exception:
-            pass
-        
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        
-        # Sleek dark theme with fully transparent dialog background for native Mica
         self.setStyleSheet("""
             QDialog {
-                background: transparent;
+                background-color: #121214;
             }
             QLabel {
-                color: #CDD6F4;
-                font-family: 'Segoe UI', sans-serif;
-                font-weight: bold;
+                color: #EDEDED;
+                font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, sans-serif;
             }
             QCheckBox {
-                color: #A6ADC8;
-                font-family: 'Segoe UI', sans-serif;
+                color: #A1A1AA;
+                font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, sans-serif;
+                font-size: 12px;
+                spacing: 8px;
                 background: transparent;
             }
-            QPushButton {
-                background-color: rgba(49, 50, 68, 200);
-                color: #CDD6F4;
-                border: 1px solid #45475A;
-                border-radius: 4px;
-                padding: 6px 12px;
+            QCheckBox:hover {
+                color: #EDEDED;
             }
-            QPushButton:hover {
-                background-color: rgba(69, 71, 90, 200);
+            QCheckBox::indicator {
+                width: 15px;
+                height: 15px;
+                border: 1px solid rgba(255, 255, 255, 0.18);
+                border-radius: 3px;
+                background: #18181B;
+            }
+            QCheckBox::indicator:hover {
+                border-color: rgba(255, 255, 255, 0.4);
+            }
+            QCheckBox::indicator:checked {
+                background: #FFFFFF;
+                border-color: #FFFFFF;
             }
             QSlider {
                 background: transparent;
             }
             QSlider::groove:horizontal {
-                border: 1px solid #45475A;
                 height: 4px;
-                background: rgba(49, 50, 68, 200);
+                background: #27272A;
+                border-radius: 2px;
+            }
+            QSlider::sub-page:horizontal {
+                background: #FFFFFF;
                 border-radius: 2px;
             }
             QSlider::handle:horizontal {
-                background: #8F96BF;
-                width: 14px;
-                margin: -5px 0;
-                border-radius: 7px;
+                background: #FFFFFF;
+                border: 1px solid #D4D4D8;
+                width: 12px;
+                height: 12px;
+                margin: -4px 0;
+                border-radius: 6px;
+            }
+            QComboBox, QFontComboBox {
+                background: #18181B;
+                color: #EDEDED;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 5px;
+                padding: 4px 8px;
+                font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+                font-size: 11px;
+            }
+            QComboBox:hover, QFontComboBox:hover {
+                border-color: rgba(255, 255, 255, 0.25);
+            }
+            QComboBox QAbstractItemView, QFontComboBox QAbstractItemView {
+                background: #18181B;
+                color: #EDEDED;
+                selection-background-color: #27272A;
+                selection-color: #FFFFFF;
+                border: 1px solid rgba(255, 255, 255, 0.12);
             }
         """)
         
         self.config_path = config_path
         self.config = self.load_config()
+        
         saved_prim = self.config.get("primary_font", "")
         self.saved_primary_font = saved_prim if (saved_prim and os.path.exists(saved_prim)) else ""
         self.saved_dino_font = self.config.get("dino_font", "Bungee")
@@ -1077,7 +1096,7 @@ class SettingsDialog(QDialog):
             self.saved_char_type = "Dino"
         if self.saved_char_type == "Custom" and not self.saved_char_image:
             self.saved_char_type = "Dino"
-        
+            
         bungee_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Bungee-Regular.ttf")
         if getattr(sys, 'frozen', False):
             bungee_path = os.path.join(sys._MEIPASS, "Bungee-Regular.ttf")
@@ -1085,31 +1104,61 @@ class SettingsDialog(QDialog):
             QFontDatabase.addApplicationFont(bungee_path)
             
         self.initUI()
-        self.saved_dino_font = self.font_cb.currentFont().family()
         self.installEventFilter(self)
         self.check_font_changed()
         self.check_char_changed()
         
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            for u in event.mimeData().urls():
+                ext = os.path.splitext(u.toLocalFile())[1].lower()
+                if ext in ['.ttf', '.otf', '.png', '.jpg', '.jpeg', '.bmp', '.webp']:
+                    event.acceptProposedAction()
+                    return
+        event.ignore()
+
+    def dropEvent(self, event):
+        if event.mimeData().hasUrls():
+            for u in event.mimeData().urls():
+                path = u.toLocalFile()
+                ext = os.path.splitext(path)[1].lower()
+                if ext in ['.ttf', '.otf']:
+                    self.handle_font_import(path)
+                    self.set_mode(2)
+                    event.acceptProposedAction()
+                    return
+                elif ext in ['.png', '.jpg', '.jpeg', '.bmp', '.webp']:
+                    self.handle_character_import(path)
+                    self.set_mode(2)
+                    event.acceptProposedAction()
+                    return
+
     def eventFilter(self, obj, event):
         if event.type() == event.Type.KeyPress:
             if event.key() == Qt.Key.Key_Up or event.key() == Qt.Key.Key_Down:
-                self.preview.clock_style = (self.preview.clock_style + (1 if event.key() == Qt.Key.Key_Up else -1)) % 3
-                self.preview.update()
-                self.update_style_ui()
+                new_style = (self.preview.clock_style + (1 if event.key() == Qt.Key.Key_Up else -1)) % 3
+                self.set_mode(new_style)
+                return True
+            elif event.key() in (Qt.Key.Key_Plus, Qt.Key.Key_Equal):
+                self.step_scale(5)
+                return True
+            elif event.key() in (Qt.Key.Key_Minus, Qt.Key.Key_Underscore):
+                self.step_scale(-5)
                 return True
         return super().eventFilter(obj, event)
-        
+
     def load_config(self):
         default_config = {
-            "accent_color": "#8F96BF",
+            "accent_color": "#0078D4",
             "show_info": True,
             "strict_exit": False,
             "enable_win_key": False,
             "brightness": 100,
-            "clock_style": 1,
+            "clock_style": 0,
             "clock_scales": {"0": 0.45, "1": 0.45, "2": 0.45},
             "use_24hr": False,
             "leading_zero": False,
+            "leading_zeros": {"0": False, "1": False, "2": False},
             "live_weather": False,
             "pixel_shift": False,
             "primary_font": "",
@@ -1125,7 +1174,7 @@ class SettingsDialog(QDialog):
             except Exception:
                 pass
         return default_config
-        
+
     def save_config(self):
         self.config["show_info"] = self.info_cb.isChecked()
         self.config["strict_exit"] = self.strict_cb.isChecked()
@@ -1145,115 +1194,638 @@ class SettingsDialog(QDialog):
         
         os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
         with open(self.config_path, 'w') as f:
-            json.dump(self.config, f)
+            json.dump(self.config, f, indent=4)
         self.accept()
+
+    def test_fullscreen(self):
+        try:
+            self.test_clock = CrispAestheticFlipClock(
+                accent_color=self.config.get("accent_color", "#0078D4"),
+                enable_win_key=self.win_cb.isChecked(),
+                strict_exit=False,
+                show_info=self.info_cb.isChecked(),
+                preview_mode=False,
+                brightness=self.bright_slider.value(),
+                clock_style=self.preview.clock_style,
+                clock_scales=self.preview.clock_scales,
+                use_24hr=self.use_24hr_cb.isChecked(),
+                leading_zeros=self.preview.leading_zeros,
+                ignore_media_keys=self.ignore_media_cb.isChecked(),
+                dino_font=self.font_cb.currentFont().family(),
+                primary_font=getattr(self, 'primary_font', ""),
+                character_type=self.char_cb.currentText().lower(),
+                custom_character_image=getattr(self, 'custom_character_image', ""),
+                live_weather=self.live_weather_cb.isChecked(),
+                pixel_shift=self.pixel_shift_cb.isChecked()
+            )
+            self.test_clock.showFullScreen()
+        except Exception as e:
+            print("Error launching fullscreen test:", e)
+
+    def reset_defaults(self):
+        if os.path.exists(self.config_path):
+            try:
+                os.remove(self.config_path)
+            except Exception:
+                pass
+        self.config = self.load_config()
+        self.preview.clock_scales = self.config["clock_scales"]
+        self.scale_slider.setValue(int(self.preview.clock_scales.get("0", 0.45) * 100))
+        self.bright_slider.setValue(100)
+        self.use_24hr_cb.setChecked(False)
+        self.leading_zero_cb.setChecked(False)
+        self.strict_cb.setChecked(False)
+        self.ignore_media_cb.setChecked(False)
+        self.win_cb.setChecked(False)
+        self.pixel_shift_cb.setChecked(False)
+        self.info_cb.setChecked(True)
+        self.live_weather_cb.setChecked(False)
+        self.revert_font()
+        self.revert_character()
+        self.set_accent_color("#0078D4")
+        self.set_mode(0)
+
+    def initUI(self):
+        root_layout = QVBoxLayout()
+        root_layout.setContentsMargins(18, 14, 18, 14)
+        root_layout.setSpacing(12)
         
-    def pick_color(self):
-        color = QColorDialog.getColor(QColor(self.config["accent_color"]), self, "Select Accent Color")
-        if color.isValid():
-            self.config["accent_color"] = color.name()
-            self.preview.set_accent_color(color.name())
+        # 1. TOP HEADER (Title on left, Segmented Pills on right)
+        header_row = QHBoxLayout()
+        header_row.setContentsMargins(0, 0, 0, 0)
+        
+        title_box = QHBoxLayout()
+        title_box.setSpacing(8)
+        dot = QLabel()
+        dot.setFixedSize(6, 6)
+        dot.setStyleSheet("background: #52525B; border-radius: 3px;")
+        title_lbl = QLabel("Dinoscreener Preferences")
+        title_lbl.setStyleSheet("font-size: 13px; font-weight: 600; color: #FAFAFA;")
+        title_box.addWidget(dot)
+        title_box.addWidget(title_lbl)
+        header_row.addLayout(title_box)
+        header_row.addStretch()
+        
+        # Segmented pill switcher
+        pill_frame = QFrame()
+        pill_frame.setStyleSheet("""
+            QFrame {
+                background: #18181B;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 7px;
+                padding: 2px;
+            }
+        """)
+        pill_layout = QHBoxLayout(pill_frame)
+        pill_layout.setContentsMargins(2, 2, 2, 2)
+        pill_layout.setSpacing(2)
+        
+        self.style_btns = []
+        labels = ["Flip Clock", "Rotary Modern", "Dino Runner"]
+        for i, text in enumerate(labels):
+            btn = QPushButton(text)
+            btn.setCheckable(True)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setStyleSheet("""
+                QPushButton {
+                    background: transparent;
+                    color: #71717A;
+                    border: none;
+                    border-radius: 5px;
+                    padding: 4px 12px;
+                    font-size: 11px;
+                    font-weight: 500;
+                }
+                QPushButton:hover {
+                    color: #D4D4D8;
+                }
+                QPushButton:checked {
+                    background: #27272A;
+                    color: #FFFFFF;
+                    font-weight: 600;
+                }
+            """)
+            btn.clicked.connect(lambda checked, idx=i: self.set_mode(idx))
+            pill_layout.addWidget(btn)
+            self.style_btns.append(btn)
             
+        header_row.addWidget(pill_frame)
+        root_layout.addLayout(header_row)
+        
+        # 2. PREVIEW FRAME
+        self.preview_frame = QFrame()
+        self.preview_frame.setStyleSheet("""
+            QFrame {
+                background: #000000;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 8px;
+            }
+        """)
+        preview_layout = QVBoxLayout(self.preview_frame)
+        preview_layout.setContentsMargins(2, 2, 2, 2)
+        
+        start_style = self.config.get("clock_style", 0)
+        self.preview = CrispAestheticFlipClock(
+            accent_color=self.config.get("accent_color", "#0078D4"),
+            enable_win_key=self.config.get("enable_win_key", False),
+            strict_exit=self.config.get("strict_exit", False),
+            show_info=self.config.get("show_info", True),
+            preview_mode=True,
+            brightness=self.config.get("brightness", 100),
+            clock_style=start_style,
+            clock_scales=self.config.get("clock_scales", {"0": 0.45, "1": 0.45, "2": 0.45}),
+            use_24hr=self.config.get("use_24hr", False),
+            leading_zeros=self.config.get("leading_zeros", self.config.get("leading_zero", False)),
+            ignore_media_keys=self.config.get("ignore_media_keys", False),
+            dino_font=self.config.get("dino_font", "Bungee"),
+            primary_font=self.config.get("primary_font", ""),
+            character_type=self.config.get("character_type", "dino"),
+            custom_character_image=self.config.get("custom_character_image", "")
+        )
+        preview_layout.addWidget(self.preview)
+        root_layout.addWidget(self.preview_frame, stretch=1)
+        
+        # 3. LOWER INSPECTOR (2 Columns with vertical separator)
+        lower_frame = QFrame()
+        lower_frame.setStyleSheet("""
+            QFrame#lowerFrame {
+                background: transparent;
+                border-top: 1px solid rgba(255, 255, 255, 0.06);
+            }
+        """)
+        lower_frame.setObjectName("lowerFrame")
+        lower_layout = QHBoxLayout(lower_frame)
+        lower_layout.setContentsMargins(4, 12, 4, 4)
+        lower_layout.setSpacing(28)
+        
+        # LEFT COLUMN: Mode Customization
+        left_col = QVBoxLayout()
+        left_col.setSpacing(10)
+        
+        lbl_mode_header = QLabel("MODE SETTINGS")
+        lbl_mode_header.setStyleSheet("font-size: 10px; font-weight: 700; color: #71717A; letter-spacing: 0.5px;")
+        left_col.addWidget(lbl_mode_header)
+        
+        self.pages = QStackedWidget()
+        
+        # --- Page 0: Flip Clock ---
+        page_flip = QWidget()
+        flip_layout = QVBoxLayout(page_flip)
+        flip_layout.setContentsMargins(0, 0, 0, 0)
+        flip_layout.setSpacing(10)
+        
+        # Scale row
+        scale_row = QHBoxLayout()
+        lbl_scale = QLabel("Clock Scale:")
+        lbl_scale.setStyleSheet("color: #D4D4D8; font-size: 12px;")
+        scale_row.addWidget(lbl_scale)
+        
+        btn_stepper_style = """
+            QPushButton {
+                background: #18181B;
+                color: #A1A1AA;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background: #27272A;
+                color: #FFFFFF;
+            }
+        """
+        self.btn_scale_minus = QPushButton("−")
+        self.btn_scale_minus.setFixedSize(22, 22)
+        self.btn_scale_minus.setStyleSheet(btn_stepper_style)
+        self.btn_scale_minus.clicked.connect(lambda: self.step_scale(-5))
+        scale_row.addWidget(self.btn_scale_minus)
+        
+        self.scale_slider = QSlider(Qt.Orientation.Horizontal)
+        self.scale_slider.setRange(15, 95)
+        init_scale = int(self.preview.clock_scales.get("0", 0.45) * 100)
+        self.scale_slider.setValue(init_scale)
+        self.scale_slider.valueChanged.connect(self.update_scale)
+        scale_row.addWidget(self.scale_slider)
+        
+        self.btn_scale_plus = QPushButton("+")
+        self.btn_scale_plus.setFixedSize(22, 22)
+        self.btn_scale_plus.setStyleSheet(btn_stepper_style)
+        self.btn_scale_plus.clicked.connect(lambda: self.step_scale(5))
+        scale_row.addWidget(self.btn_scale_plus)
+        
+        self.lbl_scale_pct = QLabel(f"{init_scale}%")
+        self.lbl_scale_pct.setFixedWidth(38)
+        self.lbl_scale_pct.setStyleSheet("color: #EDEDED; font-size: 12px; font-weight: 500;")
+        scale_row.addWidget(self.lbl_scale_pct)
+        flip_layout.addLayout(scale_row)
+        
+        tip_flip = QLabel("Shortcut: Press + or − anytime while screensaver is running to scale clock size.")
+        tip_flip.setStyleSheet("color: #71717A; font-size: 11px;")
+        flip_layout.addWidget(tip_flip)
+        flip_layout.addStretch()
+        self.pages.addWidget(page_flip)
+        
+        # --- Page 1: Rotary Modern ---
+        page_rotary = QWidget()
+        rot_layout = QVBoxLayout(page_rotary)
+        rot_layout.setContentsMargins(0, 0, 0, 0)
+        rot_layout.setSpacing(10)
+        
+        swatch_row = QHBoxLayout()
+        swatch_row.setSpacing(8)
+        lbl_accent = QLabel("Accent Color:")
+        lbl_accent.setStyleSheet("color: #D4D4D8; font-size: 12px;")
+        swatch_row.addWidget(lbl_accent)
+        
+        self.swatch_buttons = []
+        preset_colors = ["#0078D4", "#FFFFFF", "#10B981", "#F59E0B", "#F43F5E"]
+        for c in preset_colors:
+            s_btn = QPushButton()
+            s_btn.setFixedSize(18, 18)
+            s_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            s_btn.clicked.connect(lambda checked, col=c: self.set_accent_color(col))
+            swatch_row.addWidget(s_btn)
+            self.swatch_buttons.append((c, s_btn))
+            
+        btn_custom_col = QPushButton("Custom...")
+        btn_custom_col.setStyleSheet("""
+            QPushButton {
+                background: #18181B;
+                color: #A1A1AA;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 4px;
+                padding: 2px 8px;
+                font-size: 11px;
+            }
+            QPushButton:hover {
+                background: #27272A;
+                color: #FFFFFF;
+            }
+        """)
+        btn_custom_col.clicked.connect(self.pick_color)
+        swatch_row.addWidget(btn_custom_col)
+        swatch_row.addStretch()
+        rot_layout.addLayout(swatch_row)
+        
+        self.info_cb = QCheckBox("Weather && Battery Status Ring")
+        self.info_cb.setChecked(self.config.get("show_info", True))
+        self.info_cb.stateChanged.connect(lambda s: self.preview.set_show_info(self.info_cb.isChecked()))
+        rot_layout.addWidget(self.info_cb)
+        
+        self.live_weather_cb = QCheckBox("Live Weather Updates (Open-Meteo)")
+        self.live_weather_cb.setChecked(self.config.get("live_weather", False))
+        self.live_weather_cb.stateChanged.connect(self.update_live_weather)
+        rot_layout.addWidget(self.live_weather_cb)
+        rot_layout.addStretch()
+        self.pages.addWidget(page_rotary)
+        
+        # --- Page 2: Dino Runner ---
+        page_dino = QWidget()
+        dino_layout = QVBoxLayout(page_dino)
+        dino_layout.setContentsMargins(0, 0, 0, 0)
+        dino_layout.setSpacing(8)
+        
+        btn_style = """
+            QPushButton {
+                background: #18181B;
+                color: #EDEDED;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 4px;
+                padding: 4px 8px;
+                font-size: 11px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background: #27272A;
+                border-color: rgba(255, 255, 255, 0.25);
+            }
+        """
+        undo_style = """
+            QPushButton {
+                background: #18181B;
+                color: #A1A1AA;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background: #27272A;
+                color: #FFFFFF;
+            }
+        """
+        
+        dino_grid = QGridLayout()
+        dino_grid.setHorizontalSpacing(8)
+        dino_grid.setVerticalSpacing(8)
+        dino_grid.setContentsMargins(0, 0, 0, 0)
+        
+        # Row 0: Font controls
+        self.primary_font = self.config.get("primary_font", "")
+        self.primary_font_btn = QPushButton("Import Font...")
+        self.primary_font_btn.setFixedWidth(110)
+        self.primary_font_btn.setStyleSheet(btn_style)
+        self.primary_font_btn.clicked.connect(self.import_primary_font)
+        dino_grid.addWidget(self.primary_font_btn, 0, 0)
+        
+        self.undo_font_btn = QPushButton("↺")
+        self.undo_font_btn.setFixedSize(22, 22)
+        self.undo_font_btn.setStyleSheet(undo_style)
+        self.undo_font_btn.clicked.connect(self.revert_font)
+        self.undo_font_btn.hide()
+        dino_grid.addWidget(self.undo_font_btn, 0, 1)
+        
+        self.primary_font_label = QLabel(os.path.basename(self.primary_font) if self.primary_font else "Default")
+        self.primary_font_label.setStyleSheet("color: #71717A; font-size: 11px;")
+        self.primary_font_label.setFixedWidth(65)
+        dino_grid.addWidget(self.primary_font_label, 0, 2)
+        
+        lbl_f_title = QLabel("Font:")
+        lbl_f_title.setStyleSheet("color: #A1A1AA; font-size: 11px;")
+        dino_grid.addWidget(lbl_f_title, 0, 3)
+        
+        self.font_cb = QFontComboBox()
+        self.font_cb.setCurrentFont(QFont(self.config.get("dino_font", "Bungee")))
+        self.font_cb.currentFontChanged.connect(self.update_dino_font)
+        dino_grid.addWidget(self.font_cb, 0, 4)
+        
+        # Row 1: Character controls
+        self.custom_character_image = self.config.get("custom_character_image", "")
+        self.char_btn = QPushButton("Import Sprite...")
+        self.char_btn.setFixedWidth(110)
+        self.char_btn.setStyleSheet(btn_style)
+        self.char_btn.clicked.connect(self.import_character)
+        dino_grid.addWidget(self.char_btn, 1, 0)
+        
+        self.undo_char_btn = QPushButton("↺")
+        self.undo_char_btn.setFixedSize(22, 22)
+        self.undo_char_btn.setStyleSheet(undo_style)
+        self.undo_char_btn.clicked.connect(self.revert_character)
+        self.undo_char_btn.hide()
+        dino_grid.addWidget(self.undo_char_btn, 1, 1)
+        
+        self.char_label = QLabel(os.path.basename(self.custom_character_image) if self.custom_character_image else "Default")
+        self.char_label.setStyleSheet("color: #71717A; font-size: 11px;")
+        self.char_label.setFixedWidth(65)
+        dino_grid.addWidget(self.char_label, 1, 2)
+        
+        lbl_c_title = QLabel("Character:")
+        lbl_c_title.setStyleSheet("color: #A1A1AA; font-size: 11px;")
+        dino_grid.addWidget(lbl_c_title, 1, 3)
+        
+        self.char_cb = QComboBox()
+        self.char_cb.addItems(["Dino", "Custom"])
+        char_init = "Custom" if (self.config.get("character_type", "dino").lower() == "custom" and self.custom_character_image and os.path.exists(self.custom_character_image)) else "Dino"
+        self.char_cb.setCurrentText(char_init)
+        self.char_cb.currentTextChanged.connect(self.update_character_type)
+        dino_grid.addWidget(self.char_cb, 1, 4)
+        
+        dino_layout.addLayout(dino_grid)
+        
+        tip_dino = QLabel("Drag & drop font (.ttf) or image directly onto dialog.")
+        tip_dino.setStyleSheet("color: #52525B; font-size: 11px;")
+        dino_layout.addWidget(tip_dino)
+        dino_layout.addStretch()
+        self.pages.addWidget(page_dino)
+        
+        left_col.addWidget(self.pages)
+        lower_layout.addLayout(left_col, stretch=1)
+        
+        # Hairline vertical divider
+        divider = QFrame()
+        divider.setFrameShape(QFrame.Shape.VLine)
+        divider.setStyleSheet("background: rgba(255, 255, 255, 0.07); width: 1px; border: none;")
+        lower_layout.addWidget(divider)
+        
+        # RIGHT COLUMN: Global System & Preferences
+        right_col = QVBoxLayout()
+        right_col.setSpacing(8)
+        
+        lbl_sys_header = QLabel("SYSTEM & DISPLAY")
+        lbl_sys_header.setStyleSheet("font-size: 10px; font-weight: 700; color: #71717A; letter-spacing: 0.5px;")
+        right_col.addWidget(lbl_sys_header)
+        
+        # Brightness row
+        bright_row = QHBoxLayout()
+        bright_row.setSpacing(8)
+        lbl_bright = QLabel("Brightness:")
+        lbl_bright.setStyleSheet("color: #A1A1AA; font-size: 12px;")
+        bright_row.addWidget(lbl_bright)
+        
+        self.bright_slider = QSlider(Qt.Orientation.Horizontal)
+        self.bright_slider.setRange(10, 100)
+        self.bright_slider.setValue(self.config.get("brightness", 100))
+        self.bright_slider.valueChanged.connect(self.update_brightness)
+        bright_row.addWidget(self.bright_slider)
+        
+        self.bright_val_label = QLabel(f"{self.config.get('brightness', 100)}%")
+        self.bright_val_label.setFixedWidth(36)
+        self.bright_val_label.setStyleSheet("color: #EDEDED; font-size: 12px; font-weight: 500;")
+        bright_row.addWidget(self.bright_val_label)
+        right_col.addLayout(bright_row)
+        
+        # Checkbox 2-column clean grid
+        sys_grid = QGridLayout()
+        sys_grid.setHorizontalSpacing(16)
+        sys_grid.setVerticalSpacing(7)
+        
+        self.use_24hr_cb = QCheckBox("24-Hour Time Format")
+        self.use_24hr_cb.setChecked(self.config.get("use_24hr", False))
+        self.use_24hr_cb.stateChanged.connect(self.update_24hr)
+        sys_grid.addWidget(self.use_24hr_cb, 0, 0)
+        
+        self.strict_cb = QCheckBox("Lock Screen on Exit (Ctrl+Z)")
+        self.strict_cb.setChecked(self.config.get("strict_exit", False))
+        self.strict_cb.stateChanged.connect(lambda s: setattr(self.preview, 'strict_exit', self.strict_cb.isChecked()))
+        sys_grid.addWidget(self.strict_cb, 0, 1)
+        
+        self.leading_zero_cb = QCheckBox("Leading Zero Display")
+        self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(start_style), False))
+        self.leading_zero_cb.stateChanged.connect(self.update_leading_zero)
+        sys_grid.addWidget(self.leading_zero_cb, 1, 0)
+        
+        self.ignore_media_cb = QCheckBox("Ignore Media Keys")
+        self.ignore_media_cb.setChecked(self.config.get("ignore_media_keys", False))
+        self.ignore_media_cb.stateChanged.connect(lambda s: setattr(self.preview, 'ignore_media_keys', self.ignore_media_cb.isChecked()))
+        sys_grid.addWidget(self.ignore_media_cb, 1, 1)
+        
+        self.win_cb = QCheckBox("Enable Windows Key")
+        self.win_cb.setChecked(self.config.get("enable_win_key", False))
+        self.win_cb.stateChanged.connect(lambda s: setattr(self.preview, 'enable_win_key', self.win_cb.isChecked()))
+        sys_grid.addWidget(self.win_cb, 2, 0)
+        
+        self.pixel_shift_cb = QCheckBox("OLED Burn-in Protection")
+        self.pixel_shift_cb.setChecked(self.config.get("pixel_shift", False))
+        self.pixel_shift_cb.stateChanged.connect(self.update_pixel_shift)
+        sys_grid.addWidget(self.pixel_shift_cb, 2, 1)
+        
+        right_col.addLayout(sys_grid)
+        right_col.addStretch()
+        lower_layout.addLayout(right_col, stretch=1)
+        
+        root_layout.addWidget(lower_frame)
+        
+        # 4. FOOTER ACTIONS
+        footer_row = QHBoxLayout()
+        footer_row.setContentsMargins(4, 4, 4, 0)
+        
+        btn_test = QPushButton("Test Fullscreen")
+        btn_test.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_test.setStyleSheet("""
+            QPushButton {
+                background: transparent;
+                color: #A1A1AA;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 5px;
+                padding: 5px 14px;
+                font-size: 11px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background: #18181B;
+                color: #FFFFFF;
+            }
+        """)
+        btn_test.clicked.connect(self.test_fullscreen)
+        footer_row.addWidget(btn_test)
+        footer_row.addStretch()
+        
+        btn_reset = QPushButton("Reset Defaults")
+        btn_reset.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_reset.setStyleSheet("""
+            QPushButton {
+                background: transparent;
+                color: #71717A;
+                border: none;
+                padding: 5px 12px;
+                font-size: 11px;
+            }
+            QPushButton:hover {
+                color: #EF4444;
+            }
+        """)
+        btn_reset.clicked.connect(self.reset_defaults)
+        footer_row.addWidget(btn_reset)
+        
+        btn_apply = QPushButton("Apply Changes")
+        btn_apply.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_apply.setStyleSheet("""
+            QPushButton {
+                background: #FFFFFF;
+                color: #000000;
+                border: none;
+                border-radius: 5px;
+                padding: 6px 20px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+            QPushButton:hover {
+                background: #E4E4E7;
+            }
+            QPushButton:pressed {
+                background: #D4D4D8;
+            }
+        """)
+        btn_apply.clicked.connect(self.save_config)
+        footer_row.addWidget(btn_apply)
+        root_layout.addLayout(footer_row)
+        
+        self.setLayout(root_layout)
+        self.set_mode(start_style)
+
+    def set_mode(self, idx):
+        self.preview.clock_style = idx
+        self.preview.update()
+        for i, btn in enumerate(self.style_btns):
+            btn.blockSignals(True)
+            btn.setChecked(i == idx)
+            btn.blockSignals(False)
+        self.pages.setCurrentIndex(idx)
+        self.update_swatch_highlights()
+        if hasattr(self, 'leading_zero_cb'):
+            self.leading_zero_cb.blockSignals(True)
+            self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(idx), False))
+            self.leading_zero_cb.blockSignals(False)
+
+    def update_swatch_highlights(self):
+        if not hasattr(self, 'swatch_buttons'):
+            return
+        curr = self.config.get("accent_color", "#0078D4").upper()
+        for hex_code, btn in self.swatch_buttons:
+            if hex_code.upper() == curr:
+                btn.setStyleSheet(f"background-color: {hex_code}; border: 2px solid #FFFFFF; border-radius: 9px;")
+            else:
+                btn.setStyleSheet(f"background-color: {hex_code}; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 9px;")
+
+    def set_accent_color(self, hex_code):
+        self.config["accent_color"] = hex_code
+        self.preview.set_accent_color(hex_code)
+        self.update_swatch_highlights()
+
+    def pick_color(self):
+        color = QColorDialog.getColor(QColor(self.config.get("accent_color", "#0078D4")), self, "Select Accent Color")
+        if color.isValid():
+            self.set_accent_color(color.name())
+
+    def update_scale(self, val):
+        self.lbl_scale_pct.setText(f"{val}%")
+        self.preview.clock_scales["0"] = val / 100.0
+        self.config["clock_scales"]["0"] = val / 100.0
+        if self.preview.clock_style == 0:
+            self.preview.update()
+
+    def step_scale(self, delta):
+        if hasattr(self, 'scale_slider'):
+            new_val = max(15, min(95, self.scale_slider.value() + delta))
+            self.scale_slider.setValue(new_val)
+
+    def update_leading_zero(self, state=None):
+        val = self.leading_zero_cb.isChecked()
+        self.preview.leading_zeros[str(self.preview.clock_style)] = val
+        self.preview.update()
+
     def update_brightness(self, val):
         self.bright_val_label.setText(f"{val}%")
         self.preview.set_brightness(val)
-        
-    def update_style_ui(self):
-        self.info_cb.setVisible(self.preview.clock_style == 1)
-        is_dino = self.preview.clock_style == 2
-        self.font_label.setVisible(is_dino)
-        self.font_cb.setVisible(is_dino)
-        self.primary_font_btn.setVisible(is_dino)
-        self.primary_font_label.setVisible(is_dino)
-        self.check_font_changed()
-        
-        if hasattr(self, 'char_btn'):
-            self.char_btn.setVisible(is_dino)
-            self.char_label.setVisible(is_dino)
-            self.char_title_label.setVisible(is_dino)
-            self.char_cb.setVisible(is_dino)
-            self.check_char_changed()
-        
-        is_rotary = self.preview.clock_style == 1
-        self.color_btn.setVisible(is_rotary)
-        self.live_weather_cb.setVisible(is_rotary)
-        
-        # Update leading zero cb state for this style
-        self.leading_zero_cb.blockSignals(True)
-        self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(self.preview.clock_style), False))
-        self.leading_zero_cb.blockSignals(False)
-        
-    def next_style(self):
-        self.preview.clock_style = (self.preview.clock_style + 1) % 3
-        self.preview.update()
-        self.update_style_ui()
-        
-    def prev_style(self):
-        self.preview.clock_style = (self.preview.clock_style - 1) % 3
-        self.preview.update()
-        self.update_style_ui()
-        
-    def update_info(self, state=None):
-        self.preview.set_show_info(self.info_cb.isChecked())
-        
-    def update_strict(self, state=None):
-        self.preview.strict_exit = self.strict_cb.isChecked()
-        
-    def update_win(self, state=None):
-        self.preview.enable_win_key = self.win_cb.isChecked()
-            
+
     def update_24hr(self, state=None):
         self.preview.use_24hr = self.use_24hr_cb.isChecked()
         self.preview.update()
-        
-    def update_leading_zero(self, state=None):
-        self.preview.leading_zeros[str(self.preview.clock_style)] = self.leading_zero_cb.isChecked()
-        self.preview.update()
-        
-    def update_media_keys(self, state=None):
-        self.preview.ignore_media_keys = self.ignore_media_cb.isChecked()
-        
+
     def update_live_weather(self, state=None):
         self.preview.live_weather = self.live_weather_cb.isChecked()
         self.preview.update()
-        
+
     def update_pixel_shift(self, state=None):
         self.preview.pixel_shift = self.pixel_shift_cb.isChecked()
         self.preview.update()
-        
+
+    def handle_font_import(self, path):
+        self.primary_font = path
+        self.primary_font_label.setText(os.path.basename(path))
+        font_id = QFontDatabase.addApplicationFont(path)
+        self.font_cb.setFontFilters(QFontComboBox.FontFilter.AllFonts)
+        if font_id != -1:
+            families = QFontDatabase.applicationFontFamilies(font_id)
+            if families:
+                self.font_cb.setCurrentFont(QFont(families[0]))
+                self.preview.primary_font_family = families[0]
+        self.preview.primary_font = path
+        self.preview.update()
+        self.check_font_changed()
+
     def import_primary_font(self):
         file, _ = QFileDialog.getOpenFileName(self, "Select Font File", "", "Font Files (*.ttf *.otf)")
         if file:
-            self.primary_font = file
-            self.primary_font_label.setText(os.path.basename(file))
-            font_id = QFontDatabase.addApplicationFont(file)
-            
-            # Force refresh QFontComboBox by re-setting filters
-            from PyQt6.QtWidgets import QFontComboBox
-            self.font_cb.setFontFilters(QFontComboBox.FontFilter.AllFonts)
-            
-            if font_id != -1:
-                families = QFontDatabase.applicationFontFamilies(font_id)
-                if families:
-                    from PyQt6.QtGui import QFont
-                    self.font_cb.setCurrentFont(QFont(families[0]))
-                    self.preview.primary_font_family = families[0]
-                    
-            self.preview.primary_font = file
-            self.preview.update()
-            self.check_font_changed()
-            
+            self.handle_font_import(file)
+
     def update_dino_font(self, font):
         self.preview.dino_font = font.family()
         self.preview.update()
         self.check_font_changed()
-        
+
     def check_font_changed(self):
         if not hasattr(self, 'undo_font_btn') or not hasattr(self, 'saved_dino_font') or not hasattr(self, 'font_cb'):
-            return
-        is_dino = self.preview.clock_style == 2
-        if not is_dino:
-            self.undo_font_btn.hide()
             return
         current_primary = getattr(self, 'primary_font', "")
         current_dino = self.font_cb.currentFont().family()
@@ -1261,9 +1833,6 @@ class SettingsDialog(QDialog):
         self.undo_font_btn.setVisible(has_changed)
 
     def revert_font(self):
-        from PyQt6.QtGui import QFont
-        from PyQt6.QtWidgets import QFontComboBox
-        # Revert primary_font
         if self.saved_primary_font and os.path.exists(self.saved_primary_font):
             self.primary_font = self.saved_primary_font
             self.primary_font_label.setText(os.path.basename(self.primary_font))
@@ -1281,7 +1850,6 @@ class SettingsDialog(QDialog):
             self.preview.primary_font = ""
             self.preview.primary_font_family = "Google Sans"
 
-        # Revert dino_font / font_cb
         all_families = QFontDatabase.families()
         if self.saved_dino_font and self.saved_dino_font in all_families:
             target_dino = self.saved_dino_font
@@ -1293,22 +1861,24 @@ class SettingsDialog(QDialog):
         self.font_cb.setCurrentFont(QFont(target_dino))
         self.font_cb.blockSignals(False)
         self.preview.dino_font = self.font_cb.currentFont().family()
-        
         self.preview.update()
         self.check_font_changed()
-        
+
+    def handle_character_import(self, path):
+        self.custom_character_image = path
+        self.char_label.setText(os.path.basename(path))
+        self.char_cb.blockSignals(True)
+        self.char_cb.setCurrentText("Custom")
+        self.char_cb.blockSignals(False)
+        self.preview.character_type = "custom"
+        self.preview.set_custom_character(path)
+        self.check_char_changed()
+
     def import_character(self):
         file, _ = QFileDialog.getOpenFileName(self, "Select Character Image", "", "Image Files (*.png *.jpg *.jpeg *.bmp *.webp)")
         if file:
-            self.custom_character_image = file
-            self.char_label.setText(os.path.basename(file))
-            self.char_cb.blockSignals(True)
-            self.char_cb.setCurrentText("Custom")
-            self.char_cb.blockSignals(False)
-            self.preview.character_type = "custom"
-            self.preview.set_custom_character(file)
-            self.check_char_changed()
-            
+            self.handle_character_import(file)
+
     def update_character_type(self, text):
         char_type = text.lower()
         if char_type == "custom":
@@ -1325,13 +1895,9 @@ class SettingsDialog(QDialog):
         self.preview.character_type = self.char_cb.currentText().lower()
         self.preview.update()
         self.check_char_changed()
-        
+
     def check_char_changed(self):
         if not hasattr(self, 'undo_char_btn') or not hasattr(self, 'char_cb'):
-            return
-        is_dino = self.preview.clock_style == 2
-        if not is_dino:
-            self.undo_char_btn.hide()
             return
         current_type = self.char_cb.currentText()
         current_img = getattr(self, 'custom_character_image', "")
@@ -1357,267 +1923,7 @@ class SettingsDialog(QDialog):
         self.preview.character_type = target_type.lower()
         self.preview.update()
         self.check_char_changed()
-        
-    def reset_defaults(self):
-        import os, json
-        if os.path.exists(self.config_path):
-            os.remove(self.config_path)
-        # Reload dialog
-        self.accept()
-        # Note: We rely on the user to re-open settings. Alternatively, we could reset UI elements manually.
 
-    def initUI(self):
-        main_layout = QVBoxLayout()
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(0)
-        
-        # 1. LIVE PREVIEW
-        self.preview = CrispAestheticFlipClock(
-            accent_color=self.config["accent_color"],
-            enable_win_key=self.config["enable_win_key"],
-            strict_exit=self.config["strict_exit"],
-            show_info=self.config["show_info"],
-            preview_mode=True,
-            brightness=self.config["brightness"],
-            clock_style=self.config["clock_style"],
-            clock_scales=self.config.get("clock_scales", {"0": 0.45, "1": 0.45, "2": 0.45}),
-            use_24hr=self.config.get("use_24hr", False),
-            leading_zeros=self.config.get("leading_zeros", self.config.get("leading_zero", False)),
-            ignore_media_keys=self.config.get("ignore_media_keys", False),
-            dino_font=self.config.get("dino_font", "Bungee"),
-            primary_font=self.config.get("primary_font", ""),
-            character_type=self.config.get("character_type", "dino"),
-            custom_character_image=self.config.get("custom_character_image", "")
-        )
-        main_layout.addWidget(self.preview, stretch=1)
-        
-        # 2. CONTROL BAR (Floating Bottom)
-        from PyQt6.QtWidgets import QGridLayout, QFontComboBox, QFrame
-        control_bar = QWidget()
-        control_bar.setObjectName("controlBar")
-        control_bar.setStyleSheet("QWidget#controlBar { background: transparent; border-top: 1px solid #313244; }")
-        
-        control_layout = QGridLayout()
-        control_layout.setContentsMargins(20, 15, 20, 15)
-        control_layout.setHorizontalSpacing(15)
-        control_layout.setVerticalSpacing(15)
-        
-        # Row 0: Basic Controls
-        bright_label = QLabel("🔆")
-        self.bright_slider = QSlider(Qt.Orientation.Horizontal)
-        self.bright_slider.setRange(10, 100)
-        self.bright_slider.setValue(self.config["brightness"])
-        self.bright_slider.setFixedWidth(100)
-        self.bright_slider.valueChanged.connect(self.update_brightness)
-        
-        self.bright_val_label = QLabel(f"{self.config['brightness']}%")
-        self.bright_val_label.setFixedWidth(35)
-        
-        style_prev = QPushButton("◀")
-        style_prev.setStyleSheet("padding: 5px 15px; font-size: 14px;")
-        style_prev.clicked.connect(self.prev_style)
-        
-        style_next = QPushButton("▶")
-        style_next.setStyleSheet("padding: 5px 15px; font-size: 14px;")
-        style_next.clicked.connect(self.next_style)
-        
-        self.color_btn = QPushButton("🎨")
-        self.color_btn.setStyleSheet("padding: 5px 15px; font-size: 14px;")
-        self.color_btn.setToolTip("Pick Accent Color")
-        self.color_btn.clicked.connect(self.pick_color)
-        
-        # Row 1: Checkboxes
-        self.info_cb = QCheckBox("Weather/Battery")
-        self.info_cb.setChecked(self.config["show_info"])
-        self.info_cb.stateChanged.connect(self.update_info)
-        
-        self.strict_cb = QCheckBox("Lock Screen (Ctrl+Z)")
-        self.strict_cb.setChecked(self.config["strict_exit"])
-        self.strict_cb.stateChanged.connect(self.update_strict)
-        
-        self.win_cb = QCheckBox("Win Key")
-        self.win_cb.setChecked(self.config["enable_win_key"])
-        self.win_cb.stateChanged.connect(self.update_win)
-        
-        self.use_24hr_cb = QCheckBox("24 Hr")
-        self.use_24hr_cb.setChecked(self.config.get("use_24hr", False))
-        self.use_24hr_cb.stateChanged.connect(self.update_24hr)
-        
-        self.leading_zero_cb = QCheckBox("Leading Zero (e.g. 09:00)")
-        self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(self.preview.clock_style), False))
-        self.leading_zero_cb.stateChanged.connect(self.update_leading_zero)
-        
-        self.ignore_media_cb = QCheckBox("Ignore Media Keys")
-        self.ignore_media_cb.setChecked(self.config.get("ignore_media_keys", False))
-        self.ignore_media_cb.stateChanged.connect(self.update_media_keys)
-        
-        self.live_weather_cb = QCheckBox("Live Weather")
-        self.live_weather_cb.setChecked(self.config.get("live_weather", False))
-        self.live_weather_cb.stateChanged.connect(self.update_live_weather)
-        
-        self.pixel_shift_cb = QCheckBox("OLED Burn-in Protection")
-        self.pixel_shift_cb.setChecked(self.config.get("pixel_shift", False))
-        self.pixel_shift_cb.stateChanged.connect(self.update_pixel_shift)
-        
-        # Row 2: Font Config & Actions
-        self.font_label = QLabel("Font:")
-        self.font_cb = QFontComboBox()
-        self.font_cb.setCurrentFont(QFont(self.config.get("dino_font", "Bungee")))
-        self.font_cb.currentFontChanged.connect(self.update_dino_font)
-        
-        reset_btn = QPushButton("Reset Defaults")
-        reset_btn.setStyleSheet("color: #FF7777; background: transparent; border: 1px solid #FF7777; padding: 6px 15px; border-radius: 4px;")
-        reset_btn.clicked.connect(self.reset_defaults)
-        
-        save_btn = QPushButton("OK")
-        save_btn.setStyleSheet("background-color: #8F96BF; color: #11111B; font-weight: bold; padding: 6px 25px; border-radius: 4px;")
-        save_btn.clicked.connect(self.save_config)
-        
-        # Top Row Assembly
-        top_row = QHBoxLayout()
-        top_row.addWidget(bright_label)
-        top_row.addWidget(self.bright_slider)
-        top_row.addWidget(self.bright_val_label)
-        top_row.addSpacing(15)
-        top_row.addWidget(style_prev)
-        top_row.addSpacing(5)
-        top_row.addWidget(style_next)
-        top_row.addSpacing(15)
-        top_row.addWidget(self.color_btn)
-        top_row.addStretch()
-        
-        # Checkbox Grid Assembly
-        cb_layout = QGridLayout()
-        cb_layout.setHorizontalSpacing(20)
-        cb_layout.setVerticalSpacing(10)
-        
-        cb_layout.addWidget(self.info_cb, 0, 0)
-        cb_layout.addWidget(self.strict_cb, 0, 1)
-        cb_layout.addWidget(self.win_cb, 0, 2)
-        cb_layout.addWidget(self.use_24hr_cb, 0, 3)
-        cb_layout.addWidget(self.leading_zero_cb, 1, 0)
-        cb_layout.addWidget(self.ignore_media_cb, 1, 1)
-        cb_layout.addWidget(self.live_weather_cb, 1, 2)
-        cb_layout.addWidget(self.pixel_shift_cb, 1, 3)
-        
-        # Row 2: Font Controls
-        font_row = QHBoxLayout()
-        
-        self.primary_font = self.config.get("primary_font", "")
-        self.primary_font_btn = QPushButton("Import Font...")
-        self.primary_font_btn.setStyleSheet("background: transparent; border: 1px solid #45475A;")
-        self.primary_font_btn.clicked.connect(self.import_primary_font)
-        
-        self.undo_font_btn = QPushButton("↺")
-        self.undo_font_btn.setToolTip("Revert font to saved settings")
-        self.undo_font_btn.setFixedSize(26, 26)
-        self.undo_font_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.undo_font_btn.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(49, 50, 68, 200);
-                color: #A6ADC8;
-                border: 1px solid #45475A;
-                border-radius: 4px;
-                font-size: 14px;
-                font-weight: bold;
-                padding: 0px;
-            }
-            QPushButton:hover {
-                background-color: rgba(69, 71, 90, 200);
-                color: #FFFFFF;
-                border-color: #8F96BF;
-            }
-            QPushButton:pressed {
-                background-color: #585B70;
-            }
-        """)
-        self.undo_font_btn.clicked.connect(self.revert_font)
-        self.undo_font_btn.hide()
-        
-        self.primary_font_label = QLabel(os.path.basename(self.primary_font) if self.primary_font else "Default")
-        self.primary_font_label.setStyleSheet("color: #A6ADC8; font-weight: normal; font-size: 12px;")
-        
-        font_row.addWidget(self.primary_font_btn)
-        font_row.addWidget(self.undo_font_btn)
-        font_row.addSpacing(5)
-        font_row.addWidget(self.primary_font_label)
-        font_row.addSpacing(15)
-        font_row.addWidget(self.font_label)
-        
-        # Style font combobox slightly
-        self.font_cb.setStyleSheet("padding: 3px 5px; background: #313244; color: white; border-radius: 3px;")
-        font_row.addWidget(self.font_cb)
-        font_row.addStretch()
-        
-        # Row 3: Character Controls
-        char_row = QHBoxLayout()
-        
-        self.custom_character_image = self.config.get("custom_character_image", "")
-        self.char_btn = QPushButton("Import Character...")
-        self.char_btn.setStyleSheet("background: transparent; border: 1px solid #45475A;")
-        self.char_btn.clicked.connect(self.import_character)
-        
-        self.undo_char_btn = QPushButton("↺")
-        self.undo_char_btn.setToolTip("Revert character to saved settings")
-        self.undo_char_btn.setFixedSize(26, 26)
-        self.undo_char_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.undo_char_btn.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(49, 50, 68, 200);
-                color: #A6ADC8;
-                border: 1px solid #45475A;
-                border-radius: 4px;
-                font-size: 14px;
-                font-weight: bold;
-                padding: 0px;
-            }
-            QPushButton:hover {
-                background-color: rgba(69, 71, 90, 200);
-                color: #FFFFFF;
-                border-color: #8F96BF;
-            }
-            QPushButton:pressed {
-                background-color: #585B70;
-            }
-        """)
-        self.undo_char_btn.clicked.connect(self.revert_character)
-        self.undo_char_btn.hide()
-        
-        self.char_label = QLabel(os.path.basename(self.custom_character_image) if self.custom_character_image else "Default")
-        self.char_label.setStyleSheet("color: #A6ADC8; font-weight: normal; font-size: 12px;")
-        
-        self.char_title_label = QLabel("Character:")
-        from PyQt6.QtWidgets import QComboBox
-        self.char_cb = QComboBox()
-        self.char_cb.addItems(["Dino", "Custom"])
-        char_init = "Custom" if (self.config.get("character_type", "dino").lower() == "custom" and self.custom_character_image and os.path.exists(self.custom_character_image)) else "Dino"
-        self.char_cb.setCurrentText(char_init)
-        self.char_cb.setStyleSheet("padding: 3px 5px; background: #313244; color: white; border-radius: 3px;")
-        self.char_cb.currentTextChanged.connect(self.update_character_type)
-        
-        char_row.addWidget(self.char_btn)
-        char_row.addWidget(self.undo_char_btn)
-        char_row.addSpacing(5)
-        char_row.addWidget(self.char_label)
-        char_row.addSpacing(15)
-        char_row.addWidget(self.char_title_label)
-        char_row.addWidget(self.char_cb)
-        char_row.addStretch()
-        char_row.addWidget(reset_btn)
-        char_row.addSpacing(10)
-        char_row.addWidget(save_btn)
-        
-        control_layout.addLayout(top_row, 0, 0)
-        control_layout.addLayout(cb_layout, 1, 0)
-        control_layout.addLayout(font_row, 2, 0)
-        control_layout.addLayout(char_row, 3, 0)
-        
-        control_bar.setLayout(control_layout)
-        main_layout.addWidget(control_bar)
-        
-        self.setLayout(main_layout)
-        self.update_style_ui()
-        
     def keyPressEvent(self, event):
         super().keyPressEvent(event)
 
