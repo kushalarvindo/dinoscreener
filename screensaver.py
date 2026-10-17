@@ -23,6 +23,7 @@ class CrispAestheticFlipClock(QWidget):
         self.animating = False
         self.anim_progress = 0.0
         self.time_elapsed = 0.0 
+        self.scale_callback = None
         
         # States
         self.show_bg = False
@@ -970,6 +971,22 @@ class CrispAestheticFlipClock(QWidget):
         if self.strict_exit: return
         self.close()
 
+    def wheelEvent(self, event):
+        if self.preview_mode:
+            delta = event.angleDelta().y()
+            if delta != 0:
+                step = 0.05 if delta > 0 else -0.05
+                style_key = str(self.clock_style)
+                current_scale = self.clock_scales.get(style_key, 0.45)
+                new_scale = max(0.15, min(0.95, round(current_scale + step, 2)))
+                self.clock_scales[style_key] = new_scale
+                self.update()
+                if callable(getattr(self, 'scale_callback', None)):
+                    self.scale_callback(int(new_scale * 100))
+                event.accept()
+                return
+        super().wheelEvent(event)
+
 
 import urllib.request
 import threading
@@ -1002,11 +1019,77 @@ class WeatherWorker(QThread):
         except Exception as e:
             print("Weather fetch failed:", e)
 
+class SpatialStageFrame(QFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("spatialStage")
+        self.accent_color = QColor("#0078D4")
+        self.clock_style = 0
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        
+    def set_stage_theme(self, clock_style, accent_hex):
+        self.clock_style = clock_style
+        self.accent_color = QColor(accent_hex)
+        self.update()
+        
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        w = self.width()
+        h = self.height()
+        
+        # Soft ambient back-glow matching the active mode/color
+        if self.clock_style == 0:
+            glow_col = QColor(245, 158, 11) # Warm incandescent amber
+        elif self.clock_style == 1:
+            glow_col = self.accent_color    # Custom accent color
+        else:
+            glow_col = QColor(56, 189, 248) # Electric cyan
+            
+        cx = w / 2.0
+        cy = h / 2.0
+        r = max(w, h) * 0.58
+        glow = QRadialGradient(cx, cy, r)
+        glow.setColorAt(0.0, QColor(glow_col.red(), glow_col.green(), glow_col.blue(), 75))
+        glow.setColorAt(0.40, QColor(glow_col.red(), glow_col.green(), glow_col.blue(), 28))
+        glow.setColorAt(1.0, QColor(glow_col.red(), glow_col.green(), glow_col.blue(), 0))
+        
+        painter.setBrush(glow)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawRoundedRect(QRectF(0, 0, w, h), 14, 14)
+        
+        # Fine glass specular border
+        border_pen = QPen(QColor(255, 255, 255, 30), 1)
+        painter.setPen(border_pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawRoundedRect(QRectF(1, 1, w - 2, h - 2), 14, 14)
+
+
+def get_or_create_check_icon():
+    import tempfile
+    temp_path = os.path.join(tempfile.gettempdir(), "dinoscreener_chk.png").replace("\\", "/")
+    if not os.path.exists(temp_path):
+        pix = QPixmap(16, 16)
+        pix.fill(Qt.GlobalColor.transparent)
+        p = QPainter(pix)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        pen = QPen(QColor("#FFFFFF"), 2.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
+        p.setPen(pen)
+        path = QPainterPath()
+        path.moveTo(3.5, 8.5)
+        path.lineTo(6.5, 11.5)
+        path.lineTo(12.5, 4.5)
+        p.drawPath(path)
+        p.end()
+        pix.save(temp_path, "PNG")
+    return temp_path
+
+
 class SettingsDialog(QDialog):
     def __init__(self, config_path):
         super().__init__()
-        self.setWindowTitle("Dinoscreener Settings")
-        self.setFixedSize(880, 620)
+        self.setWindowTitle("Dinoscreener Settings — Spatial Studio")
+        self.setFixedSize(920, 645)
         self.setAcceptDrops(True)
         
         # Apply Windows 11 DWM Acrylic backdrop & Dark Mode
@@ -1019,91 +1102,94 @@ class SettingsDialog(QDialog):
         except Exception:
             pass
 
-        # Windows 11 Fluent 2 Design Stylesheet
-        self.setStyleSheet("""
-            QDialog {
-                background-color: #11141C;
-            }
-            QLabel {
+        check_icon_path = get_or_create_check_icon()
+
+        # Spatial Studio Modern Glass Stylesheet
+        self.setStyleSheet(f"""
+            QDialog {{
+                background-color: #0E121A;
+            }}
+            QLabel {{
                 color: #FFFFFF;
                 font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, sans-serif;
-            }
-            QFrame#card {
-                background: rgba(255, 255, 255, 0.038);
+            }}
+            QFrame#bentoCard {{
+                background: rgba(255, 255, 255, 0.035);
                 border: 1px solid rgba(255, 255, 255, 0.07);
-                border-radius: 10px;
-            }
-            QFrame#previewCard {
+                border-radius: 12px;
+            }}
+            QFrame#previewCard {{
                 background: #000000;
-                border: 1px solid rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 10px;
-            }
-            /* Fluent Checkbox */
-            QCheckBox {
+            }}
+            /* Fluent Checkbox with Authentic Checkmark */
+            QCheckBox {{
                 color: #CBD5E1;
                 font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
-                font-size: 12px;
-                spacing: 9px;
+                font-size: 11.5px;
+                spacing: 8px;
                 background: transparent;
-            }
-            QCheckBox:hover {
+            }}
+            QCheckBox:hover {{
                 color: #FFFFFF;
-            }
-            QCheckBox::indicator {
+            }}
+            QCheckBox::indicator {{
                 width: 16px;
                 height: 16px;
-                border: 1px solid rgba(255, 255, 255, 0.25);
+                border: 1px solid rgba(255, 255, 255, 0.22);
                 border-radius: 4px;
-                background: rgba(255, 255, 255, 0.04);
-            }
-            QCheckBox::indicator:hover {
-                border-color: rgba(255, 255, 255, 0.5);
-                background: rgba(255, 255, 255, 0.08);
-            }
-            QCheckBox::indicator:checked {
+                background: rgba(255, 255, 255, 0.05);
+            }}
+            QCheckBox::indicator:hover {{
+                border-color: rgba(255, 255, 255, 0.45);
+                background: rgba(255, 255, 255, 0.09);
+            }}
+            QCheckBox::indicator:checked {{
                 background-color: #0078D4;
                 border-color: #0078D4;
-            }
-            /* Fluent Slider */
-            QSlider {
+                image: url("{check_icon_path}");
+            }}
+            /* Modern Slider */
+            QSlider {{
                 background: transparent;
-            }
-            QSlider::groove:horizontal {
+            }}
+            QSlider::groove:horizontal {{
                 height: 4px;
                 background: rgba(255, 255, 255, 0.15);
                 border-radius: 2px;
-            }
-            QSlider::sub-page:horizontal {
+            }}
+            QSlider::sub-page:horizontal {{
                 background: #0078D4;
                 border-radius: 2px;
-            }
-            QSlider::handle:horizontal {
+            }}
+            QSlider::handle:horizontal {{
                 background: #FFFFFF;
                 border: 2px solid #0078D4;
                 width: 14px;
                 height: 14px;
                 margin: -5px 0;
                 border-radius: 7px;
-            }
-            /* Fluent Combobox */
-            QComboBox, QFontComboBox {
+            }}
+            /* Comboboxes */
+            QComboBox, QFontComboBox {{
                 background: rgba(255, 255, 255, 0.06);
                 color: #FFFFFF;
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 6px;
-                padding: 4px 10px;
+                padding: 3px 8px;
                 font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
                 font-size: 11px;
-            }
-            QComboBox:hover, QFontComboBox:hover {
+            }}
+            QComboBox:hover, QFontComboBox:hover {{
                 background: rgba(255, 255, 255, 0.09);
                 border-color: rgba(255, 255, 255, 0.25);
-            }
-            QComboBox::drop-down, QFontComboBox::drop-down {
+            }}
+            QComboBox::drop-down, QFontComboBox::drop-down {{
                 border: none;
-                width: 20px;
-            }
-            QComboBox QAbstractItemView, QFontComboBox QAbstractItemView {
+                width: 18px;
+            }}
+            QComboBox QAbstractItemView, QFontComboBox QAbstractItemView {{
                 background: #181C26;
                 color: #FFFFFF;
                 selection-background-color: #0078D4;
@@ -1111,7 +1197,7 @@ class SettingsDialog(QDialog):
                 border: 1px solid rgba(255, 255, 255, 0.15);
                 border-radius: 6px;
                 padding: 4px;
-            }
+            }}
         """)
         
         self.config_path = config_path
@@ -1266,6 +1352,7 @@ class SettingsDialog(QDialog):
         self.bright_slider.setValue(100)
         self.use_24hr_cb.setChecked(False)
         self.leading_zero_cb.setChecked(False)
+        self.flip_leading_cb.setChecked(False)
         self.strict_cb.setChecked(False)
         self.ignore_media_cb.setChecked(False)
         self.win_cb.setChecked(False)
@@ -1277,21 +1364,27 @@ class SettingsDialog(QDialog):
         self.set_accent_color("#0078D4")
         self.set_mode(0)
 
+    def on_preview_scale_scrolled(self, val):
+        if hasattr(self, 'scale_slider'):
+            self.scale_slider.blockSignals(True)
+            self.scale_slider.setValue(val)
+            self.scale_slider.blockSignals(False)
+            self.lbl_scale_pct.setText(f"{val}%")
+
     def initUI(self):
         root_layout = QVBoxLayout(self)
-        root_layout.setContentsMargins(20, 16, 20, 16)
-        root_layout.setSpacing(14)
+        root_layout.setContentsMargins(18, 14, 18, 14)
+        root_layout.setSpacing(10)
         
-        # 1. TOP HEADER (App branding & Centered Segmented Control)
+        # 1. TOP HEADER (App branding & Status Indicator)
         header_row = QHBoxLayout()
-        header_row.setContentsMargins(0, 0, 0, 0)
+        header_row.setContentsMargins(2, 0, 2, 0)
         
-        # Left branding
         brand_box = QVBoxLayout()
         brand_box.setSpacing(1)
         lbl_app_name = QLabel("Dinoscreener")
         lbl_app_name.setStyleSheet("font-size: 15px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.2px;")
-        lbl_app_sub = QLabel("Screensaver Settings")
+        lbl_app_sub = QLabel("Spatial Ambient Studio")
         lbl_app_sub.setStyleSheet("font-size: 11px; color: #94A3B8;")
         brand_box.addWidget(lbl_app_name)
         brand_box.addWidget(lbl_app_sub)
@@ -1299,66 +1392,33 @@ class SettingsDialog(QDialog):
         
         header_row.addStretch()
         
-        # Centered Segmented Mode Selector
-        seg_frame = QFrame()
-        seg_frame.setStyleSheet("""
-            QFrame {
-                background: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 8px;
-                padding: 2px;
+        status_pill = QLabel("● LIVE PREVIEW")
+        status_pill.setStyleSheet("""
+            QLabel {
+                background: rgba(16, 185, 129, 0.12);
+                color: #34D399;
+                border: 1px solid rgba(16, 185, 129, 0.25);
+                border-radius: 10px;
+                padding: 3px 10px;
+                font-size: 10px;
+                font-weight: 700;
+                letter-spacing: 0.5px;
             }
         """)
-        seg_layout = QHBoxLayout(seg_frame)
-        seg_layout.setContentsMargins(2, 2, 2, 2)
-        seg_layout.setSpacing(3)
-        
-        self.mode_buttons = []
-        modes = [
-            ("Flip Clock", 0),
-            ("Rotary Modern", 1),
-            ("Dino Runner", 2)
-        ]
-        start_style = self.config.get("clock_style", 0)
-        for label, idx in modes:
-            btn = QPushButton(label)
-            btn.setCheckable(True)
-            btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setStyleSheet("""
-                QPushButton {
-                    background: transparent;
-                    color: #94A3B8;
-                    border: none;
-                    border-radius: 6px;
-                    padding: 6px 14px;
-                    font-size: 12px;
-                    font-weight: 500;
-                    min-width: 95px;
-                    font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
-                }
-                QPushButton:hover {
-                    color: #FFFFFF;
-                    background: rgba(255, 255, 255, 0.04);
-                }
-                QPushButton:checked {
-                    background: rgba(255, 255, 255, 0.12);
-                    color: #FFFFFF;
-                    font-weight: 600;
-                }
-            """)
-            btn.clicked.connect(lambda checked, i=idx: self.set_mode(i))
-            seg_layout.addWidget(btn)
-            self.mode_buttons.append(btn)
-            
-        header_row.addWidget(seg_frame)
+        header_row.addWidget(status_pill)
         root_layout.addLayout(header_row)
         
-        # 2. SCREENSAVER PREVIEW CARD
+        # 2. SPATIAL AMBIENT STAGE
+        self.stage_frame = SpatialStageFrame()
+        stage_layout = QVBoxLayout(self.stage_frame)
+        stage_layout.setContentsMargins(8, 7, 8, 7)
+        
         self.preview_card = QFrame()
         self.preview_card.setObjectName("previewCard")
         preview_layout = QVBoxLayout(self.preview_card)
-        preview_layout.setContentsMargins(3, 3, 3, 3)
+        preview_layout.setContentsMargins(0, 0, 0, 0)
         
+        start_style = self.config.get("clock_style", 0)
         self.preview = CrispAestheticFlipClock(
             accent_color=self.config.get("accent_color", "#0078D4"),
             enable_win_key=self.config.get("enable_win_key", False),
@@ -1376,26 +1436,90 @@ class SettingsDialog(QDialog):
             character_type=self.config.get("character_type", "dino"),
             custom_character_image=self.config.get("custom_character_image", "")
         )
+        self.preview.scale_callback = self.on_preview_scale_scrolled
         preview_layout.addWidget(self.preview)
-        root_layout.addWidget(self.preview_card, stretch=1)
+        stage_layout.addWidget(self.preview_card)
+        root_layout.addWidget(self.stage_frame, stretch=1)
         
-        # 3. SETTINGS BENTO SECTION (2 Balanced Fluent Cards)
+        # 3. FLOATING CAPSULE MODE SELECTOR
+        capsule_row = QHBoxLayout()
+        capsule_row.setContentsMargins(0, 0, 0, 0)
+        capsule_row.addStretch()
+        
+        capsule_frame = QFrame()
+        capsule_frame.setFixedHeight(34)
+        capsule_frame.setStyleSheet("""
+            QFrame {
+                background: rgba(255, 255, 255, 0.045);
+                border: 1px solid rgba(255, 255, 255, 0.09);
+                border-radius: 17px;
+                padding: 2px;
+            }
+        """)
+        capsule_layout = QHBoxLayout(capsule_frame)
+        capsule_layout.setContentsMargins(3, 1, 3, 1)
+        capsule_layout.setSpacing(4)
+        
+        self.mode_buttons = []
+        modes = [
+            ("Flip Clock", 0),
+            ("Rotary Modern", 1),
+            ("Dino Runner", 2)
+        ]
+        for label, idx in modes:
+            btn = QPushButton(label)
+            btn.setCheckable(True)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setStyleSheet("""
+                QPushButton {
+                    background: transparent;
+                    color: #94A3B8;
+                    border: none;
+                    border-radius: 14px;
+                    padding: 4px 18px;
+                    font-size: 11.5px;
+                    font-weight: 500;
+                    min-width: 95px;
+                    font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+                }
+                QPushButton:hover {
+                    color: #FFFFFF;
+                    background: rgba(255, 255, 255, 0.05);
+                }
+                QPushButton:checked {
+                    background: rgba(255, 255, 255, 0.14);
+                    color: #FFFFFF;
+                    font-weight: 600;
+                }
+            """)
+            btn.clicked.connect(lambda checked, i=idx: self.set_mode(i))
+            capsule_layout.addWidget(btn)
+            self.mode_buttons.append(btn)
+            
+        capsule_row.addWidget(capsule_frame)
+        capsule_row.addStretch()
+        root_layout.addLayout(capsule_row)
+        
+        # 4. THREE BALANCED SPATIAL BENTO CARDS
         cards_row = QHBoxLayout()
-        cards_row.setSpacing(14)
+        cards_row.setSpacing(12)
+        cards_row.setContentsMargins(0, 0, 0, 0)
         
-        # --- LEFT CARD: Mode Customization ---
+        # === CARD 1: Mode Parameters ===
         card_mode = QFrame()
-        card_mode.setObjectName("card")
+        card_mode.setObjectName("bentoCard")
         card_mode_layout = QVBoxLayout(card_mode)
-        card_mode_layout.setContentsMargins(16, 14, 16, 14)
-        card_mode_layout.setSpacing(10)
+        card_mode_layout.setContentsMargins(14, 12, 14, 12)
+        card_mode_layout.setSpacing(8)
         
-        # Card header
-        header_mode = QHBoxLayout()
-        self.lbl_mode_title = QLabel("Flip Clock Settings")
+        header_mode = QVBoxLayout()
+        header_mode.setSpacing(1)
+        self.lbl_mode_title = QLabel("Flip Clock Studio")
         self.lbl_mode_title.setStyleSheet("font-size: 13px; font-weight: 600; color: #FFFFFF;")
+        self.lbl_mode_sub = QLabel("Scale & Typography")
+        self.lbl_mode_sub.setStyleSheet("font-size: 10.5px; color: #94A3B8;")
         header_mode.addWidget(self.lbl_mode_title)
-        header_mode.addStretch()
+        header_mode.addWidget(self.lbl_mode_sub)
         card_mode_layout.addLayout(header_mode)
         
         self.pages = QStackedWidget()
@@ -1403,14 +1527,13 @@ class SettingsDialog(QDialog):
         # --- Page 0: Flip Clock ---
         page_flip = QWidget()
         flip_layout = QVBoxLayout(page_flip)
-        flip_layout.setContentsMargins(0, 0, 0, 0)
-        flip_layout.setSpacing(10)
+        flip_layout.setContentsMargins(0, 2, 0, 0)
+        flip_layout.setSpacing(8)
         
-        # Clock Scale Row
         scale_box = QHBoxLayout()
-        scale_box.setSpacing(10)
-        lbl_scale_title = QLabel("Clock Scale:")
-        lbl_scale_title.setStyleSheet("color: #E2E8F0; font-size: 12px; font-weight: 500;")
+        scale_box.setSpacing(8)
+        lbl_scale_title = QLabel("Scale:")
+        lbl_scale_title.setStyleSheet("color: #E2E8F0; font-size: 11.5px; font-weight: 500;")
         scale_box.addWidget(lbl_scale_title)
         
         btn_step_style = """
@@ -1425,14 +1548,10 @@ class SettingsDialog(QDialog):
             QPushButton:hover {
                 background: rgba(255, 255, 255, 0.12);
                 color: #FFFFFF;
-                border-color: rgba(255, 255, 255, 0.25);
-            }
-            QPushButton:pressed {
-                background: rgba(255, 255, 255, 0.04);
             }
         """
         self.btn_scale_minus = QPushButton("−")
-        self.btn_scale_minus.setFixedSize(24, 24)
+        self.btn_scale_minus.setFixedSize(22, 22)
         self.btn_scale_minus.setStyleSheet(btn_step_style)
         self.btn_scale_minus.clicked.connect(lambda: self.step_scale(-5))
         scale_box.addWidget(self.btn_scale_minus)
@@ -1445,38 +1564,40 @@ class SettingsDialog(QDialog):
         scale_box.addWidget(self.scale_slider)
         
         self.btn_scale_plus = QPushButton("+")
-        self.btn_scale_plus.setFixedSize(24, 24)
+        self.btn_scale_plus.setFixedSize(22, 22)
         self.btn_scale_plus.setStyleSheet(btn_step_style)
         self.btn_scale_plus.clicked.connect(lambda: self.step_scale(5))
         scale_box.addWidget(self.btn_scale_plus)
         
         self.lbl_scale_pct = QLabel(f"{init_scale}%")
-        self.lbl_scale_pct.setFixedWidth(40)
-        self.lbl_scale_pct.setStyleSheet("color: #60CDFF; font-size: 12px; font-weight: 600;")
+        self.lbl_scale_pct.setFixedWidth(36)
+        self.lbl_scale_pct.setStyleSheet("color: #60CDFF; font-size: 11.5px; font-weight: 600;")
         scale_box.addWidget(self.lbl_scale_pct)
         flip_layout.addLayout(scale_box)
         
-        # Leading zero toggle
-        self.flip_leading_cb = QCheckBox("Leading Zero Display (e.g. 09:00)")
+        self.flip_leading_cb = QCheckBox("Leading Zero (e.g. 09:00)")
         self.flip_leading_cb.setChecked(self.preview.leading_zeros.get("0", False))
         self.flip_leading_cb.stateChanged.connect(self.on_flip_leading_changed)
         flip_layout.addWidget(self.flip_leading_cb)
         
-        # Shortcut tip banner
         tip_frame = QFrame()
         tip_frame.setStyleSheet("""
             QFrame {
                 background: rgba(255, 255, 255, 0.025);
                 border: 1px solid rgba(255, 255, 255, 0.05);
                 border-radius: 6px;
-                padding: 4px 8px;
+                padding: 4px 6px;
             }
         """)
-        tip_layout = QHBoxLayout(tip_frame)
-        tip_layout.setContentsMargins(6, 4, 6, 4)
-        lbl_tip = QLabel("Shortcut: Press + or − anytime while screensaver is running to scale.")
-        lbl_tip.setStyleSheet("color: #94A3B8; font-size: 11px;")
-        tip_layout.addWidget(lbl_tip)
+        tip_layout = QVBoxLayout(tip_frame)
+        tip_layout.setContentsMargins(4, 3, 4, 3)
+        tip_layout.setSpacing(2)
+        lbl_tip1 = QLabel("Tip: Scroll mouse on preview to scale directly.")
+        lbl_tip1.setStyleSheet("color: #94A3B8; font-size: 10.5px;")
+        lbl_tip2 = QLabel("Shortcut: Press + or − anytime while screensaver runs.")
+        lbl_tip2.setStyleSheet("color: #64748B; font-size: 10px;")
+        tip_layout.addWidget(lbl_tip1)
+        tip_layout.addWidget(lbl_tip2)
         flip_layout.addWidget(tip_frame)
         flip_layout.addStretch()
         self.pages.addWidget(page_flip)
@@ -1484,27 +1605,26 @@ class SettingsDialog(QDialog):
         # --- Page 1: Rotary Modern ---
         page_rotary = QWidget()
         rot_layout = QVBoxLayout(page_rotary)
-        rot_layout.setContentsMargins(0, 0, 0, 0)
-        rot_layout.setSpacing(10)
+        rot_layout.setContentsMargins(0, 2, 0, 0)
+        rot_layout.setSpacing(8)
         
-        # Dial Accent Swatches
         accent_box = QHBoxLayout()
-        accent_box.setSpacing(8)
-        lbl_dial = QLabel("Dial Accent Color:")
-        lbl_dial.setStyleSheet("color: #E2E8F0; font-size: 12px; font-weight: 500;")
+        accent_box.setSpacing(6)
+        lbl_dial = QLabel("Accent:")
+        lbl_dial.setStyleSheet("color: #E2E8F0; font-size: 11.5px; font-weight: 500;")
         accent_box.addWidget(lbl_dial)
         
         self.swatch_buttons = []
         preset_colors = ["#0078D4", "#60CDFF", "#10B981", "#F59E0B", "#F43F5E"]
         for c in preset_colors:
             s_btn = QPushButton()
-            s_btn.setFixedSize(20, 20)
+            s_btn.setFixedSize(18, 18)
             s_btn.setCursor(Qt.CursorShape.PointingHandCursor)
             s_btn.clicked.connect(lambda checked, col=c: self.set_accent_color(col))
             accent_box.addWidget(s_btn)
             self.swatch_buttons.append((c, s_btn))
             
-        btn_custom = QPushButton("Custom Color...")
+        btn_custom = QPushButton("Custom...")
         btn_custom.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_custom.setStyleSheet("""
             QPushButton {
@@ -1512,14 +1632,12 @@ class SettingsDialog(QDialog):
                 color: #CBD5E1;
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 5px;
-                padding: 3px 10px;
-                font-size: 11px;
-                font-weight: 500;
+                padding: 2px 7px;
+                font-size: 10.5px;
             }
             QPushButton:hover {
                 background: rgba(255, 255, 255, 0.12);
                 color: #FFFFFF;
-                border-color: rgba(255, 255, 255, 0.25);
             }
         """)
         btn_custom.clicked.connect(self.pick_color)
@@ -1536,28 +1654,30 @@ class SettingsDialog(QDialog):
         self.live_weather_cb.setChecked(self.config.get("live_weather", False))
         self.live_weather_cb.stateChanged.connect(self.update_live_weather)
         rot_layout.addWidget(self.live_weather_cb)
+        
+        rot_note = QLabel("Dual orbital dials with live astronomical & charge status.")
+        rot_note.setStyleSheet("color: #64748B; font-size: 10px;")
+        rot_layout.addWidget(rot_note)
         rot_layout.addStretch()
         self.pages.addWidget(page_rotary)
         
         # --- Page 2: Dino Runner ---
         page_dino = QWidget()
         dino_layout = QVBoxLayout(page_dino)
-        dino_layout.setContentsMargins(0, 0, 0, 0)
-        dino_layout.setSpacing(8)
+        dino_layout.setContentsMargins(0, 2, 0, 0)
+        dino_layout.setSpacing(6)
         
         btn_action_style = """
             QPushButton {
                 background: rgba(255, 255, 255, 0.06);
                 color: #FFFFFF;
                 border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 6px;
-                padding: 4px 10px;
-                font-size: 11px;
-                font-weight: 500;
+                border-radius: 5px;
+                padding: 3px 8px;
+                font-size: 10.5px;
             }
             QPushButton:hover {
                 background: rgba(255, 255, 255, 0.12);
-                border-color: rgba(255, 255, 255, 0.25);
             }
         """
         undo_style = """
@@ -1565,8 +1685,8 @@ class SettingsDialog(QDialog):
                 background: rgba(255, 255, 255, 0.06);
                 color: #94A3B8;
                 border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 5px;
-                font-size: 12px;
+                border-radius: 4px;
+                font-size: 11px;
                 font-weight: bold;
             }
             QPushButton:hover {
@@ -1575,99 +1695,107 @@ class SettingsDialog(QDialog):
             }
         """
         
-        dino_grid = QGridLayout()
-        dino_grid.setHorizontalSpacing(8)
-        dino_grid.setVerticalSpacing(8)
-        dino_grid.setContentsMargins(0, 0, 0, 0)
-        
-        # Row 0: Font controls
-        self.primary_font = self.config.get("primary_font", "")
-        self.primary_font_btn = QPushButton("Import Font...")
-        self.primary_font_btn.setFixedWidth(112)
-        self.primary_font_btn.setStyleSheet(btn_action_style)
-        self.primary_font_btn.clicked.connect(self.import_primary_font)
-        dino_grid.addWidget(self.primary_font_btn, 0, 0)
-        
-        self.undo_font_btn = QPushButton("↺")
-        self.undo_font_btn.setFixedSize(24, 24)
-        self.undo_font_btn.setStyleSheet(undo_style)
-        self.undo_font_btn.clicked.connect(self.revert_font)
-        self.undo_font_btn.hide()
-        dino_grid.addWidget(self.undo_font_btn, 0, 1)
-        
-        self.primary_font_label = QLabel(os.path.basename(self.primary_font) if self.primary_font else "Default")
-        self.primary_font_label.setStyleSheet("color: #94A3B8; font-size: 11px;")
-        self.primary_font_label.setFixedWidth(70)
-        dino_grid.addWidget(self.primary_font_label, 0, 2)
-        
-        lbl_f_title = QLabel("Font:")
-        lbl_f_title.setStyleSheet("color: #CBD5E1; font-size: 11px; font-weight: 500;")
-        dino_grid.addWidget(lbl_f_title, 0, 3)
-        
+        # Font Row
+        font_row1 = QHBoxLayout()
+        font_row1.setSpacing(6)
+        lbl_dino_font = QLabel("Font:")
+        lbl_dino_font.setFixedWidth(40)
+        lbl_dino_font.setStyleSheet("color: #E2E8F0; font-size: 11px;")
+        font_row1.addWidget(lbl_dino_font)
         self.font_cb = QFontComboBox()
         self.font_cb.setCurrentFont(QFont(self.config.get("dino_font", "Bungee")))
         self.font_cb.currentFontChanged.connect(self.update_dino_font)
-        dino_grid.addWidget(self.font_cb, 0, 4)
+        font_row1.addWidget(self.font_cb)
+        dino_layout.addLayout(font_row1)
         
-        # Row 1: Character controls
+        font_row2 = QHBoxLayout()
+        font_row2.setSpacing(6)
+        self.primary_font = self.config.get("primary_font", "")
+        self.primary_font_btn = QPushButton("Import TTF...")
+        self.primary_font_btn.setStyleSheet(btn_action_style)
+        self.primary_font_btn.clicked.connect(self.import_primary_font)
+        font_row2.addWidget(self.primary_font_btn)
+        
+        self.undo_font_btn = QPushButton("↺")
+        self.undo_font_btn.setFixedSize(20, 20)
+        self.undo_font_btn.setStyleSheet(undo_style)
+        self.undo_font_btn.clicked.connect(self.revert_font)
+        self.undo_font_btn.hide()
+        font_row2.addWidget(self.undo_font_btn)
+        
+        self.primary_font_label = QLabel(os.path.basename(self.primary_font) if self.primary_font else "Default")
+        self.primary_font_label.setStyleSheet("color: #94A3B8; font-size: 10.5px;")
+        font_row2.addWidget(self.primary_font_label)
+        font_row2.addStretch()
+        dino_layout.addLayout(font_row2)
+        
+        # Sprite Row
+        char_row1 = QHBoxLayout()
+        char_row1.setSpacing(6)
+        lbl_sprite = QLabel("Sprite:")
+        lbl_sprite.setFixedWidth(40)
+        lbl_sprite.setStyleSheet("color: #E2E8F0; font-size: 11px;")
+        char_row1.addWidget(lbl_sprite)
+        self.char_cb = QComboBox()
+        self.char_cb.addItems(["Dino", "Custom"])
+        char_init = "Custom" if (self.config.get("character_type", "dino").lower() == "custom" and self.config.get("custom_character_image", "") and os.path.exists(self.config.get("custom_character_image", ""))) else "Dino"
+        self.char_cb.setCurrentText(char_init)
+        self.char_cb.currentTextChanged.connect(self.update_character_type)
+        char_row1.addWidget(self.char_cb)
+        dino_layout.addLayout(char_row1)
+        
+        char_row2 = QHBoxLayout()
+        char_row2.setSpacing(6)
         self.custom_character_image = self.config.get("custom_character_image", "")
         self.char_btn = QPushButton("Import Sprite...")
-        self.char_btn.setFixedWidth(112)
         self.char_btn.setStyleSheet(btn_action_style)
         self.char_btn.clicked.connect(self.import_character)
-        dino_grid.addWidget(self.char_btn, 1, 0)
+        char_row2.addWidget(self.char_btn)
         
         self.undo_char_btn = QPushButton("↺")
-        self.undo_char_btn.setFixedSize(24, 24)
+        self.undo_char_btn.setFixedSize(20, 20)
         self.undo_char_btn.setStyleSheet(undo_style)
         self.undo_char_btn.clicked.connect(self.revert_character)
         self.undo_char_btn.hide()
-        dino_grid.addWidget(self.undo_char_btn, 1, 1)
+        char_row2.addWidget(self.undo_char_btn)
         
         self.char_label = QLabel(os.path.basename(self.custom_character_image) if self.custom_character_image else "Default")
-        self.char_label.setStyleSheet("color: #94A3B8; font-size: 11px;")
-        self.char_label.setFixedWidth(70)
-        dino_grid.addWidget(self.char_label, 1, 2)
+        self.char_label.setStyleSheet("color: #94A3B8; font-size: 10.5px;")
+        char_row2.addWidget(self.char_label)
+        char_row2.addStretch()
+        dino_layout.addLayout(char_row2)
         
-        lbl_c_title = QLabel("Sprite:")
-        lbl_c_title.setStyleSheet("color: #CBD5E1; font-size: 11px; font-weight: 500;")
-        dino_grid.addWidget(lbl_c_title, 1, 3)
-        
-        self.char_cb = QComboBox()
-        self.char_cb.addItems(["Dino", "Custom"])
-        char_init = "Custom" if (self.config.get("character_type", "dino").lower() == "custom" and self.custom_character_image and os.path.exists(self.custom_character_image)) else "Dino"
-        self.char_cb.setCurrentText(char_init)
-        self.char_cb.currentTextChanged.connect(self.update_character_type)
-        dino_grid.addWidget(self.char_cb, 1, 4)
-        
-        dino_layout.addLayout(dino_grid)
-        
-        tip_dino = QLabel("Tip: Drag & drop font (.ttf) or image directly onto window.")
-        tip_dino.setStyleSheet("color: #94A3B8; font-size: 11px;")
+        tip_dino = QLabel("Tip: Drop .ttf or .png directly onto window.")
+        tip_dino.setStyleSheet("color: #64748B; font-size: 10px;")
         dino_layout.addWidget(tip_dino)
         dino_layout.addStretch()
         self.pages.addWidget(page_dino)
         
         card_mode_layout.addWidget(self.pages)
-        cards_row.addWidget(card_mode, stretch=5)
+        cards_row.addWidget(card_mode, stretch=1)
         
-        # --- RIGHT CARD: Display & System Behavior ---
-        card_sys = QFrame()
-        card_sys.setObjectName("card")
-        card_sys_layout = QVBoxLayout(card_sys)
-        card_sys_layout.setContentsMargins(16, 14, 16, 14)
-        card_sys_layout.setSpacing(10)
+        # === CARD 2: Display & Atmosphere ===
+        card_disp = QFrame()
+        card_disp.setObjectName("bentoCard")
+        card_disp_layout = QVBoxLayout(card_disp)
+        card_disp_layout.setContentsMargins(14, 12, 14, 12)
+        card_disp_layout.setSpacing(8)
         
-        # Header
-        lbl_sys_title = QLabel("System Configuration")
-        lbl_sys_title.setStyleSheet("font-size: 13px; font-weight: 600; color: #FFFFFF;")
-        card_sys_layout.addWidget(lbl_sys_title)
+        header_disp = QVBoxLayout()
+        header_disp.setSpacing(1)
+        lbl_disp_title = QLabel("Display & Atmosphere")
+        lbl_disp_title.setStyleSheet("font-size: 13px; font-weight: 600; color: #FFFFFF;")
+        lbl_disp_sub = QLabel("Luminance & Protection")
+        lbl_disp_sub.setStyleSheet("font-size: 10.5px; color: #94A3B8;")
+        header_disp.addWidget(lbl_disp_title)
+        header_disp.addWidget(lbl_disp_sub)
+        card_disp_layout.addLayout(header_disp)
         
         # Brightness Row
         bright_box = QHBoxLayout()
-        bright_box.setSpacing(10)
+        bright_box.setSpacing(8)
         lbl_bright_title = QLabel("Brightness:")
-        lbl_bright_title.setStyleSheet("color: #E2E8F0; font-size: 12px; font-weight: 500;")
+        lbl_bright_title.setStyleSheet("color: #E2E8F0; font-size: 11.5px; font-weight: 500;")
         bright_box.addWidget(lbl_bright_title)
         
         self.bright_slider = QSlider(Qt.Orientation.Horizontal)
@@ -1677,53 +1805,76 @@ class SettingsDialog(QDialog):
         bright_box.addWidget(self.bright_slider)
         
         self.bright_val_label = QLabel(f"{self.config.get('brightness', 100)}%")
-        self.bright_val_label.setFixedWidth(38)
-        self.bright_val_label.setStyleSheet("color: #60CDFF; font-size: 12px; font-weight: 600;")
+        self.bright_val_label.setFixedWidth(36)
+        self.bright_val_label.setStyleSheet("color: #60CDFF; font-size: 11.5px; font-weight: 600;")
         bright_box.addWidget(self.bright_val_label)
-        card_sys_layout.addLayout(bright_box)
+        card_disp_layout.addLayout(bright_box)
         
-        # 2-Column Checkboxes
-        sys_grid = QGridLayout()
-        sys_grid.setHorizontalSpacing(16)
-        sys_grid.setVerticalSpacing(8)
-        
+        # Display Toggles
         self.use_24hr_cb = QCheckBox("24-Hour Time Format")
         self.use_24hr_cb.setChecked(self.config.get("use_24hr", False))
         self.use_24hr_cb.stateChanged.connect(self.update_24hr)
-        sys_grid.addWidget(self.use_24hr_cb, 0, 0)
-        
-        self.strict_cb = QCheckBox("Lock Screen on Exit (Ctrl+Z)")
-        self.strict_cb.setChecked(self.config.get("strict_exit", False))
-        self.strict_cb.stateChanged.connect(lambda s: setattr(self.preview, 'strict_exit', self.strict_cb.isChecked()))
-        sys_grid.addWidget(self.strict_cb, 0, 1)
-        
-        self.leading_zero_cb = QCheckBox("Leading Zero Display")
-        self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(start_style), False))
-        self.leading_zero_cb.stateChanged.connect(self.update_leading_zero)
-        sys_grid.addWidget(self.leading_zero_cb, 1, 0)
-        
-        self.ignore_media_cb = QCheckBox("Ignore Media Keys")
-        self.ignore_media_cb.setChecked(self.config.get("ignore_media_keys", False))
-        self.ignore_media_cb.stateChanged.connect(lambda s: setattr(self.preview, 'ignore_media_keys', self.ignore_media_cb.isChecked()))
-        sys_grid.addWidget(self.ignore_media_cb, 1, 1)
-        
-        self.win_cb = QCheckBox("Enable Windows Key")
-        self.win_cb.setChecked(self.config.get("enable_win_key", False))
-        self.win_cb.stateChanged.connect(lambda s: setattr(self.preview, 'enable_win_key', self.win_cb.isChecked()))
-        sys_grid.addWidget(self.win_cb, 2, 0)
+        card_disp_layout.addWidget(self.use_24hr_cb)
         
         self.pixel_shift_cb = QCheckBox("OLED Pixel Shift")
         self.pixel_shift_cb.setChecked(self.config.get("pixel_shift", False))
         self.pixel_shift_cb.stateChanged.connect(self.update_pixel_shift)
-        sys_grid.addWidget(self.pixel_shift_cb, 2, 1)
+        card_disp_layout.addWidget(self.pixel_shift_cb)
         
-        card_sys_layout.addLayout(sys_grid)
+        self.leading_zero_cb = QCheckBox("Leading Zero Display")
+        self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(start_style), False))
+        self.leading_zero_cb.stateChanged.connect(self.update_leading_zero)
+        card_disp_layout.addWidget(self.leading_zero_cb)
+        
+        lbl_burnin_info = QLabel("OLED shift subtly repositions pixels over time to prevent burn-in.")
+        lbl_burnin_info.setWordWrap(True)
+        lbl_burnin_info.setStyleSheet("color: #64748B; font-size: 10px;")
+        card_disp_layout.addWidget(lbl_burnin_info)
+        card_disp_layout.addStretch()
+        cards_row.addWidget(card_disp, stretch=1)
+        
+        # === CARD 3: System & Security ===
+        card_sys = QFrame()
+        card_sys.setObjectName("bentoCard")
+        card_sys_layout = QVBoxLayout(card_sys)
+        card_sys_layout.setContentsMargins(14, 12, 14, 12)
+        card_sys_layout.setSpacing(8)
+        
+        header_sys = QVBoxLayout()
+        header_sys.setSpacing(1)
+        lbl_sys_title = QLabel("System & Security")
+        lbl_sys_title.setStyleSheet("font-size: 13px; font-weight: 600; color: #FFFFFF;")
+        lbl_sys_sub = QLabel("Keyboard & Intercepts")
+        lbl_sys_sub.setStyleSheet("font-size: 10.5px; color: #94A3B8;")
+        header_sys.addWidget(lbl_sys_title)
+        header_sys.addWidget(lbl_sys_sub)
+        card_sys_layout.addLayout(header_sys)
+        
+        self.strict_cb = QCheckBox("Lock Screen on Exit (Ctrl+Z)")
+        self.strict_cb.setChecked(self.config.get("strict_exit", False))
+        self.strict_cb.stateChanged.connect(lambda s: setattr(self.preview, 'strict_exit', self.strict_cb.isChecked()))
+        card_sys_layout.addWidget(self.strict_cb)
+        
+        self.ignore_media_cb = QCheckBox("Ignore Media Keys")
+        self.ignore_media_cb.setChecked(self.config.get("ignore_media_keys", False))
+        self.ignore_media_cb.stateChanged.connect(lambda s: setattr(self.preview, 'ignore_media_keys', self.ignore_media_cb.isChecked()))
+        card_sys_layout.addWidget(self.ignore_media_cb)
+        
+        self.win_cb = QCheckBox("Enable Windows Key")
+        self.win_cb.setChecked(self.config.get("enable_win_key", False))
+        self.win_cb.stateChanged.connect(lambda s: setattr(self.preview, 'enable_win_key', self.win_cb.isChecked()))
+        card_sys_layout.addWidget(self.win_cb)
+        
+        lbl_sys_info = QLabel("Screensaver dismisses smoothly on mouse movement or custom unlock key.")
+        lbl_sys_info.setWordWrap(True)
+        lbl_sys_info.setStyleSheet("color: #64748B; font-size: 10px;")
+        card_sys_layout.addWidget(lbl_sys_info)
         card_sys_layout.addStretch()
-        cards_row.addWidget(card_sys, stretch=5)
+        cards_row.addWidget(card_sys, stretch=1)
         
         root_layout.addLayout(cards_row)
         
-        # 4. FOOTER ACTIONS
+        # 5. FOOTER ACTIONS
         footer_row = QHBoxLayout()
         footer_row.setContentsMargins(4, 2, 4, 0)
         
@@ -1735,8 +1886,8 @@ class SettingsDialog(QDialog):
                 color: #CBD5E1;
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 6px;
-                padding: 7px 18px;
-                font-size: 12px;
+                padding: 6px 16px;
+                font-size: 11.5px;
                 font-weight: 500;
                 font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
             }
@@ -1757,8 +1908,8 @@ class SettingsDialog(QDialog):
                 background: transparent;
                 color: #94A3B8;
                 border: none;
-                padding: 7px 14px;
-                font-size: 12px;
+                padding: 6px 12px;
+                font-size: 11.5px;
                 font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
             }
             QPushButton:hover {
@@ -1776,8 +1927,8 @@ class SettingsDialog(QDialog):
                 color: #FFFFFF;
                 border: 1px solid rgba(255, 255, 255, 0.15);
                 border-radius: 6px;
-                padding: 7px 28px;
-                font-size: 12px;
+                padding: 6px 26px;
+                font-size: 11.5px;
                 font-weight: 600;
                 font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
             }
@@ -1797,14 +1948,18 @@ class SettingsDialog(QDialog):
     def set_mode(self, idx):
         self.preview.clock_style = idx
         self.preview.update()
+        if hasattr(self, 'stage_frame'):
+            self.stage_frame.set_stage_theme(idx, self.config.get("accent_color", "#0078D4"))
         for i, btn in enumerate(self.mode_buttons):
             btn.blockSignals(True)
             btn.setChecked(i == idx)
             btn.blockSignals(False)
         self.pages.setCurrentIndex(idx)
-        titles = ["Flip Clock Settings", "Rotary Modern Settings", "Dino Runner Settings"]
+        titles = ["Flip Clock Studio", "Rotary Modern Studio", "Dino Runner Studio"]
+        subtitles = ["Scale & Typography", "Colors & Orbital Telemetry", "Sprites & Custom Type"]
         if idx < len(titles):
             self.lbl_mode_title.setText(titles[idx])
+            self.lbl_mode_sub.setText(subtitles[idx])
         self.update_swatch_highlights()
         if hasattr(self, 'leading_zero_cb'):
             self.leading_zero_cb.blockSignals(True)
@@ -1817,13 +1972,15 @@ class SettingsDialog(QDialog):
         curr = self.config.get("accent_color", "#0078D4").upper()
         for hex_code, btn in self.swatch_buttons:
             if hex_code.upper() == curr:
-                btn.setStyleSheet(f"background-color: {hex_code}; border: 2px solid #FFFFFF; border-radius: 10px;")
+                btn.setStyleSheet(f"background-color: {hex_code}; border: 2px solid #FFFFFF; border-radius: 9px;")
             else:
-                btn.setStyleSheet(f"background-color: {hex_code}; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 10px;")
+                btn.setStyleSheet(f"background-color: {hex_code}; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 9px;")
 
     def set_accent_color(self, hex_code):
         self.config["accent_color"] = hex_code
         self.preview.set_accent_color(hex_code)
+        if hasattr(self, 'stage_frame'):
+            self.stage_frame.set_stage_theme(self.preview.clock_style, hex_code)
         self.update_swatch_highlights()
 
     def pick_color(self):
