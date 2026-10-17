@@ -1142,7 +1142,7 @@ class SettingsDialog(QDialog):
     def __init__(self, config_path):
         super().__init__()
         self.setWindowTitle("Dinoscreener Settings")
-        self.setFixedSize(680, 715)
+        self.setFixedSize(680, 660)
         self.setAcceptDrops(True)
         
         # Windows 11 Dark Mode Titlebar
@@ -1205,26 +1205,35 @@ class SettingsDialog(QDialog):
                 border-radius: 6px;
                 image: url("{check_icon_path}");
             }}
-            /* Modern Slider with Windows Accent */
+            /* Tactile Modern Slider with Windows Accent */
             QSlider {{
+                min-height: 24px;
                 background: transparent;
             }}
             QSlider::groove:horizontal {{
-                height: 4px;
-                background: rgba(255, 255, 255, 0.15);
-                border-radius: 2px;
+                height: 8px;
+                background: rgba(255, 255, 255, 0.12);
+                border-radius: 4px;
             }}
             QSlider::sub-page:horizontal {{
                 background: {self.win_accent};
-                border-radius: 2px;
+                border-radius: 4px;
             }}
             QSlider::handle:horizontal {{
                 background: #FFFFFF;
                 border: 2px solid {self.win_accent};
-                width: 14px;
-                height: 14px;
+                width: 18px;
+                height: 18px;
                 margin: -5px 0;
-                border-radius: 7px;
+                border-radius: 9px;
+            }}
+            QSlider::handle:horizontal:hover {{
+                background: #FFFFFF;
+                border-color: #FFFFFF;
+                width: 20px;
+                height: 20px;
+                margin: -6px 0;
+                border-radius: 10px;
             }}
             /* Comboboxes - Smooth Rounded Pill Style with Visible Chevron Arrow */
             QComboBox, QFontComboBox {{
@@ -1499,17 +1508,16 @@ class SettingsDialog(QDialog):
         capsule_row.addStretch()
         
         capsule_frame = QFrame()
-        capsule_frame.setFixedHeight(38)
+        capsule_frame.setFixedSize(376, 40)
         capsule_frame.setStyleSheet("""
             QFrame {
-                background: rgba(255, 255, 255, 0.045);
-                border: 1px solid rgba(255, 255, 255, 0.09);
-                border-radius: 19px;
-                padding: 2px;
+                background: #171B26;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 20px;
             }
         """)
         capsule_layout = QHBoxLayout(capsule_frame)
-        capsule_layout.setContentsMargins(4, 2, 4, 2)
+        capsule_layout.setContentsMargins(4, 4, 4, 4)
         capsule_layout.setSpacing(4)
         
         self.mode_buttons = []
@@ -1521,31 +1529,31 @@ class SettingsDialog(QDialog):
         for label, idx in modes:
             btn = QPushButton(label)
             btn.setCheckable(True)
+            btn.setFixedSize(118, 32)
+            btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.setStyleSheet("""
                 QPushButton {
                     background: transparent;
                     color: #94A3B8;
-                    border: none;
-                    border-radius: 15px;
-                    padding: 5px 18px;
-                    font-size: 12px;
+                    border: 1px solid transparent;
+                    border-radius: 16px;
+                    font-size: 11.5px;
                     font-weight: 500;
-                    min-width: 90px;
+                    outline: none;
                     font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
                 }
-                QPushButton:hover {
+                QPushButton:hover:!checked {
                     color: #FFFFFF;
                     background: rgba(255, 255, 255, 0.06);
-                    border: none;
-                    border-radius: 15px;
+                    border-radius: 16px;
                 }
                 QPushButton:checked {
-                    background: rgba(255, 255, 255, 0.16);
+                    background: #252B3B;
                     color: #FFFFFF;
                     font-weight: 600;
-                    border: none;
-                    border-radius: 15px;
+                    border: 1px solid rgba(255, 255, 255, 0.16);
+                    border-radius: 16px;
                 }
             """)
             btn.clicked.connect(lambda checked, i=idx: self.set_mode(i))
@@ -1565,18 +1573,12 @@ class SettingsDialog(QDialog):
         card_mode = QFrame()
         card_mode.setObjectName("bentoCard")
         card_mode_layout = QVBoxLayout(card_mode)
-        card_mode_layout.setContentsMargins(11, 10, 11, 10)
+        card_mode_layout.setContentsMargins(12, 11, 12, 11)
         card_mode_layout.setSpacing(8)
         
-        header_mode = QVBoxLayout()
-        header_mode.setSpacing(1)
-        self.lbl_mode_title = QLabel("Flip Clock Studio")
+        self.lbl_mode_title = QLabel("Flip Clock")
         self.lbl_mode_title.setStyleSheet("font-size: 13px; font-weight: 600; color: #FFFFFF;")
-        self.lbl_mode_sub = QLabel("Scale & Typography")
-        self.lbl_mode_sub.setStyleSheet("font-size: 10.5px; color: #94A3B8;")
-        header_mode.addWidget(self.lbl_mode_title)
-        header_mode.addWidget(self.lbl_mode_sub)
-        card_mode_layout.addLayout(header_mode)
+        card_mode_layout.addWidget(self.lbl_mode_title)
         
         self.pages = QStackedWidget()
         
@@ -1586,11 +1588,19 @@ class SettingsDialog(QDialog):
         flip_layout.setContentsMargins(0, 2, 0, 0)
         flip_layout.setSpacing(8)
         
-        scale_box = QHBoxLayout()
-        scale_box.setSpacing(8)
-        lbl_scale_title = QLabel("Scale:")
+        scale_header = QHBoxLayout()
+        lbl_scale_title = QLabel("Clock Scale")
         lbl_scale_title.setStyleSheet("color: #E2E8F0; font-size: 11.5px; font-weight: 500;")
-        scale_box.addWidget(lbl_scale_title)
+        init_scale = int(self.preview.clock_scales.get("0", 0.45) * 100)
+        self.lbl_scale_pct = QLabel(f"{init_scale}%")
+        self.lbl_scale_pct.setStyleSheet(f"color: {self.win_accent}; font-size: 12px; font-weight: 600;")
+        scale_header.addWidget(lbl_scale_title)
+        scale_header.addStretch()
+        scale_header.addWidget(self.lbl_scale_pct)
+        flip_layout.addLayout(scale_header)
+        
+        scale_box = QHBoxLayout()
+        scale_box.setSpacing(6)
         
         btn_step_style = """
             QPushButton {
@@ -1615,49 +1625,22 @@ class SettingsDialog(QDialog):
         
         self.scale_slider = QSlider(Qt.Orientation.Horizontal)
         self.scale_slider.setRange(15, 95)
-        init_scale = int(self.preview.clock_scales.get("0", 0.45) * 100)
         self.scale_slider.setValue(init_scale)
         self.scale_slider.valueChanged.connect(self.update_scale)
-        scale_box.addWidget(self.scale_slider)
+        self.scale_slider.setToolTip("Scroll mouse on preview or press + / − anytime to adjust scale")
+        scale_box.addWidget(self.scale_slider, stretch=1)
         
         self.btn_scale_plus = QPushButton("+")
         self.btn_scale_plus.setFixedSize(24, 24)
         self.btn_scale_plus.setStyleSheet(btn_step_style)
         self.btn_scale_plus.clicked.connect(lambda: self.step_scale(5))
         scale_box.addWidget(self.btn_scale_plus)
-        
-        self.lbl_scale_pct = QLabel(f"{init_scale}%")
-        self.lbl_scale_pct.setFixedWidth(36)
-        self.lbl_scale_pct.setStyleSheet(f"color: {self.win_accent}; font-size: 11.5px; font-weight: 600;")
-        scale_box.addWidget(self.lbl_scale_pct)
         flip_layout.addLayout(scale_box)
         
-        self.flip_leading_cb = QCheckBox("Leading Zero (e.g. 09:00)")
+        self.flip_leading_cb = QCheckBox("Leading Zero (09:00)")
         self.flip_leading_cb.setChecked(self.preview.leading_zeros.get("0", False))
         self.flip_leading_cb.stateChanged.connect(self.on_flip_leading_changed)
         flip_layout.addWidget(self.flip_leading_cb)
-        
-        tip_frame = QFrame()
-        tip_frame.setStyleSheet("""
-            QFrame {
-                background: rgba(255, 255, 255, 0.025);
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                border-radius: 8px;
-                padding: 4px 6px;
-            }
-        """)
-        tip_layout = QVBoxLayout(tip_frame)
-        tip_layout.setContentsMargins(4, 3, 4, 3)
-        tip_layout.setSpacing(2)
-        lbl_tip1 = QLabel("Tip: Scroll mouse on preview to scale directly.")
-        lbl_tip1.setWordWrap(True)
-        lbl_tip1.setStyleSheet("color: #94A3B8; font-size: 10px;")
-        lbl_tip2 = QLabel("Shortcut: Press + or − anytime while screensaver runs.")
-        lbl_tip2.setWordWrap(True)
-        lbl_tip2.setStyleSheet("color: #64748B; font-size: 9.5px;")
-        tip_layout.addWidget(lbl_tip1)
-        tip_layout.addWidget(lbl_tip2)
-        flip_layout.addWidget(tip_frame)
         flip_layout.addStretch()
         self.pages.addWidget(page_flip)
         
@@ -1670,7 +1653,7 @@ class SettingsDialog(QDialog):
         accent_box = QHBoxLayout()
         accent_box.setSpacing(5)
         lbl_dial = QLabel("Accent:")
-        lbl_dial.setStyleSheet("color: #E2E8F0; font-size: 11px; font-weight: 500;")
+        lbl_dial.setStyleSheet("color: #E2E8F0; font-size: 11.5px; font-weight: 500;")
         accent_box.addWidget(lbl_dial)
         
         self.swatch_buttons = []
@@ -1714,19 +1697,16 @@ class SettingsDialog(QDialog):
         accent_box.addStretch()
         rot_layout.addLayout(accent_box)
         
-        self.info_cb = QCheckBox("Weather && Battery Status Ring")
+        self.info_cb = QCheckBox("Weather && Battery Ring")
         self.info_cb.setChecked(self.config.get("show_info", True))
         self.info_cb.stateChanged.connect(lambda s: self.preview.set_show_info(self.info_cb.isChecked()))
         rot_layout.addWidget(self.info_cb)
         
-        self.live_weather_cb = QCheckBox("Live Weather Updates (Open-Meteo)")
+        self.live_weather_cb = QCheckBox("Live Weather Updates")
         self.live_weather_cb.setChecked(self.config.get("live_weather", False))
+        self.live_weather_cb.setToolTip("Open-Meteo astronomical & temperature feeds")
         self.live_weather_cb.stateChanged.connect(self.update_live_weather)
         rot_layout.addWidget(self.live_weather_cb)
-        
-        rot_note = QLabel("Dual orbital dials with live astronomical & charge status.")
-        rot_note.setStyleSheet("color: #64748B; font-size: 10px;")
-        rot_layout.addWidget(rot_note)
         rot_layout.addStretch()
         self.pages.addWidget(page_rotary)
         
@@ -1798,27 +1778,9 @@ class SettingsDialog(QDialog):
         char_box.addWidget(self.undo_char_btn)
         dino_layout.addLayout(char_box)
         
-        tip_frame_dino = QFrame()
-        tip_frame_dino.setStyleSheet("""
-            QFrame {
-                background: rgba(255, 255, 255, 0.025);
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                border-radius: 8px;
-                padding: 4px 6px;
-            }
-        """)
-        tip_layout_dino = QVBoxLayout(tip_frame_dino)
-        tip_layout_dino.setContentsMargins(4, 3, 4, 3)
-        tip_layout_dino.setSpacing(2)
-        lbl_tip_dino1 = QLabel("Tip: Drop .ttf or sprite image directly onto window.")
-        lbl_tip_dino1.setWordWrap(True)
-        lbl_tip_dino1.setStyleSheet("color: #94A3B8; font-size: 10px;")
-        lbl_tip_dino2 = QLabel("Or select '📁 Import...' in dropdowns above.")
-        lbl_tip_dino2.setWordWrap(True)
-        lbl_tip_dino2.setStyleSheet("color: #64748B; font-size: 9.5px;")
-        tip_layout_dino.addWidget(lbl_tip_dino1)
-        tip_layout_dino.addWidget(lbl_tip_dino2)
-        dino_layout.addWidget(tip_frame_dino)
+        lbl_dino_tip = QLabel("Drop font or sprite image to import directly")
+        lbl_dino_tip.setStyleSheet("color: #64748B; font-size: 10px;")
+        dino_layout.addWidget(lbl_dino_tip)
         dino_layout.addStretch()
         self.pages.addWidget(page_dino)
         
@@ -1829,36 +1791,38 @@ class SettingsDialog(QDialog):
         card_disp = QFrame()
         card_disp.setObjectName("bentoCard")
         card_disp_layout = QVBoxLayout(card_disp)
-        card_disp_layout.setContentsMargins(11, 10, 11, 10)
+        card_disp_layout.setContentsMargins(12, 11, 12, 11)
         card_disp_layout.setSpacing(8)
         
-        header_disp = QVBoxLayout()
-        header_disp.setSpacing(1)
-        lbl_disp_title = QLabel("Display & Atmosphere")
+        lbl_disp_title = QLabel("Display")
         lbl_disp_title.setStyleSheet("font-size: 13px; font-weight: 600; color: #FFFFFF;")
-        lbl_disp_sub = QLabel("Luminance & Protection")
-        lbl_disp_sub.setStyleSheet("font-size: 10.5px; color: #94A3B8;")
-        header_disp.addWidget(lbl_disp_title)
-        header_disp.addWidget(lbl_disp_sub)
-        card_disp_layout.addLayout(header_disp)
+        card_disp_layout.addWidget(lbl_disp_title)
         
-        # Brightness Row
-        bright_box = QHBoxLayout()
-        bright_box.setSpacing(8)
-        lbl_bright_title = QLabel("Brightness:")
+        # Huge Tactile Brightness Bar
+        bright_header = QHBoxLayout()
+        lbl_bright_title = QLabel("Brightness")
         lbl_bright_title.setStyleSheet("color: #E2E8F0; font-size: 11.5px; font-weight: 500;")
-        bright_box.addWidget(lbl_bright_title)
+        self.bright_val_label = QLabel(f"{self.config.get('brightness', 100)}%")
+        self.bright_val_label.setStyleSheet(f"color: {self.win_accent}; font-size: 12px; font-weight: 600;")
+        bright_header.addWidget(lbl_bright_title)
+        bright_header.addStretch()
+        bright_header.addWidget(self.bright_val_label)
+        card_disp_layout.addLayout(bright_header)
+        
+        bright_box = QHBoxLayout()
+        bright_box.setSpacing(6)
+        lbl_sun1 = QLabel("☼")
+        lbl_sun1.setStyleSheet("color: #64748B; font-size: 13px;")
+        lbl_sun2 = QLabel("☀")
+        lbl_sun2.setStyleSheet("color: #94A3B8; font-size: 15px;")
         
         self.bright_slider = QSlider(Qt.Orientation.Horizontal)
         self.bright_slider.setRange(10, 100)
         self.bright_slider.setValue(self.config.get("brightness", 100))
         self.bright_slider.valueChanged.connect(self.update_brightness)
-        bright_box.addWidget(self.bright_slider)
-        
-        self.bright_val_label = QLabel(f"{self.config.get('brightness', 100)}%")
-        self.bright_val_label.setFixedWidth(36)
-        self.bright_val_label.setStyleSheet(f"color: {self.win_accent}; font-size: 11.5px; font-weight: 600;")
-        bright_box.addWidget(self.bright_val_label)
+        bright_box.addWidget(lbl_sun1)
+        bright_box.addWidget(self.bright_slider, stretch=1)
+        bright_box.addWidget(lbl_sun2)
         card_disp_layout.addLayout(bright_box)
         
         # Display Toggles
@@ -1867,20 +1831,16 @@ class SettingsDialog(QDialog):
         self.use_24hr_cb.stateChanged.connect(self.update_24hr)
         card_disp_layout.addWidget(self.use_24hr_cb)
         
-        self.pixel_shift_cb = QCheckBox("OLED Pixel Shift")
-        self.pixel_shift_cb.setChecked(self.config.get("pixel_shift", False))
-        self.pixel_shift_cb.stateChanged.connect(self.update_pixel_shift)
-        card_disp_layout.addWidget(self.pixel_shift_cb)
-        
         self.leading_zero_cb = QCheckBox("Leading Zero Display")
         self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(start_style), False))
         self.leading_zero_cb.stateChanged.connect(self.update_leading_zero)
         card_disp_layout.addWidget(self.leading_zero_cb)
         
-        lbl_burnin_info = QLabel("OLED shift subtly repositions pixels over time to prevent burn-in.")
-        lbl_burnin_info.setWordWrap(True)
-        lbl_burnin_info.setStyleSheet("color: #64748B; font-size: 10px;")
-        card_disp_layout.addWidget(lbl_burnin_info)
+        self.pixel_shift_cb = QCheckBox("OLED Pixel Shift")
+        self.pixel_shift_cb.setChecked(self.config.get("pixel_shift", False))
+        self.pixel_shift_cb.setToolTip("Subtly shifts display periodically to prevent OLED panel burn-in")
+        self.pixel_shift_cb.stateChanged.connect(self.update_pixel_shift)
+        card_disp_layout.addWidget(self.pixel_shift_cb)
         card_disp_layout.addStretch()
         cards_row.addWidget(card_disp, stretch=1)
         
@@ -1888,38 +1848,30 @@ class SettingsDialog(QDialog):
         card_sys = QFrame()
         card_sys.setObjectName("bentoCard")
         card_sys_layout = QVBoxLayout(card_sys)
-        card_sys_layout.setContentsMargins(11, 10, 11, 10)
+        card_sys_layout.setContentsMargins(12, 11, 12, 11)
         card_sys_layout.setSpacing(8)
         
-        header_sys = QVBoxLayout()
-        header_sys.setSpacing(1)
-        lbl_sys_title = QLabel("System & Security")
+        lbl_sys_title = QLabel("System")
         lbl_sys_title.setStyleSheet("font-size: 13px; font-weight: 600; color: #FFFFFF;")
-        lbl_sys_sub = QLabel("Keyboard & Intercepts")
-        lbl_sys_sub.setStyleSheet("font-size: 10.5px; color: #94A3B8;")
-        header_sys.addWidget(lbl_sys_title)
-        header_sys.addWidget(lbl_sys_sub)
-        card_sys_layout.addLayout(header_sys)
+        card_sys_layout.addWidget(lbl_sys_title)
         
         self.strict_cb = QCheckBox("Lock Screen on Exit (Ctrl+Z)")
         self.strict_cb.setChecked(self.config.get("strict_exit", False))
+        self.strict_cb.setToolTip("Requires pressing Ctrl+Z to dismiss the screensaver")
         self.strict_cb.stateChanged.connect(lambda s: setattr(self.preview, 'strict_exit', self.strict_cb.isChecked()))
         card_sys_layout.addWidget(self.strict_cb)
         
         self.ignore_media_cb = QCheckBox("Ignore Media Keys")
         self.ignore_media_cb.setChecked(self.config.get("ignore_media_keys", False))
+        self.ignore_media_cb.setToolTip("Volume and playback keys won't dismiss screensaver")
         self.ignore_media_cb.stateChanged.connect(lambda s: setattr(self.preview, 'ignore_media_keys', self.ignore_media_cb.isChecked()))
         card_sys_layout.addWidget(self.ignore_media_cb)
         
         self.win_cb = QCheckBox("Enable Windows Key")
         self.win_cb.setChecked(self.config.get("enable_win_key", False))
+        self.win_cb.setToolTip("Allows using the Windows key without waking the screensaver")
         self.win_cb.stateChanged.connect(lambda s: setattr(self.preview, 'enable_win_key', self.win_cb.isChecked()))
         card_sys_layout.addWidget(self.win_cb)
-        
-        lbl_sys_info = QLabel("Screensaver dismisses smoothly on mouse movement or custom unlock key.")
-        lbl_sys_info.setWordWrap(True)
-        lbl_sys_info.setStyleSheet("color: #64748B; font-size: 10px;")
-        card_sys_layout.addWidget(lbl_sys_info)
         card_sys_layout.addStretch()
         cards_row.addWidget(card_sys, stretch=1)
         
@@ -2007,11 +1959,9 @@ class SettingsDialog(QDialog):
             btn.setChecked(i == idx)
             btn.blockSignals(False)
         self.pages.setCurrentIndex(idx)
-        titles = ["Flip Clock Studio", "Rotary Modern Studio", "Dino Runner Studio"]
-        subtitles = ["Scale & Typography", "Colors & Orbital Telemetry", "Sprites & Custom Type"]
+        titles = ["Flip Clock", "Rotary Modern", "Dino Runner"]
         if idx < len(titles):
             self.lbl_mode_title.setText(titles[idx])
-            self.lbl_mode_sub.setText(subtitles[idx])
         self.update_swatch_highlights()
         if hasattr(self, 'leading_zero_cb'):
             self.leading_zero_cb.blockSignals(True)
