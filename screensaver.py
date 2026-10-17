@@ -294,7 +294,11 @@ class CrispAestheticFlipClock(QWidget):
 
         painter.setPen(QColor(250, 250, 250, 255))
         font = QFont()
-        font.setFamilies(["Google Sans", "Product Sans", "Segoe UI", "Arial"]) 
+        families = []
+        if getattr(self, "primary_font_family", ""):
+            families.append(self.primary_font_family)
+        families.extend(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
+        font.setFamilies(families)
         font.setPixelSize(int(h * 0.65)) 
         font.setWeight(QFont.Weight.Black) 
         font.setStretch(90) 
@@ -1028,7 +1032,6 @@ class SpatialStageFrame(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("spatialStage")
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         
     def set_stage_theme(self, clock_style, accent_hex):
         pass
@@ -1098,9 +1101,9 @@ def get_or_create_check_icon(color_hex="#FFFFFF"):
     clean_col = color_hex.replace("#", "")
     temp_path = os.path.join(tempfile.gettempdir(), f"dinoscreener_chk_{clean_col}.png").replace("\\", "/")
     if not os.path.exists(temp_path):
-        pix = QPixmap(16, 16)
-        pix.fill(Qt.GlobalColor.transparent)
-        p = QPainter(pix)
+        img = QImage(16, 16, QImage.Format.Format_ARGB32)
+        img.fill(Qt.GlobalColor.transparent)
+        p = QPainter(img)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         pen = QPen(QColor(color_hex), 2.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
         p.setPen(pen)
@@ -1110,7 +1113,28 @@ def get_or_create_check_icon(color_hex="#FFFFFF"):
         path.lineTo(12.5, 4.5)
         p.drawPath(path)
         p.end()
-        pix.save(temp_path, "PNG")
+        img.save(temp_path, "PNG")
+    return temp_path
+
+
+def get_or_create_chevron_icon():
+    import tempfile
+    temp_dir = tempfile.gettempdir()
+    temp_path = os.path.join(temp_dir, "dinoscreener_chevron.png").replace("\\", "/")
+    if not os.path.exists(temp_path):
+        img = QImage(14, 14, QImage.Format.Format_ARGB32)
+        img.fill(Qt.GlobalColor.transparent)
+        p = QPainter(img)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        pen = QPen(QColor(180, 195, 215), 1.8, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
+        p.setPen(pen)
+        path = QPainterPath()
+        path.moveTo(3, 5)
+        path.lineTo(7, 9)
+        path.lineTo(11, 5)
+        p.drawPath(path)
+        p.end()
+        img.save(temp_path, "PNG")
     return temp_path
 
 
@@ -1121,34 +1145,31 @@ class SettingsDialog(QDialog):
         self.setFixedSize(680, 715)
         self.setAcceptDrops(True)
         
-        # Apply Windows 11 DWM Mica backdrop & Dark Mode
+        # Windows 11 Dark Mode Titlebar
         try:
             hwnd = int(self.winId())
-            backdrop_type = ctypes.c_int(2) # DWMSBT_MAINWINDOW (Mica)
-            ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 38, ctypes.byref(backdrop_type), ctypes.sizeof(backdrop_type))
             dark_mode = ctypes.c_int(1)
             ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 20, ctypes.byref(dark_mode), ctypes.sizeof(dark_mode))
         except Exception:
             pass
 
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
-
         self.win_accent = get_windows_accent_color()
         self.contrast_text, self.hover_accent, self.press_accent = get_color_variants(self.win_accent)
         check_icon_path = get_or_create_check_icon(self.contrast_text)
+        chevron_icon_path = get_or_create_chevron_icon()
 
-        # Spatial Studio Modern Glass Stylesheet
+        # Spatial Studio Modern Glass Stylesheet (Solid Surface to prevent ghosting)
         self.setStyleSheet(f"""
             QDialog {{
-                background: transparent;
+                background-color: #10141D;
             }}
             QLabel {{
                 color: #FFFFFF;
                 font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, sans-serif;
             }}
             QFrame#bentoCard {{
-                background: rgba(255, 255, 255, 0.035);
-                border: 1px solid rgba(255, 255, 255, 0.07);
+                background: #171B26;
+                border: 1px solid rgba(255, 255, 255, 0.08);
                 border-radius: 14px;
             }}
             QFrame#previewCard {{
@@ -1205,25 +1226,31 @@ class SettingsDialog(QDialog):
                 margin: -5px 0;
                 border-radius: 7px;
             }}
-            /* Comboboxes - Smooth Rounded Pill Style */
+            /* Comboboxes - Smooth Rounded Pill Style with Visible Chevron Arrow */
             QComboBox, QFontComboBox {{
                 background: rgba(255, 255, 255, 0.06);
                 color: #FFFFFF;
                 border: 1px solid rgba(255, 255, 255, 0.14);
-                border-radius: 13px;
-                padding: 4px 12px;
+                border-radius: 12px;
+                padding: 4px 10px;
                 font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
                 font-size: 11px;
-                min-height: 18px;
+                min-height: 20px;
             }}
             QComboBox:hover, QFontComboBox:hover {{
                 background: rgba(255, 255, 255, 0.10);
                 border-color: rgba(255, 255, 255, 0.28);
             }}
             QComboBox::drop-down, QFontComboBox::drop-down {{
-                border: none;
+                subcontrol-origin: padding;
+                subcontrol-position: top right;
                 width: 22px;
-                padding-right: 6px;
+                border: none;
+            }}
+            QComboBox::down-arrow, QFontComboBox::down-arrow {{
+                image: url("{chevron_icon_path}");
+                width: 10px;
+                height: 10px;
             }}
             QComboBox QAbstractItemView, QFontComboBox QAbstractItemView {{
                 background: #181C26;
@@ -1345,8 +1372,8 @@ class SettingsDialog(QDialog):
         self.config["pixel_shift"] = self.pixel_shift_cb.isChecked()
         self.config["primary_font"] = getattr(self, 'primary_font', "")
         self.config["ignore_media_keys"] = self.ignore_media_cb.isChecked()
-        self.config["dino_font"] = self.font_cb.currentFont().family()
-        self.config["character_type"] = self.char_cb.currentText().lower()
+        self.config["dino_font"] = getattr(self.preview, 'dino_font', "Bungee")
+        self.config["character_type"] = getattr(self.preview, 'character_type', "dino")
         self.config["custom_character_image"] = getattr(self, 'custom_character_image', "")
         
         os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
@@ -1368,9 +1395,9 @@ class SettingsDialog(QDialog):
                 use_24hr=self.use_24hr_cb.isChecked(),
                 leading_zeros=self.preview.leading_zeros,
                 ignore_media_keys=self.ignore_media_cb.isChecked(),
-                dino_font=self.font_cb.currentFont().family(),
+                dino_font=getattr(self.preview, 'dino_font', "Bungee"),
                 primary_font=getattr(self, 'primary_font', ""),
-                character_type=self.char_cb.currentText().lower(),
+                character_type=getattr(self.preview, 'character_type', "dino"),
                 custom_character_image=getattr(self, 'custom_character_image', ""),
                 live_weather=self.live_weather_cb.isChecked(),
                 pixel_shift=self.pixel_shift_cb.isChecked()
@@ -1707,23 +1734,8 @@ class SettingsDialog(QDialog):
         page_dino = QWidget()
         dino_layout = QVBoxLayout(page_dino)
         dino_layout.setContentsMargins(0, 2, 0, 0)
-        dino_layout.setSpacing(6)
+        dino_layout.setSpacing(7)
         
-        btn_action_style = """
-            QPushButton {
-                background: rgba(255, 255, 255, 0.06);
-                color: #FFFFFF;
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 12px;
-                padding: 4px 12px;
-                font-size: 11px;
-                font-weight: 500;
-            }
-            QPushButton:hover {
-                background: rgba(255, 255, 255, 0.14);
-                border-color: rgba(255, 255, 255, 0.25);
-            }
-        """
         undo_style = """
             QPushButton {
                 background: rgba(255, 255, 255, 0.06);
@@ -1740,81 +1752,73 @@ class SettingsDialog(QDialog):
             }
         """
         
-        # Font Row
-        font_row1 = QHBoxLayout()
-        font_row1.setSpacing(6)
+        # 1. Unified Font Dropdown (Curated list + Import Font option)
+        font_box = QHBoxLayout()
+        font_box.setSpacing(6)
         lbl_dino_font = QLabel("Font:")
         lbl_dino_font.setFixedWidth(40)
-        lbl_dino_font.setStyleSheet("color: #E2E8F0; font-size: 11px;")
-        font_row1.addWidget(lbl_dino_font)
-        self.font_cb = QFontComboBox()
-        self.font_cb.setCurrentFont(QFont(self.config.get("dino_font", "Bungee")))
-        self.font_cb.currentFontChanged.connect(self.update_dino_font)
-        font_row1.addWidget(self.font_cb)
-        dino_layout.addLayout(font_row1)
+        lbl_dino_font.setStyleSheet("color: #E2E8F0; font-size: 11px; font-weight: 500;")
+        font_box.addWidget(lbl_dino_font)
         
-        font_row2 = QHBoxLayout()
-        font_row2.setSpacing(6)
         self.primary_font = self.config.get("primary_font", "")
-        self.primary_font_btn = QPushButton("Import TTF...")
-        self.primary_font_btn.setStyleSheet(btn_action_style)
-        self.primary_font_btn.clicked.connect(self.import_primary_font)
-        font_row2.addWidget(self.primary_font_btn)
+        self.font_cb = QComboBox()
+        self.refresh_font_combobox()
+        self.font_cb.currentIndexChanged.connect(self.on_font_combobox_changed)
+        font_box.addWidget(self.font_cb, stretch=1)
         
         self.undo_font_btn = QPushButton("↺")
         self.undo_font_btn.setFixedSize(22, 22)
         self.undo_font_btn.setStyleSheet(undo_style)
+        self.undo_font_btn.setToolTip("Revert font to saved settings")
         self.undo_font_btn.clicked.connect(self.revert_font)
         self.undo_font_btn.hide()
-        font_row2.addWidget(self.undo_font_btn)
+        font_box.addWidget(self.undo_font_btn)
+        dino_layout.addLayout(font_box)
         
-        self.primary_font_label = QLabel(os.path.basename(self.primary_font) if self.primary_font else "Default")
-        self.primary_font_label.setStyleSheet("color: #94A3B8; font-size: 10px;")
-        self.primary_font_label.setMaximumWidth(72)
-        font_row2.addWidget(self.primary_font_label)
-        font_row2.addStretch()
-        dino_layout.addLayout(font_row2)
-        
-        # Sprite Row
-        char_row1 = QHBoxLayout()
-        char_row1.setSpacing(6)
+        # 2. Unified Sprite Dropdown (Dino default + Custom sprite + Import option)
+        char_box = QHBoxLayout()
+        char_box.setSpacing(6)
         lbl_sprite = QLabel("Sprite:")
         lbl_sprite.setFixedWidth(40)
-        lbl_sprite.setStyleSheet("color: #E2E8F0; font-size: 11px;")
-        char_row1.addWidget(lbl_sprite)
-        self.char_cb = QComboBox()
-        self.char_cb.addItems(["Dino", "Custom"])
-        char_init = "Custom" if (self.config.get("character_type", "dino").lower() == "custom" and self.config.get("custom_character_image", "") and os.path.exists(self.config.get("custom_character_image", ""))) else "Dino"
-        self.char_cb.setCurrentText(char_init)
-        self.char_cb.currentTextChanged.connect(self.update_character_type)
-        char_row1.addWidget(self.char_cb)
-        dino_layout.addLayout(char_row1)
+        lbl_sprite.setStyleSheet("color: #E2E8F0; font-size: 11px; font-weight: 500;")
+        char_box.addWidget(lbl_sprite)
         
-        char_row2 = QHBoxLayout()
-        char_row2.setSpacing(6)
         self.custom_character_image = self.config.get("custom_character_image", "")
-        self.char_btn = QPushButton("Import Sprite...")
-        self.char_btn.setStyleSheet(btn_action_style)
-        self.char_btn.clicked.connect(self.import_character)
-        char_row2.addWidget(self.char_btn)
+        self.char_cb = QComboBox()
+        self.refresh_char_combobox()
+        self.char_cb.currentIndexChanged.connect(self.on_char_combobox_changed)
+        char_box.addWidget(self.char_cb, stretch=1)
         
         self.undo_char_btn = QPushButton("↺")
         self.undo_char_btn.setFixedSize(22, 22)
         self.undo_char_btn.setStyleSheet(undo_style)
+        self.undo_char_btn.setToolTip("Revert character to default Dino")
         self.undo_char_btn.clicked.connect(self.revert_character)
         self.undo_char_btn.hide()
-        char_row2.addWidget(self.undo_char_btn)
+        char_box.addWidget(self.undo_char_btn)
+        dino_layout.addLayout(char_box)
         
-        self.char_label = QLabel(os.path.basename(self.custom_character_image) if self.custom_character_image else "Default")
-        self.char_label.setStyleSheet("color: #94A3B8; font-size: 10px;")
-        self.char_label.setMaximumWidth(72)
-        char_row2.addWidget(self.char_label)
-        char_row2.addStretch()
-        dino_layout.addLayout(char_row2)
-        
-        tip_dino = QLabel("Tip: Drop .ttf or .png directly onto window.")
-        tip_dino.setStyleSheet("color: #64748B; font-size: 10px;")
-        dino_layout.addWidget(tip_dino)
+        tip_frame_dino = QFrame()
+        tip_frame_dino.setStyleSheet("""
+            QFrame {
+                background: rgba(255, 255, 255, 0.025);
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 4px 6px;
+            }
+        """)
+        tip_layout_dino = QVBoxLayout(tip_frame_dino)
+        tip_layout_dino.setContentsMargins(4, 3, 4, 3)
+        tip_layout_dino.setSpacing(2)
+        lbl_tip_dino1 = QLabel("Tip: Drop .ttf or sprite image directly onto window.")
+        lbl_tip_dino1.setWordWrap(True)
+        lbl_tip_dino1.setStyleSheet("color: #94A3B8; font-size: 10px;")
+        lbl_tip_dino2 = QLabel("Or select '📁 Import...' in dropdowns above.")
+        lbl_tip_dino2.setWordWrap(True)
+        lbl_tip_dino2.setStyleSheet("color: #64748B; font-size: 9.5px;")
+        tip_layout_dino.addWidget(lbl_tip_dino1)
+        tip_layout_dino.addWidget(lbl_tip_dino2)
+        dino_layout.addWidget(tip_frame_dino)
         dino_layout.addStretch()
         self.pages.addWidget(page_dino)
         
@@ -2013,6 +2017,7 @@ class SettingsDialog(QDialog):
             self.leading_zero_cb.blockSignals(True)
             self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(idx), False))
             self.leading_zero_cb.blockSignals(False)
+        self.repaint()
 
     def update_swatch_highlights(self):
         if not hasattr(self, 'swatch_buttons'):
@@ -2077,17 +2082,87 @@ class SettingsDialog(QDialog):
         self.preview.pixel_shift = self.pixel_shift_cb.isChecked()
         self.preview.update()
 
+    def refresh_font_combobox(self):
+        if not hasattr(self, 'font_cb'):
+            return
+        self.font_cb.blockSignals(True)
+        self.font_cb.clear()
+        
+        presets = [
+            ("Bungee (Default)", "Bungee"),
+            ("Google Sans", "Google Sans"),
+            ("Segoe UI Variable", "Segoe UI Variable Display"),
+            ("Segoe UI", "Segoe UI"),
+            ("Arial Black", "Arial Black"),
+            ("Consolas", "Consolas"),
+        ]
+        for label, family in presets:
+            self.font_cb.addItem(label, family)
+            
+        if getattr(self, 'primary_font', '') and os.path.exists(self.primary_font):
+            custom_fam = getattr(self.preview, "primary_font_family", "")
+            if not custom_fam or custom_fam == "Google Sans":
+                font_id = QFontDatabase.addApplicationFont(self.primary_font)
+                if font_id != -1:
+                    fams = QFontDatabase.applicationFontFamilies(font_id)
+                    if fams:
+                        custom_fam = fams[0]
+                        self.preview.primary_font_family = custom_fam
+            if not custom_fam:
+                custom_fam = os.path.splitext(os.path.basename(self.primary_font))[0]
+            self.font_cb.addItem(f"Custom: {custom_fam}", self.primary_font)
+            
+        self.font_cb.addItem("📁 Import Font (.ttf / .otf)...", "__IMPORT__")
+        
+        current_dino = getattr(self.preview, "dino_font", "Bungee")
+        target_idx = 0
+        if self.primary_font and os.path.exists(self.primary_font) and (current_dino == getattr(self.preview, "primary_font_family", "") or current_dino == self.primary_font):
+            target_idx = self.font_cb.count() - 2
+        else:
+            for i in range(self.font_cb.count()):
+                if self.font_cb.itemData(i) == current_dino:
+                    target_idx = i
+                    break
+                    
+        self.font_cb.setCurrentIndex(max(0, target_idx))
+        self.font_cb.blockSignals(False)
+        self.check_font_changed()
+
+    def on_font_combobox_changed(self, idx):
+        if idx < 0:
+            return
+        data = self.font_cb.itemData(idx)
+        if data == "__IMPORT__":
+            self.import_primary_font()
+        elif str(data).lower().endswith((".ttf", ".otf")) or (getattr(self, 'primary_font', '') and data == self.primary_font):
+            custom_fam = getattr(self.preview, "primary_font_family", "")
+            if not custom_fam:
+                custom_fam = os.path.splitext(os.path.basename(self.primary_font))[0]
+            self.preview.dino_font = custom_fam
+            self.preview.primary_font = self.primary_font
+            self.preview.update()
+            self.check_font_changed()
+        else:
+            self.preview.dino_font = str(data)
+            self.preview.update()
+            self.check_font_changed()
+
     def handle_font_import(self, path):
+        if not path or not os.path.exists(path):
+            return
         self.primary_font = path
-        self.primary_font_label.setText(os.path.basename(path))
         font_id = QFontDatabase.addApplicationFont(path)
-        self.font_cb.setFontFilters(QFontComboBox.FontFilter.AllFonts)
+        family = ""
         if font_id != -1:
             families = QFontDatabase.applicationFontFamilies(font_id)
             if families:
-                self.font_cb.setCurrentFont(QFont(families[0]))
-                self.preview.primary_font_family = families[0]
+                family = families[0]
+        if not family:
+            family = os.path.splitext(os.path.basename(path))[0]
         self.preview.primary_font = path
+        self.preview.primary_font_family = family
+        self.preview.dino_font = family
+        self.refresh_font_combobox()
         self.preview.update()
         self.check_font_changed()
 
@@ -2095,109 +2170,116 @@ class SettingsDialog(QDialog):
         file, _ = QFileDialog.getOpenFileName(self, "Select Font File", "", "Font Files (*.ttf *.otf)")
         if file:
             self.handle_font_import(file)
-
-    def update_dino_font(self, font):
-        self.preview.dino_font = font.family()
-        self.preview.update()
-        self.check_font_changed()
+        else:
+            self.refresh_font_combobox()
 
     def check_font_changed(self):
-        if not hasattr(self, 'undo_font_btn') or not hasattr(self, 'saved_dino_font') or not hasattr(self, 'font_cb'):
+        if not hasattr(self, 'undo_font_btn') or not hasattr(self, 'saved_dino_font'):
             return
         current_primary = getattr(self, 'primary_font', "")
-        current_dino = self.font_cb.currentFont().family()
+        current_dino = getattr(self.preview, 'dino_font', "Bungee")
         has_changed = (current_primary != self.saved_primary_font) or (current_dino != self.saved_dino_font)
         self.undo_font_btn.setVisible(has_changed)
 
     def revert_font(self):
         if self.saved_primary_font and os.path.exists(self.saved_primary_font):
             self.primary_font = self.saved_primary_font
-            self.primary_font_label.setText(os.path.basename(self.primary_font))
             font_id = QFontDatabase.addApplicationFont(self.primary_font)
-            self.font_cb.setFontFilters(QFontComboBox.FontFilter.AllFonts)
+            family = ""
             if font_id != -1:
                 families = QFontDatabase.applicationFontFamilies(font_id)
                 if families:
-                    self.preview.primary_font_family = families[0]
+                    family = families[0]
             self.preview.primary_font = self.primary_font
+            self.preview.primary_font_family = family
+            self.preview.dino_font = self.saved_dino_font if self.saved_dino_font else family
         else:
-            self.saved_primary_font = ""
             self.primary_font = ""
-            self.primary_font_label.setText("Default")
             self.preview.primary_font = ""
             self.preview.primary_font_family = "Google Sans"
-
-        all_families = QFontDatabase.families()
-        if self.saved_dino_font and self.saved_dino_font in all_families:
-            target_dino = self.saved_dino_font
-        else:
-            target_dino = "Bungee"
-            self.saved_dino_font = "Bungee"
+            self.preview.dino_font = self.saved_dino_font if self.saved_dino_font else "Bungee"
             
-        self.font_cb.blockSignals(True)
-        self.font_cb.setCurrentFont(QFont(target_dino))
-        self.font_cb.blockSignals(False)
-        self.preview.dino_font = self.font_cb.currentFont().family()
+        self.refresh_font_combobox()
         self.preview.update()
         self.check_font_changed()
 
-    def handle_character_import(self, path):
-        self.custom_character_image = path
-        self.char_label.setText(os.path.basename(path))
+    def refresh_char_combobox(self):
+        if not hasattr(self, 'char_cb'):
+            return
         self.char_cb.blockSignals(True)
-        self.char_cb.setCurrentText("Custom")
+        self.char_cb.clear()
+        
+        self.char_cb.addItem("Dino (Default)", "dino")
+        
+        if getattr(self, 'custom_character_image', '') and os.path.exists(self.custom_character_image):
+            img_name = os.path.basename(self.custom_character_image)
+            self.char_cb.addItem(f"Custom: {img_name}", self.custom_character_image)
+            
+        self.char_cb.addItem("📁 Import Sprite Image...", "__IMPORT__")
+        
+        curr_type = getattr(self.preview, "character_type", "dino").lower()
+        if curr_type == "custom" and getattr(self, 'custom_character_image', '') and os.path.exists(self.custom_character_image):
+            self.char_cb.setCurrentIndex(1)
+        else:
+            self.char_cb.setCurrentIndex(0)
+            
         self.char_cb.blockSignals(False)
+        self.check_char_changed()
+
+    def on_char_combobox_changed(self, idx):
+        if idx < 0:
+            return
+        data = self.char_cb.itemData(idx)
+        if data == "__IMPORT__":
+            self.import_character()
+        elif data == "dino":
+            self.preview.character_type = "dino"
+            self.preview.update()
+            self.check_char_changed()
+        else:
+            self.preview.character_type = "custom"
+            self.preview.set_custom_character(str(data))
+            self.preview.update()
+            self.check_char_changed()
+
+    def handle_character_import(self, path):
+        if not path or not os.path.exists(path):
+            return
+        self.custom_character_image = path
         self.preview.character_type = "custom"
         self.preview.set_custom_character(path)
+        self.refresh_char_combobox()
+        self.preview.update()
         self.check_char_changed()
 
     def import_character(self):
         file, _ = QFileDialog.getOpenFileName(self, "Select Character Image", "", "Image Files (*.png *.jpg *.jpeg *.bmp *.webp)")
         if file:
             self.handle_character_import(file)
-
-    def update_character_type(self, text):
-        char_type = text.lower()
-        if char_type == "custom":
-            if not getattr(self, "custom_character_image", "") or not os.path.exists(self.custom_character_image):
-                self.import_character()
-                if not getattr(self, "custom_character_image", ""):
-                    self.char_cb.blockSignals(True)
-                    self.char_cb.setCurrentText("Dino")
-                    self.char_cb.blockSignals(False)
-                    self.preview.character_type = "dino"
-                    self.preview.update()
-                    self.check_char_changed()
-                    return
-        self.preview.character_type = self.char_cb.currentText().lower()
-        self.preview.update()
-        self.check_char_changed()
+        else:
+            self.refresh_char_combobox()
 
     def check_char_changed(self):
         if not hasattr(self, 'undo_char_btn') or not hasattr(self, 'char_cb'):
             return
-        current_type = self.char_cb.currentText()
-        current_img = getattr(self, 'custom_character_image', "")
-        has_changed = (current_type != self.saved_char_type) or (current_img != self.saved_char_image)
+        curr_type = getattr(self.preview, 'character_type', 'dino').capitalize()
+        curr_img = getattr(self, 'custom_character_image', "")
+        has_changed = (curr_type != self.saved_char_type) or (curr_img != self.saved_char_image)
         self.undo_char_btn.setVisible(has_changed)
 
     def revert_character(self):
         if self.saved_char_image and os.path.exists(self.saved_char_image):
             self.custom_character_image = self.saved_char_image
-            self.char_label.setText(os.path.basename(self.custom_character_image))
             self.preview.set_custom_character(self.custom_character_image)
         else:
             self.saved_char_image = ""
             self.custom_character_image = ""
-            self.char_label.setText("Default")
             self.preview.set_custom_character("")
 
-        target_type = self.saved_char_type if (self.saved_char_type == "Custom" and self.custom_character_image) else "Dino"
+        target_type = self.saved_char_type if (self.saved_char_type == "Custom" and getattr(self, 'custom_character_image', '')) else "Dino"
         self.saved_char_type = target_type
-        self.char_cb.blockSignals(True)
-        self.char_cb.setCurrentText(target_type)
-        self.char_cb.blockSignals(False)
         self.preview.character_type = target_type.lower()
+        self.refresh_char_combobox()
         self.preview.update()
         self.check_char_changed()
 
