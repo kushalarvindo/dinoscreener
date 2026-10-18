@@ -1,6 +1,7 @@
 <div align="center">
   <h1>🦕 Dinoscreener</h1>
-  <p><strong>A stunning, ultra-minimalist modern rotary clock screensaver for Windows.</strong></p>
+  <p><strong>A stunning, ultra-minimalist modern clock screensaver suite for Windows.</strong></p>
+  <p>Featuring <strong>Modern Rotary</strong>, <strong>Classic Flip Clock</strong>, and <strong>Chrome Dino Runner</strong> with custom typography & sprite imports.</p>
 </div>
 
 <br />
@@ -9,29 +10,41 @@
   <img src="screenshots/dino.gif" alt="Dinoscreener Screenshot" width="800">
 </div>
 
+---
+
 ## ✨ Features & Architecture
 
-Dinoscreener is built natively using **Python** and **PyQt6**. It leverages powerful graphics engines to render 60 FPS antialiased shapes, drawing the interface using complex `QPainter` geometry rather than loading static images.
+Dinoscreener is built natively using **Python** and **PyQt6**. It renders buttery-smooth 60 FPS antialiased graphics drawn using vector `QPainter` geometry and real-time physics.
 
 ### 🎨 Clock Modes
 
-Dinoscreener features three distinct, meticulously crafted clock styles. Switch between them instantly using the **Up/Down arrow keys**!
+Dinoscreener features three distinct, meticulously crafted clock styles. Switch between them instantly using the **Up/Down arrow keys** or via the interactive settings dialog!
 
 | Mode | Description | Preview |
 |---|---|---|
-| **Modern Rotary** | A dual-ring rotary interface calculating exact rotation angles using trigonometry for a seamless spinning wheel effect. | <img src="screenshots/Screenshot (Modern Rotary).png" width="250" alt="Rotary Clock"> |
-| **Classic Flip Clock** | A retro mechanical flip-clock style utilizing 3D perspective scaling to visually compress the numbers. | <img src="screenshots/Screenshot (Flip Clock).png" width="250" alt="Fliqlo Clock"> |
-| **Chrome Dino Game** | A beautiful auto-playing Chrome Dino game featuring authentic sprite rendering, exact gravity physics, and randomly generated cacti/crows. Time is displayed cleanly at the top. | <img src="screenshots/Screenshot (Chrome Dino Game).png" width="250" alt="Dino Clock"> | <img src="screenshots/Screenshot (Chrome Dino Game).png" width="250" alt="Dino Clock"> |
+| **Modern Rotary** | A dual-ring rotary interface calculating exact rotation angles using trigonometry for a seamless spinning wheel effect with optional Weather & Battery telemetry. | <img src="screenshots/Screenshot (Modern Rotary).png" width="260" alt="Rotary Clock"> |
+| **Classic Flip Clock** | A retro mechanical flip-clock style utilizing 3D perspective scaling to visually compress flip tiles, customizable scaling, and leading zero toggles. | <img src="screenshots/Screenshot (Flip Clock).png" width="260" alt="Flip Clock"> |
+| **Chrome Dino Game** | An authentic auto-playing Chrome Dino runner with accurate gravity physics, procedurally generated obstacles, and custom typography/sprites. | <img src="screenshots/Screenshot (Chrome Dino Game).png" width="260" alt="Dino Game"> |
 
-- **Ambient Lighting System**: Subtle, color-shifting ambient orbs float in the background. These are drawn using `QRadialGradient`, and their coordinates drift organically using trigonometric phase shifts over a 15-second loop.
-- **System Integrations**: 
-  - Dynamic local weather display ☁️
-  - Real-time battery tracking with custom charging icons 🔋 (Using Windows `ctypes.windll.kernel32.GetSystemPowerStatus`)
-- **Native GUI Settings**: Configure everything visually straight from the Windows Screen Saver panel! 
-  - Toggle 24-Hour mode and Leading Zeros (e.g., 09:00).
-  - Enable "Ignore Media Keys" so volume/music changes don't dismiss the screensaver.
-  - Independent zoom/scaling remembered separately for each clock style!
-  - The settings window itself applies Windows 11's transparent **Mica** material natively to its background via `DwmSetWindowAttribute`.
+---
+
+### 🎛️ Modern Spatial Settings Studio
+
+<div align="center">
+  <img src="screenshots/Screenshot (Settings UI).png" alt="Settings UI" width="700">
+</div>
+
+- **16:9 Authentic Widescreen Preview**: Real-time live canvas displaying exact font scaling, sprite styling, and visual luminance before applying.
+- **Collapsible Mode Switcher Pill**: A minimalist capsule indicator that automatically expands on hover into a floating segmented pill switcher.
+- **Windows 11 Dynamic Accent Color**: Automatically reads your Windows 11 accent color (`DWM / AccentColorMenu`) and harmonizes buttons, sliders, and checkboxes with your desktop theme.
+- **Custom Typography & Sprite Engine**: Simply **drag and drop** any `.ttf` / `.otf` font file or `.png` / `.jpg` sprite image directly onto the window to customize clock numbers or character sprites. Revert anytime with one click.
+- **Tactile Luminance & Scale Controls**: Full-width brightness slider (10% to 100%) and interactive scale slider with tactile `-` / `+` micro-adjusters.
+- **OLED Burn-in Protection**: Automatic subtle pixel-shifting algorithm prevents burn-in on OLED and AMOLED panels.
+- **Telemetry & Weather**: Real-time temperature & weather feed via Open-Meteo alongside battery level and charging indicators.
+- **Strict Exit & System Intercepts**:
+  - **Lock Screen on Exit (`Ctrl + Z`)**: Keeps the screensaver active even on mouse movement; requires `Ctrl + Z` to unlock.
+  - **Ignore Media Keys**: Prevents volume knobs or Spotify track changes from prematurely closing the screensaver.
+  - **Windows Key Guard**: Disables the Windows key to prevent accidental taskbar pops.
 
 ---
 
@@ -39,60 +52,62 @@ Dinoscreener features three distinct, meticulously crafted clock styles. Switch 
 
 While the screensaver is running, you can use these keyboard shortcuts to modify it in real time:
 
-- **`Arrow Up` / `Arrow Down`**: Toggle between the Modern Rotary, Classic Fliqlo, and Chrome Dino clock styles.
-- **`Spacebar` / `Windows Key`**: Toggle the background Ambient Lighting orbs on or off.
-- **`+` (Plus) / `-` (Minus)**: Scale the size of the Fliqlo flip clock up or down.
-- **`Ctrl + Z`**: If you enabled "Screenshot Mode" (Strict Exit) in the settings, moving your mouse will no longer close the screensaver. You must press this exact keybind to close it and return to your desktop.
+- **`Arrow Up` / `Arrow Down`**: Toggle between Flip Clock, Rotary Modern, and Chrome Dino clock styles.
+- **`+` (Plus) / `-` (Minus)**: Scale the clock size up or down in real time.
+- **`Ctrl + Z`**: Unlock / exit the screensaver when "Lock Screen on Exit" (Strict Exit) is enabled.
 
 ---
 
 ## 🚀 Quick Setup (Pre-Compiled)
 
-1. Navigate to the [Releases](#) tab (or just download the `Dinoscreener.scr` file directly from this repository).
+1. Download the latest **`Dinoscreener.scr`** from this repository (or from the [Releases](https://github.com/kushalarvindo/dinoscreener/releases) page).
 2. Right-click on **`Dinoscreener.scr`**.
 3. Select **Install**.
-4. The Windows Screen Saver Settings panel will open. Click **Settings...** to customize your accent colors and toggles!
+4. The Windows Screen Saver Settings dialog will open. Click **Settings...** to customize your modes, fonts, and display preferences!
 
 > [!WARNING]
-> **Windows Defender False Positive**
-> Because `Dinoscreener.scr` is compiled into a single executable using PyInstaller, Windows Defender might incorrectly flag it as a virus (commonly `Trojan:Win32/Wacatac.B!ml`). 
-> **This is a notorious false positive.** The source code is entirely open, and you can compile it yourself if you prefer. To bypass this, simply click the notification, select **Allow on device**, and click **Start Actions**.
+> **Windows Defender False Positive**  
+> Because `Dinoscreener.scr` is compiled into a standalone executable using PyInstaller without an expensive commercial code-signing certificate, Windows Defender might occasionally flag it as an unrecognized binary (`Trojan:Win32/Wacatac.B!ml`).  
+> **This is a false positive.** The entire codebase is open source and transparent. You can inspect the source code or compile it yourself using the instructions below. To allow it, select **Allow on device** in Windows Security.
 
 ---
 
-## 🛠️ How to Compile it Yourself
+## 🛠️ How to Compile It Yourself
 
-If you'd prefer to build the `.scr` file yourself from the source code rather than using the pre-compiled version, follow these simple steps:
+If you prefer building the binary directly from source:
 
 ### Prerequisites
 - Python 3.10+
-- `pip` installed
+- `pip` package manager
 
 ### Build Steps
 1. **Clone the repository**:
    ```cmd
-   git clone https://github.com/kushalarvindo/screensaver.git
-   cd screensaver
+   git clone https://github.com/kushalarvindo/dinoscreener.git
+   cd dinoscreener
    ```
-2. **Install the required dependencies**:
+
+2. **Install required dependencies**:
    ```cmd
    pip install PyQt6 pyinstaller
    ```
-3. **Compile the executable**:
-   Use PyInstaller to bundle the Python script into a single, windowless `.exe` file.
+
+3. **Build using PyInstaller**:
    ```cmd
-   pyinstaller --noconsole --onefile --name "Dinoscreener" screensaver.py
+   pyinstaller Dinoscreener.spec --noconfirm
    ```
+
 4. **Convert to `.scr`**:
-   Once the build completes, navigate to the newly created `dist/` folder and rename the extension!
+   Copy the compiled executable to `Dinoscreener.scr`:
    ```cmd
-   cd dist
-   ren Dinoscreener.exe Dinoscreener.scr
+   copy /y dist\Dinoscreener.exe Dinoscreener.scr
    ```
-5. **Install**: Right-click `Dinoscreener.scr` and select **Install**.
+
+5. **Install**:
+   Right-click `Dinoscreener.scr` and click **Install**.
 
 ---
 
 <div align="center">
-  <p>Built with ❤️ using Python & PyQt6</p>
+  <p>Crafted with precision using Python & PyQt6</p>
 </div>

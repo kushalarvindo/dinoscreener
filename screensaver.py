@@ -4,8 +4,8 @@ import ctypes
 import json
 import os
 import random
-from PyQt6.QtWidgets import QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider, QFileDialog, QStackedWidget, QFrame, QGridLayout, QComboBox, QFontComboBox
-from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate, QPointF, QByteArray, QThread, pyqtSignal
+from PyQt6.QtWidgets import QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider, QFileDialog, QStackedWidget, QFrame, QGridLayout, QComboBox, QFontComboBox, QStackedLayout, QGraphicsOpacityEffect
+from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate, QPointF, QByteArray, QThread, pyqtSignal, QPropertyAnimation, QEasingCurve, pyqtProperty, QParallelAnimationGroup
 from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath, QFontDatabase, QPixmap, QImage
 
 SPRITE_B64 = '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'
@@ -1138,6 +1138,215 @@ def get_or_create_chevron_icon():
     return temp_path
 
 
+class CollapsibleModeCapsule(QFrame):
+    def __init__(self, win_accent="#0078D4", parent=None):
+        super().__init__(parent)
+        self.win_accent = win_accent
+        self._current_mode = 0
+        self._modes = [
+            ("Flip Clock", 0),
+            ("Rotary Modern", 1),
+            ("Dino Runner", 2)
+        ]
+        self._is_expanded = False
+        self._collapsed_width = 152
+        self._expanded_width = 376
+        self._width = self._collapsed_width
+        
+        self.setFixedHeight(38)
+        self.setFixedWidth(self._collapsed_width)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        
+        self.setStyleSheet("""
+            QFrame#capsuleFrame {
+                background: #171B26;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 19px;
+            }
+            QFrame#capsuleFrame:hover {
+                border: 1px solid rgba(255, 255, 255, 0.22);
+                background: #1A1F2D;
+            }
+        """)
+        self.setObjectName("capsuleFrame")
+        
+        self.stack = QStackedLayout(self)
+        self.stack.setContentsMargins(3, 3, 3, 3)
+        self.stack.setStackingMode(QStackedLayout.StackingMode.StackOne)
+        
+        # --- Page 0: Collapsed Pill View ---
+        self.collapsed_view = QWidget()
+        col_layout = QHBoxLayout(self.collapsed_view)
+        col_layout.setContentsMargins(14, 0, 12, 0)
+        col_layout.setSpacing(8)
+        
+        self.lbl_dot = QLabel("●")
+        self.lbl_dot.setStyleSheet(f"color: {self.win_accent}; font-size: 8px;")
+        
+        self.lbl_mode_name = QLabel("Flip Clock")
+        self.lbl_mode_name.setStyleSheet("""
+            color: #FFFFFF;
+            font-size: 11.5px;
+            font-weight: 600;
+            font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+        """)
+        
+        self.lbl_chevron = QLabel("▾")
+        self.lbl_chevron.setStyleSheet("color: #94A3B8; font-size: 11px; margin-top: -1px;")
+        
+        col_layout.addStretch()
+        col_layout.addWidget(self.lbl_dot)
+        col_layout.addWidget(self.lbl_mode_name)
+        col_layout.addWidget(self.lbl_chevron)
+        col_layout.addStretch()
+        
+        self.stack.addWidget(self.collapsed_view)
+        
+        # --- Page 1: Expanded 3-Button View ---
+        self.expanded_view = QWidget()
+        exp_layout = QHBoxLayout(self.expanded_view)
+        exp_layout.setContentsMargins(0, 0, 0, 0)
+        exp_layout.setSpacing(4)
+        
+        self.mode_buttons = []
+        for label, idx in self._modes:
+            btn = QPushButton(label)
+            btn.setCheckable(True)
+            btn.setFixedSize(118, 32)
+            btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setStyleSheet("""
+                QPushButton {
+                    background: transparent;
+                    color: #94A3B8;
+                    border: 1px solid transparent;
+                    border-radius: 16px;
+                    font-size: 11.5px;
+                    font-weight: 500;
+                    outline: none;
+                    font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+                }
+                QPushButton:hover:!checked {
+                    color: #FFFFFF;
+                    background: rgba(255, 255, 255, 0.08);
+                    border-radius: 16px;
+                }
+                QPushButton:checked {
+                    background: #252B3B;
+                    color: #FFFFFF;
+                    font-weight: 600;
+                    border: 1px solid rgba(255, 255, 255, 0.18);
+                    border-radius: 16px;
+                }
+            """)
+            btn.clicked.connect(lambda checked, i=idx: self.select_mode(i))
+            exp_layout.addWidget(btn)
+            self.mode_buttons.append(btn)
+            
+        self.stack.addWidget(self.expanded_view)
+        self.stack.setCurrentIndex(0)
+        
+        self.opacity_effect = QGraphicsOpacityEffect(self.expanded_view)
+        self.expanded_view.setGraphicsEffect(self.opacity_effect)
+        self.opacity_effect.setOpacity(1.0)
+        
+        self.on_mode_changed = None
+        self._anim_group = None
+
+    def get_capsule_width(self):
+        return self._width
+
+    def set_capsule_width(self, w):
+        self._width = w
+        self.setFixedWidth(w)
+
+    capsuleWidth = pyqtProperty(int, get_capsule_width, set_capsule_width)
+
+    def set_current_mode(self, idx):
+        self._current_mode = idx
+        if 0 <= idx < len(self._modes):
+            self.lbl_mode_name.setText(self._modes[idx][0])
+        for i, btn in enumerate(self.mode_buttons):
+            btn.blockSignals(True)
+            btn.setChecked(i == idx)
+            btn.blockSignals(False)
+
+    def update_accent(self, accent_hex):
+        self.win_accent = accent_hex
+        self.lbl_dot.setStyleSheet(f"color: {accent_hex}; font-size: 8px;")
+
+    def select_mode(self, idx):
+        self.set_current_mode(idx)
+        if self.on_mode_changed:
+            self.on_mode_changed(idx)
+
+    def enterEvent(self, event):
+        super().enterEvent(event)
+        self.expand()
+
+    def leaveEvent(self, event):
+        super().leaveEvent(event)
+        self.collapse()
+
+    def expand(self):
+        if self._is_expanded:
+            return
+        self._is_expanded = True
+        
+        if self._anim_group and self._anim_group.state() == QParallelAnimationGroup.State.Running:
+            self._anim_group.stop()
+            
+        self.stack.setCurrentIndex(1)
+        
+        anim_w = QPropertyAnimation(self, b"capsuleWidth")
+        anim_w.setDuration(180)
+        anim_w.setStartValue(self.width())
+        anim_w.setEndValue(self._expanded_width)
+        anim_w.setEasingCurve(QEasingCurve.Type.OutCubic)
+        
+        anim_op = QPropertyAnimation(self.opacity_effect, b"opacity")
+        anim_op.setDuration(180)
+        anim_op.setStartValue(0.1)
+        anim_op.setEndValue(1.0)
+        anim_op.setEasingCurve(QEasingCurve.Type.InQuad)
+        
+        self._anim_group = QParallelAnimationGroup()
+        self._anim_group.addAnimation(anim_w)
+        self._anim_group.addAnimation(anim_op)
+        self._anim_group.start()
+
+    def collapse(self):
+        if not self._is_expanded:
+            return
+        self._is_expanded = False
+        
+        if self._anim_group and self._anim_group.state() == QParallelAnimationGroup.State.Running:
+            self._anim_group.stop()
+            
+        anim_w = QPropertyAnimation(self, b"capsuleWidth")
+        anim_w.setDuration(160)
+        anim_w.setStartValue(self.width())
+        anim_w.setEndValue(self._collapsed_width)
+        anim_w.setEasingCurve(QEasingCurve.Type.OutCubic)
+        
+        anim_op = QPropertyAnimation(self.opacity_effect, b"opacity")
+        anim_op.setDuration(140)
+        anim_op.setStartValue(1.0)
+        anim_op.setEndValue(0.0)
+        anim_op.setEasingCurve(QEasingCurve.Type.OutQuad)
+        
+        self._anim_group = QParallelAnimationGroup()
+        self._anim_group.addAnimation(anim_w)
+        self._anim_group.addAnimation(anim_op)
+        self._anim_group.finished.connect(self._on_collapse_finished)
+        self._anim_group.start()
+
+    def _on_collapse_finished(self):
+        if not self._is_expanded:
+            self.stack.setCurrentIndex(0)
+            self.opacity_effect.setOpacity(1.0)
+
+
 class SettingsDialog(QDialog):
     def __init__(self, config_path):
         super().__init__()
@@ -1502,65 +1711,16 @@ class SettingsDialog(QDialog):
         stage_layout.addWidget(self.preview_card)
         root_layout.addWidget(self.stage_frame, alignment=Qt.AlignmentFlag.AlignHCenter)
         
-        # 3. FLOATING CAPSULE MODE SELECTOR (Fully Rounded Pills)
+        # 3. FLOATING COLLAPSIBLE CAPSULE (Minimized Pill that Expands on Hover)
         capsule_row = QHBoxLayout()
         capsule_row.setContentsMargins(0, 0, 0, 0)
         capsule_row.addStretch()
         
-        capsule_frame = QFrame()
-        capsule_frame.setFixedSize(376, 40)
-        capsule_frame.setStyleSheet("""
-            QFrame {
-                background: #171B26;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 20px;
-            }
-        """)
-        capsule_layout = QHBoxLayout(capsule_frame)
-        capsule_layout.setContentsMargins(4, 4, 4, 4)
-        capsule_layout.setSpacing(4)
+        self.mode_capsule = CollapsibleModeCapsule(win_accent=self.win_accent)
+        self.mode_capsule.on_mode_changed = self.set_mode
+        self.mode_buttons = self.mode_capsule.mode_buttons
         
-        self.mode_buttons = []
-        modes = [
-            ("Flip Clock", 0),
-            ("Rotary Modern", 1),
-            ("Dino Runner", 2)
-        ]
-        for label, idx in modes:
-            btn = QPushButton(label)
-            btn.setCheckable(True)
-            btn.setFixedSize(118, 32)
-            btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-            btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setStyleSheet("""
-                QPushButton {
-                    background: transparent;
-                    color: #94A3B8;
-                    border: 1px solid transparent;
-                    border-radius: 16px;
-                    font-size: 11.5px;
-                    font-weight: 500;
-                    outline: none;
-                    font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
-                }
-                QPushButton:hover:!checked {
-                    color: #FFFFFF;
-                    background: rgba(255, 255, 255, 0.06);
-                    border-radius: 16px;
-                }
-                QPushButton:checked {
-                    background: #252B3B;
-                    color: #FFFFFF;
-                    font-weight: 600;
-                    border: 1px solid rgba(255, 255, 255, 0.16);
-                    border-radius: 16px;
-                }
-            """)
-            btn.clicked.connect(lambda checked, i=idx: self.set_mode(i))
-            capsule_layout.addWidget(btn)
-            self.mode_buttons.append(btn)
-            
-        capsule_row.addWidget(capsule_frame)
+        capsule_row.addWidget(self.mode_capsule)
         capsule_row.addStretch()
         root_layout.addLayout(capsule_row)
         
@@ -1954,10 +2114,13 @@ class SettingsDialog(QDialog):
         self.preview.update()
         if hasattr(self, 'stage_frame'):
             self.stage_frame.set_stage_theme(idx, self.config.get("accent_color", self.win_accent))
-        for i, btn in enumerate(self.mode_buttons):
-            btn.blockSignals(True)
-            btn.setChecked(i == idx)
-            btn.blockSignals(False)
+        if hasattr(self, 'mode_capsule'):
+            self.mode_capsule.set_current_mode(idx)
+        else:
+            for i, btn in enumerate(self.mode_buttons):
+                btn.blockSignals(True)
+                btn.setChecked(i == idx)
+                btn.blockSignals(False)
         self.pages.setCurrentIndex(idx)
         titles = ["Flip Clock", "Rotary Modern", "Dino Runner"]
         if idx < len(titles):
@@ -1984,6 +2147,8 @@ class SettingsDialog(QDialog):
         self.preview.set_accent_color(hex_code)
         if hasattr(self, 'stage_frame'):
             self.stage_frame.set_stage_theme(self.preview.clock_style, hex_code)
+        if hasattr(self, 'mode_capsule'):
+            self.mode_capsule.update_accent(hex_code)
         self.update_swatch_highlights()
 
 
