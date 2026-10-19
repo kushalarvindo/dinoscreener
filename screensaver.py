@@ -65,7 +65,7 @@ class CrispAestheticFlipClock(QWidget):
         self.live_weather = live_weather
         self.pixel_shift = pixel_shift
         self.primary_font = primary_font
-        self.primary_font_family = getattr(self, "primary_font_family", "Segoe UI Variable Text")
+        self.primary_font_family = ""
         
         self.character_type = character_type
         self.custom_character_image = custom_character_image
@@ -1202,6 +1202,25 @@ def get_or_create_fullscreen_duotone_icon(accent_hex):
     return QIcon(QPixmap.fromImage(img))
 
 
+def get_rounded_pixmap(src_path, size=36, radius=9):
+    pix = QPixmap(src_path)
+    if pix.isNull():
+        return QPixmap()
+    scaled = pix.scaled(size, size, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+    dest = QPixmap(size, size)
+    dest.fill(Qt.GlobalColor.transparent)
+    p = QPainter(dest)
+    p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+    path = QPainterPath()
+    path.addRoundedRect(QRectF(0, 0, size, size), radius, radius)
+    p.setClipPath(path)
+    ox = (size - scaled.width()) // 2
+    oy = (size - scaled.height()) // 2
+    p.drawPixmap(ox, oy, scaled)
+    p.end()
+    return dest
+
+
 class CollapsibleModeCapsule(QFrame):
     def __init__(self, win_accent="#0078D4", parent=None):
         super().__init__(parent)
@@ -1241,11 +1260,12 @@ class CollapsibleModeCapsule(QFrame):
         # --- Page 0: Collapsed Pill View ---
         self.collapsed_view = QWidget()
         col_layout = QHBoxLayout(self.collapsed_view)
-        col_layout.setContentsMargins(14, 0, 12, 0)
+        col_layout.setContentsMargins(12, 0, 12, 0)
         col_layout.setSpacing(8)
         
-        self.lbl_dot = QLabel("●")
-        self.lbl_dot.setStyleSheet(f"color: {self.win_accent}; font-size: 8px;")
+        self.dot_left = QFrame()
+        self.dot_left.setFixedSize(5, 5)
+        self.dot_left.setStyleSheet(f"background-color: {self.win_accent}; border-radius: 2px;")
         
         self.lbl_mode_name = QLabel("Flip Clock")
         self.lbl_mode_name.setStyleSheet("""
@@ -1255,13 +1275,14 @@ class CollapsibleModeCapsule(QFrame):
             font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
         """)
         
-        self.lbl_chevron = QLabel("▾")
-        self.lbl_chevron.setStyleSheet("color: #94A3B8; font-size: 11px; margin-top: -1px;")
+        self.dot_right = QFrame()
+        self.dot_right.setFixedSize(5, 5)
+        self.dot_right.setStyleSheet(f"background-color: {self.win_accent}; border-radius: 2px;")
         
         col_layout.addStretch()
-        col_layout.addWidget(self.lbl_dot)
-        col_layout.addWidget(self.lbl_mode_name)
-        col_layout.addWidget(self.lbl_chevron)
+        col_layout.addWidget(self.dot_left, alignment=Qt.AlignmentFlag.AlignVCenter)
+        col_layout.addWidget(self.lbl_mode_name, alignment=Qt.AlignmentFlag.AlignVCenter)
+        col_layout.addWidget(self.dot_right, alignment=Qt.AlignmentFlag.AlignVCenter)
         col_layout.addStretch()
         
         self.stack.addWidget(self.collapsed_view)
@@ -1330,6 +1351,21 @@ class CollapsibleModeCapsule(QFrame):
         self._current_mode = idx
         if 0 <= idx < len(self._modes):
             self.lbl_mode_name.setText(self._modes[idx][0])
+            
+        # Paging indicator dots based on active mode position:
+        # idx == 0 (Flip Clock, leftmost): only dot on the right side
+        # idx == 1 (Rotary Modern, middle): small dots on either sides
+        # idx == 2 (Dino Runner, rightmost): only dot on the left side
+        if idx == 0:
+            self.dot_left.setVisible(False)
+            self.dot_right.setVisible(True)
+        elif idx == 1:
+            self.dot_left.setVisible(True)
+            self.dot_right.setVisible(True)
+        else: # idx == 2
+            self.dot_left.setVisible(True)
+            self.dot_right.setVisible(False)
+            
         for i, btn in enumerate(self.mode_buttons):
             btn.blockSignals(True)
             btn.setChecked(i == idx)
@@ -1337,7 +1373,11 @@ class CollapsibleModeCapsule(QFrame):
 
     def update_accent(self, accent_hex):
         self.win_accent = accent_hex
-        self.lbl_dot.setStyleSheet(f"color: {accent_hex}; font-size: 8px;")
+        dot_style = f"background-color: {accent_hex}; border-radius: 2px;"
+        if hasattr(self, 'dot_left'):
+            self.dot_left.setStyleSheet(dot_style)
+        if hasattr(self, 'dot_right'):
+            self.dot_right.setStyleSheet(dot_style)
 
     def select_mode(self, idx):
         self.set_current_mode(idx)
@@ -1754,9 +1794,24 @@ class SettingsDialog(QDialog):
         root_layout.setContentsMargins(18, 12, 18, 12)
         root_layout.setSpacing(8)
         
-        # 1. TOP HEADER (Clean branding with App Icon holder on the right)
+        # 1. TOP HEADER (App Branding with Logo on the left)
         header_row = QHBoxLayout()
         header_row.setContentsMargins(2, 0, 2, 0)
+        header_row.setSpacing(10)
+        
+        lbl_logo = QLabel()
+        lbl_logo.setFixedSize(36, 36)
+        lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lbl_logo.setStyleSheet("""
+            QLabel {
+                background: transparent;
+                border: 1px solid rgba(255, 255, 255, 0.16);
+                border-radius: 9px;
+            }
+        """)
+        if hasattr(self, 'logo_path') and os.path.exists(self.logo_path):
+            lbl_logo.setPixmap(get_rounded_pixmap(self.logo_path, size=36, radius=9))
+        header_row.addWidget(lbl_logo, alignment=Qt.AlignmentFlag.AlignVCenter)
         
         brand_box = QVBoxLayout()
         brand_box.setSpacing(1)
@@ -1768,25 +1823,6 @@ class SettingsDialog(QDialog):
         brand_box.addWidget(lbl_app_sub)
         header_row.addLayout(brand_box)
         header_row.addStretch()
-        
-        logo_frame = QFrame()
-        logo_frame.setFixedSize(38, 38)
-        logo_frame.setStyleSheet("""
-            QFrame {
-                background: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 10px;
-            }
-        """)
-        logo_box = QVBoxLayout(logo_frame)
-        logo_box.setContentsMargins(3, 3, 3, 3)
-        lbl_logo = QLabel()
-        lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        if hasattr(self, 'logo_path') and os.path.exists(self.logo_path):
-            pix = QPixmap(self.logo_path).scaled(32, 32, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-            lbl_logo.setPixmap(pix)
-        logo_box.addWidget(lbl_logo)
-        header_row.addWidget(logo_frame, alignment=Qt.AlignmentFlag.AlignVCenter)
         root_layout.addLayout(header_row)
         
         # 2. 16:9 WIDESCREEN PREVIEW STAGE (Authentic Monitor Aspect Ratio)
