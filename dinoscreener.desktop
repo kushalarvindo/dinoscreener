@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Name=Dinoscreener
+Comment=Aesthetic Retro Dino & Minimalist Flip Clock Screensaver
+Exec=dinoscreener
+Icon=dinoscreener
+Categories=Utility;Screensaver;
+Terminal=false
+StartupNotify=true
+Actions=Fullscreen;Settings;
+
+[Desktop Action Fullscreen]
+Name=Launch Screensaver (Fullscreen)
+Exec=dinoscreener --fullscreen
+
+[Desktop Action Settings]
+Name=Screensaver Settings
+Exec=dinoscreener --settings

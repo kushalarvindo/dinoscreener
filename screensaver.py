@@ -629,27 +629,44 @@ class CrispAestheticFlipClock(QWidget):
             bat_text = "100%"
             bat_val = 100
             is_charging = False
-            try:
-                class SYSTEM_POWER_STATUS(ctypes.Structure):
-                    _fields_ = [
-                        ('ACLineStatus', ctypes.c_byte),
-                        ('BatteryFlag', ctypes.c_byte),
-                        ('BatteryLifePercent', ctypes.c_byte),
-                        ('SystemStatusFlag', ctypes.c_byte),
-                        ('BatteryLifeTime', ctypes.c_ulong),
-                        ('BatteryFullLifeTime', ctypes.c_ulong),
-                    ]
-                sys_pwr = SYSTEM_POWER_STATUS()
-                ctypes.windll.kernel32.GetSystemPowerStatus(ctypes.byref(sys_pwr))
-                if sys_pwr.BatteryLifePercent == 255:
-                    bat_text = "PWR"
-                else:
-                    bat_text = f"{sys_pwr.BatteryLifePercent}%"
-                    bat_val = sys_pwr.BatteryLifePercent
-                    if sys_pwr.ACLineStatus == 1:
-                        is_charging = True
-            except Exception:
-                pass
+            if sys.platform.startswith("win32"):
+                try:
+                    class SYSTEM_POWER_STATUS(ctypes.Structure):
+                        _fields_ = [
+                            ('ACLineStatus', ctypes.c_byte),
+                            ('BatteryFlag', ctypes.c_byte),
+                            ('BatteryLifePercent', ctypes.c_byte),
+                            ('SystemStatusFlag', ctypes.c_byte),
+                            ('BatteryLifeTime', ctypes.c_ulong),
+                            ('BatteryFullLifeTime', ctypes.c_ulong),
+                        ]
+                    sys_pwr = SYSTEM_POWER_STATUS()
+                    ctypes.windll.kernel32.GetSystemPowerStatus(ctypes.byref(sys_pwr))
+                    if sys_pwr.BatteryLifePercent == 255:
+                        bat_text = "PWR"
+                    else:
+                        bat_text = f"{sys_pwr.BatteryLifePercent}%"
+                        bat_val = sys_pwr.BatteryLifePercent
+                        if sys_pwr.ACLineStatus == 1:
+                            is_charging = True
+                except Exception:
+                    pass
+            elif sys.platform.startswith("linux"):
+                try:
+                    import glob
+                    bat_paths = glob.glob("/sys/class/power_supply/BAT*")
+                    if bat_paths:
+                        cap_file = os.path.join(bat_paths[0], "capacity")
+                        status_file = os.path.join(bat_paths[0], "status")
+                        if os.path.exists(cap_file):
+                            with open(cap_file, "r") as f:
+                                bat_val = int(f.read().strip())
+                                bat_text = f"{bat_val}%"
+                        if os.path.exists(status_file):
+                            with open(status_file, "r") as f:
+                                is_charging = (f.read().strip().lower() == "charging")
+                except Exception:
+                    pass
                 
             bat_icon_w = w * 0.019
             bat_icon_h = h * 0.015
@@ -2623,19 +2640,29 @@ if __name__ == '__main__':
         font_path = os.path.join(sys._MEIPASS, "Bungee-Regular.ttf")
     QFontDatabase.addApplicationFont(font_path)
     
-    # Parse Windows screensaver arguments manually
-    # Windows passes things like '/c', '/p65535', or '/s'
-    mode = 's'
+    # Parse CLI arguments for Windows & Linux
+    # Windows passes: '/c', '/p65535', or '/s'
+    # Linux / standard CLI passes: '--settings', '--config', '-c', '--fullscreen', '-s'
+    # If no arguments are passed on Linux desktop, default to Settings Dialog ('c')
+    # If Windows screensaver idle invokes with '/s', run fullscreen ('s')
+    mode = 'c' if (sys.platform.startswith("linux") and len(sys.argv) == 1) else 's'
     for arg in sys.argv[1:]:
         arg_lower = arg.lower()
-        if arg_lower.startswith('/c') or arg_lower.startswith('-c'):
+        if arg_lower in ('/c', '-c', '--c', '--config', '--settings', '-settings', 'config', 'settings'):
+            mode = 'c'
+        elif arg_lower.startswith('/c') or arg_lower.startswith('-c'):
             mode = 'c'
         elif arg_lower.startswith('/p') or arg_lower.startswith('-p'):
             mode = 'p'
+        elif arg_lower in ('/s', '-s', '--s', '--fullscreen', '-fullscreen', 'fullscreen'):
+            mode = 's'
         elif arg_lower.startswith('/s') or arg_lower.startswith('-s'):
             mode = 's'
             
-    config_dir = os.path.join(os.environ.get('APPDATA', os.path.expanduser('~')), 'Dinoscreener')
+    if sys.platform.startswith("linux"):
+        config_dir = os.path.join(os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config')), 'dinoscreener')
+    else:
+        config_dir = os.path.join(os.environ.get('APPDATA', os.path.expanduser('~')), 'Dinoscreener')
     config_path = os.path.join(config_dir, 'config.json')
     
     if mode == 'c':

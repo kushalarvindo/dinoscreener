@@ -1,6 +1,6 @@
 <div align="center">
   <h1>🦕 Dinoscreener</h1>
-  <p><strong>A stunning, ultra-minimalist modern clock screensaver suite for Windows.</strong></p>
+  <p><strong>A stunning, ultra-minimalist modern clock screensaver suite for Windows & Linux.</strong></p>
   <p>Featuring <strong>Modern Rotary</strong>, <strong>Classic Flip Clock</strong>, and <strong>Chrome Dino Runner</strong> with custom typography & sprite imports.</p>
 </div>
 
@@ -62,7 +62,8 @@ While the screensaver is running, you can use these keyboard shortcuts to modify
 
 ## 🚀 Quick Setup (Pre-Compiled)
 
-1. Download the latest **`Dinoscreener.scr`** from this repository (or from the [Releases](https://github.com/kushalarvindo/dinoscreener/releases) page).
+### 🪟 Windows Setup
+1. Download the latest **`Dinoscreener.scr`** (or `Dinoscreener.exe`) from the [Releases](https://github.com/kushalarvindo/dinoscreener/releases) page.
 2. Right-click on **`Dinoscreener.scr`**.
 3. Select **Install**.
 4. The Windows Screen Saver Settings dialog will open. Click **Settings...** to customize your modes, fonts, and display preferences!
@@ -71,6 +72,19 @@ While the screensaver is running, you can use these keyboard shortcuts to modify
 > **Windows Defender False Positive**  
 > Because `Dinoscreener.scr` is compiled into a standalone executable using PyInstaller without an expensive commercial code-signing certificate, Windows Defender might occasionally flag it as an unrecognized binary (`Trojan:Win32/Wacatac.B!ml`).  
 > **This is a false positive.** The entire codebase is open source and transparent. You can inspect the source code or compile it yourself using the instructions below. To allow it, select **Allow on device** in Windows Security.
+
+### 🐧 Linux Setup
+1. Download **`dinoscreener-linux-x86_64.tar.gz`** from the [Releases](https://github.com/kushalarvindo/dinoscreener/releases) page.
+2. Extract the archive and run the installer:
+   ```bash
+   tar -xzvf dinoscreener-linux-x86_64.tar.gz
+   cd dinoscreener
+   chmod +x install-linux.sh
+   ./install-linux.sh
+   ```
+3. Launch **Dinoscreener** from your application menu, or run from the command line:
+   - `./dinoscreener` or `dinoscreener --settings` $\rightarrow$ Opens the visual settings studio.
+   - `dinoscreener --fullscreen` or `dinoscreener -s` $\rightarrow$ Launches the screensaver directly in fullscreen.
 
 ---
 
@@ -82,31 +96,24 @@ If you prefer building the binary directly from source:
 - Python 3.10+
 - `pip` package manager
 
-### Build Steps
-1. **Clone the repository**:
-   ```cmd
-   git clone https://github.com/kushalarvindo/dinoscreener.git
-   cd dinoscreener
-   ```
+### Windows Build Steps
+```cmd
+git clone https://github.com/kushalarvindo/dinoscreener.git
+cd dinoscreener
+pip install PyQt6 pillow pyinstaller
+pyinstaller Dinoscreener.spec --noconfirm
+copy /y dist\Dinoscreener.exe Dinoscreener.scr
+```
 
-2. **Install required dependencies**:
-   ```cmd
-   pip install PyQt6 pyinstaller
-   ```
-
-3. **Build using PyInstaller**:
-   ```cmd
-   pyinstaller Dinoscreener.spec --noconfirm
-   ```
-
-4. **Convert to `.scr`**:
-   Copy the compiled executable to `Dinoscreener.scr`:
-   ```cmd
-   copy /y dist\Dinoscreener.exe Dinoscreener.scr
-   ```
-
-5. **Install**:
-   Right-click `Dinoscreener.scr` and click **Install**.
+### Linux Build Steps
+```bash
+git clone https://github.com/kushalarvindo/dinoscreener.git
+cd dinoscreener
+pip install PyQt6 pillow pyinstaller
+pyinstaller --noconfirm --onefile --windowed --add-data "Bungee-Regular.ttf:." --add-data "app_icon.png:." --name dinoscreener screensaver.py
+chmod +x dist/dinoscreener
+./dist/dinoscreener --settings
+```
 
 ---
 

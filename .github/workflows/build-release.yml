@@ -1,0 +1,133 @@
+name: Build and Release Dinoscreener
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows (.exe, .scr)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyQt6 pillow pyinstaller
+
+      - name: Build Windows Executable
+        run: |
+          pyinstaller Dinoscreener.spec --noconfirm
+          Copy-Item "dist\Dinoscreener.exe" -Destination "Dinoscreener.scr" -Force
+          Compress-Archive -Path "dist\Dinoscreener.exe", "Dinoscreener.scr", "README.md", "app_icon.png" -DestinationPath "Dinoscreener-Windows.zip"
+
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-binaries
+          path: |
+            dist/Dinoscreener.exe
+            Dinoscreener.scr
+            Dinoscreener-Windows.zip
+
+  build-linux:
+    name: Build Linux (x86_64 ELF)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Qt6 Linux system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libegl1 \
+            libgl1-mesa-glx \
+            libxkbcommon-x11-0 \
+            libdbus-1-3 \
+            libxcb-cursor0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-randr0 \
+            libxcb-render-util0 \
+            libxcb-shape0 \
+            libxcb-xfixes0 \
+            libxcb-xinerama0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyQt6 pillow pyinstaller
+
+      - name: Build Linux Standalone Executable
+        run: |
+          pyinstaller \
+            --noconfirm \
+            --onefile \
+            --windowed \
+            --add-data "Bungee-Regular.ttf:." \
+            --add-data "app_icon.png:." \
+            --name dinoscreener \
+            screensaver.py
+
+          chmod +x dist/dinoscreener
+          cp dist/dinoscreener dinoscreener-linux-x86_64
+
+          mkdir -p dist-linux/dinoscreener
+          cp dist/dinoscreener dist-linux/dinoscreener/
+          cp app_icon.png dist-linux/dinoscreener/
+          cp dinoscreener.desktop dist-linux/dinoscreener/
+          cp install-linux.sh dist-linux/dinoscreener/
+          cp README.md dist-linux/dinoscreener/
+          chmod +x dist-linux/dinoscreener/install-linux.sh
+          chmod +x dist-linux/dinoscreener/dinoscreener
+
+          tar -czvf dinoscreener-linux-x86_64.tar.gz -C dist-linux dinoscreener
+
+      - name: Upload Linux Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-binaries
+          path: |
+            dinoscreener-linux-x86_64
+            dinoscreener-linux-x86_64.tar.gz
+
+  create-release:
+    name: Publish Release
+    needs: [build-windows, build-linux]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all built artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            windows-binaries/Dinoscreener.scr
+            windows-binaries/Dinoscreener.exe
+            windows-binaries/Dinoscreener-Windows.zip
+            linux-binaries/dinoscreener-linux-x86_64
+            linux-binaries/dinoscreener-linux-x86_64.tar.gz
+          generate_release_notes: true
