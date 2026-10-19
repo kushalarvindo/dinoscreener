@@ -35,12 +35,13 @@ Dinoscreener features three distinct, meticulously crafted clock styles. Switch 
 </div>
 
 - **16:9 Authentic Widescreen Preview**: Real-time live canvas displaying exact font scaling, sprite styling, and visual luminance before applying.
-- **Collapsible Mode Switcher Pill**: A minimalist capsule indicator that automatically expands on hover into a floating segmented pill switcher.
-- **Windows 11 Dynamic Accent Color**: Automatically reads your Windows 11 accent color (`DWM / AccentColorMenu`) and harmonizes buttons, sliders, and checkboxes with your desktop theme.
+- **Collapsible Mode Switcher Pill**: A minimalist capsule indicator that automatically expands on hover into a floating segmented pill switcher with comfortable vertical padding.
+- **Windows 11 Dynamic Accent Color**: Automatically reads your Windows 11 accent color (`DWM / AccentColorMenu`) and harmonizes buttons, sliders, duotone icons, and checkboxes with your desktop theme.
 - **Custom Typography & Sprite Engine**: Simply **drag and drop** any `.ttf` / `.otf` font file or `.png` / `.jpg` sprite image directly onto the window to customize clock numbers or character sprites. Revert anytime with one click.
+- **Ambient Lighting Mode**: Soft, silky background glow orbs that can be toggled via the settings menu or instantly with the **Spacebar**.
 - **Tactile Luminance & Scale Controls**: Full-width brightness slider (10% to 100%) and interactive scale slider with tactile `-` / `+` micro-adjusters.
 - **OLED Burn-in Protection**: Automatic subtle pixel-shifting algorithm prevents burn-in on OLED and AMOLED panels.
-- **Telemetry & Weather**: Real-time temperature & weather feed via Open-Meteo alongside battery level and charging indicators.
+- **Independent Telemetry & Weather Feeds**: Toggle Weather and Battery displays independently (centered alone or joined with a separator dot), and toggle between Celsius (`°C`) and Fahrenheit (`°F`).
 - **Strict Exit & System Intercepts**:
   - **Lock Screen on Exit (`Ctrl + Z`)**: Keeps the screensaver active even on mouse movement; requires `Ctrl + Z` to unlock.
   - **Ignore Media Keys**: Prevents volume knobs or Spotify track changes from prematurely closing the screensaver.
@@ -52,6 +53,7 @@ Dinoscreener features three distinct, meticulously crafted clock styles. Switch 
 
 While the screensaver is running, you can use these keyboard shortcuts to modify it in real time:
 
+- **`Spacebar`**: Toggle Ambient Mode glow orbs (or restart Dino game after Game Over).
 - **`Arrow Up` / `Arrow Down`**: Toggle between Flip Clock, Rotary Modern, and Chrome Dino clock styles.
 - **`+` (Plus) / `-` (Minus)**: Scale the clock size up or down in real time.
 - **`Ctrl + Z`**: Unlock / exit the screensaver when "Lock Screen on Exit" (Strict Exit) is enabled.

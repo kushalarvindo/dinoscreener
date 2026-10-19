@@ -5,12 +5,12 @@ import json
 import os
 import random
 from PyQt6.QtWidgets import QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider, QFileDialog, QStackedWidget, QFrame, QGridLayout, QComboBox, QFontComboBox, QStackedLayout, QGraphicsOpacityEffect
-from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate, QPointF, QByteArray, QThread, pyqtSignal, QPropertyAnimation, QEasingCurve, pyqtProperty, QParallelAnimationGroup
-from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath, QFontDatabase, QPixmap, QImage
+from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate, QPointF, QByteArray, QThread, pyqtSignal, QPropertyAnimation, QEasingCurve, pyqtProperty, QParallelAnimationGroup, QSize
+from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath, QFontDatabase, QPixmap, QImage, QIcon
 
 SPRITE_B64 = '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'
 class CrispAestheticFlipClock(QWidget):
-    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zeros=None, config_path=None, full_config=None, ignore_media_keys=False, dino_font="Bungee", live_weather=False, pixel_shift=False, primary_font="", character_type="dino", custom_character_image=""):
+    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zeros=None, config_path=None, full_config=None, ignore_media_keys=False, dino_font="Bungee", live_weather=False, pixel_shift=False, primary_font="", character_type="dino", custom_character_image="", show_weather=True, show_battery=True, use_fahrenheit=False, ambient_mode=False):
         super().__init__()
         self.last_pos = None
         self.clock_scales = clock_scales if clock_scales else {"0": 0.45, "1": 0.45, "2": 0.45}
@@ -26,8 +26,8 @@ class CrispAestheticFlipClock(QWidget):
         self.scale_callback = None
         
         # States
-        self.show_bg = False
-        self.bg_opacity = 0.0
+        self.show_bg = ambient_mode
+        self.bg_opacity = 1.0 if ambient_mode else 0.0
         self.clock_style = clock_style
         
         # Dino Game State
@@ -48,7 +48,9 @@ class CrispAestheticFlipClock(QWidget):
         self.enable_win_key = enable_win_key
         self.strict_exit = strict_exit
         self.show_info = show_info
-        self.preview_mode = preview_mode
+        self.show_weather = show_weather
+        self.show_battery = show_battery
+        self.use_fahrenheit = use_fahrenheit
         self.preview_mode = preview_mode
         self.brightness = brightness
         self.use_24hr = use_24hr
@@ -63,7 +65,7 @@ class CrispAestheticFlipClock(QWidget):
         self.live_weather = live_weather
         self.pixel_shift = pixel_shift
         self.primary_font = primary_font
-        self.primary_font_family = getattr(self, "primary_font_family", "Google Sans")
+        self.primary_font_family = getattr(self, "primary_font_family", "Segoe UI Variable Text")
         
         self.character_type = character_type
         self.custom_character_image = custom_character_image
@@ -82,7 +84,7 @@ class CrispAestheticFlipClock(QWidget):
                     if families:
                         self.primary_font_family = families[0]
                         
-        self.weather_temp = 72
+        self.weather_temp = 24
         self.weather_code = 0  # 0 is clear sky
         self.weather_loaded = False
         
@@ -593,85 +595,37 @@ class CrispAestheticFlipClock(QWidget):
         painter.setPen(pure_white)
         painter.drawText(QRectF(date_x, offset_y - h * 0.01, box_w, h * 0.08), Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str_2)
         
-        if self.show_info:
-            # Unified Weather & Battery Display
-            info_y = offset_y + h * 0.05 # Reduced spacing (closer to date)
+        show_w = getattr(self, 'show_weather', True)
+        show_b = getattr(self, 'show_battery', True)
+        use_f = getattr(self, 'use_fahrenheit', False)
+        
+        if self.show_info and (show_w or show_b):
+            info_y = offset_y + h * 0.05
             info_h = h * 0.04
             
-            # Center dot
-            font_info = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
+            font_info = QFont(["Segoe UI Variable Text", "Segoe UI", "Arial"])
             font_info.setPixelSize(int(h * 0.016))
             font_info.setWeight(QFont.Weight.Medium)
             font_info.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 1.0)
+            font_info.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.PreferQuality)
             painter.setFont(font_info)
-            painter.setPen(QColor(120, 125, 130))
-            painter.drawText(QRectF(center_x - w*0.01, info_y, w*0.02, info_h), Qt.AlignmentFlag.AlignCenter, "\u2022")
-            
-            # Weather
-            weather_text = f"{getattr(self, 'weather_temp', 26)}\u00B0C" if getattr(self, "live_weather", False) else "26\u00B0C"
             fm = painter.fontMetrics()
-            w_text_width = fm.horizontalAdvance(weather_text)
             
-            weather_end = center_x - w * 0.02 # Pushed out a bit
-            weather_text_x = weather_end - w_text_width
-            
-            # Dynamic Weather Icon
-            emoji_w = w * 0.012
-            weather_icon_x = weather_text_x - emoji_w - w * 0.003
-            
-            painter.save()
-            painter.translate(weather_icon_x + emoji_w/2, info_y + info_h/2)
-            w_icon_size = h * 0.016
-            painter.setPen(Qt.PenStyle.NoPen)
-            
-            code = getattr(self, 'weather_code', 0) if getattr(self, "live_weather", False) else 0
-            
-            # WMO Code Mapping
-            if code in [0, 1]: # Clear / Mostly Clear
-                painter.setBrush(QColor(255, 210, 80)) # Sun
-                painter.drawEllipse(QRectF(-w_icon_size*0.4, -w_icon_size*0.4, w_icon_size*0.8, w_icon_size*0.8))
-            elif code in [2, 3, 45, 48]: # Cloudy / Fog
-                painter.setBrush(QColor(180, 190, 200)) # Cloud
-                painter.drawEllipse(QRectF(-w_icon_size*0.4, -w_icon_size*0.2, w_icon_size*0.8, w_icon_size*0.5))
-                painter.drawEllipse(QRectF(-w_icon_size*0.2, -w_icon_size*0.4, w_icon_size*0.5, w_icon_size*0.5))
-            elif 50 <= code <= 67 or 80 <= code <= 82: # Rain
-                painter.setBrush(QColor(100, 150, 255)) # Raindrop
-                path = QPainterPath()
-                path.moveTo(0, -w_icon_size*0.4)
-                path.lineTo(-w_icon_size*0.3, w_icon_size*0.1)
-                path.arcTo(QRectF(-w_icon_size*0.3, -w_icon_size*0.2, w_icon_size*0.6, w_icon_size*0.6), 180, 180)
-                path.closeSubpath()
-                painter.drawPath(path)
-            elif 70 <= code <= 77 or 85 <= code <= 86: # Snow
-                painter.setPen(QPen(QColor(255, 255, 255), 2))
-                painter.drawLine(int(-w_icon_size*0.3), 0, int(w_icon_size*0.3), 0)
-                painter.drawLine(0, int(-w_icon_size*0.3), 0, int(w_icon_size*0.3))
-                painter.drawLine(int(-w_icon_size*0.2), int(-w_icon_size*0.2), int(w_icon_size*0.2), int(w_icon_size*0.2))
-                painter.drawLine(int(-w_icon_size*0.2), int(w_icon_size*0.2), int(w_icon_size*0.2), int(-w_icon_size*0.2))
-            elif 95 <= code <= 99: # Thunder
-                painter.setBrush(QColor(200, 100, 255))
-                path = QPainterPath()
-                path.moveTo(0, -w_icon_size*0.4)
-                path.lineTo(-w_icon_size*0.3, w_icon_size*0.1)
-                path.lineTo(0, 0)
-                path.lineTo(0, w_icon_size*0.4)
-                path.lineTo(w_icon_size*0.3, -w_icon_size*0.1)
-                path.lineTo(0, 0)
-                path.closeSubpath()
-                painter.drawPath(path)
+            # Weather text
+            c_temp = getattr(self, 'weather_temp', 24)
+            if use_f:
+                f_temp = int(c_temp * 9 / 5 + 32)
+                weather_text = f"{f_temp}\u00B0F"
             else:
-                # Default Sun
-                painter.setBrush(QColor(255, 210, 80))
-                painter.drawEllipse(QRectF(-w_icon_size*0.4, -w_icon_size*0.4, w_icon_size*0.8, w_icon_size*0.8))
+                weather_text = f"{c_temp}\u00B0C"
                 
-            painter.restore()
+            w_text_width = fm.horizontalAdvance(weather_text)
+            emoji_w = w * 0.012
+            w_gap = w * 0.004
+            weather_total_w = emoji_w + w_gap + w_text_width
+            w_icon_size = h * 0.016
             
-            # Weather Temp
-            painter.setFont(font_info)
-            painter.setPen(QColor(230, 235, 240)) # Crisp almost white
-            painter.drawText(QRectF(weather_text_x, info_y, w_text_width, info_h), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, weather_text)
-            
-            # Battery
+            # Battery text & status
             bat_text = "100%"
             bat_val = 100
             is_charging = False
@@ -697,55 +651,118 @@ class CrispAestheticFlipClock(QWidget):
             except Exception:
                 pass
                 
-            bat_start = center_x + w * 0.02
             bat_icon_w = w * 0.019
             bat_icon_h = h * 0.015
-            bat_icon_x = bat_start
-            bat_text_x = bat_icon_x + bat_icon_w + w * 0.005
+            b_gap = w * 0.005
+            bat_text_w = fm.horizontalAdvance(bat_text)
+            battery_total_w = bat_icon_w + b_gap + bat_text_w
             bat_icon_y = info_y + info_h/2 - bat_icon_h/2
             
-            # Professional Battery Shell (White, solid border)
-            painter.setPen(QPen(QColor(255, 255, 255), 1.5))
-            painter.setBrush(Qt.BrushStyle.NoBrush)
-            painter.drawRoundedRect(QRectF(bat_icon_x, bat_icon_y, bat_icon_w, bat_icon_h), 2, 2)
-            # Battery Cap
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QColor(255, 255, 255))
-            painter.drawRoundedRect(QRectF(bat_icon_x + bat_icon_w + 1.5, bat_icon_y + bat_icon_h*0.3, w*0.0015, bat_icon_h*0.4), 1, 1)
-            
-            # Battery Fill
-            fill_margin = 2.5
-            fill_w = (bat_icon_w - fill_margin * 2) * (bat_val / 100.0)
-            fill_h = bat_icon_h - fill_margin * 2
-            if bat_val <= 20:
-                painter.setBrush(QColor(255, 80, 80)) # Red alert
-            else:
-                painter.setBrush(QColor(160, 230, 160)) # Professional light green
-            if fill_w > 0:
-                painter.drawRoundedRect(QRectF(bat_icon_x + fill_margin, bat_icon_y + fill_margin, fill_w, fill_h), 1, 1)
-            
-            if is_charging:
+            # Coordinate layout
+            if show_w and show_b:
+                weather_icon_x = center_x - w * 0.02 - weather_total_w
+                weather_text_x = weather_icon_x + emoji_w + w_gap
+                bat_icon_x = center_x + w * 0.02
+                bat_text_x = bat_icon_x + bat_icon_w + b_gap
+                
+                # Center separator dot
+                painter.setPen(QColor(120, 125, 130))
+                painter.drawText(QRectF(center_x - w*0.01, info_y, w*0.02, info_h), Qt.AlignmentFlag.AlignCenter, "\u2022")
+            elif show_w:
+                weather_icon_x = center_x - weather_total_w / 2
+                weather_text_x = weather_icon_x + emoji_w + w_gap
+            elif show_b:
+                bat_icon_x = center_x - battery_total_w / 2
+                bat_text_x = bat_icon_x + bat_icon_w + b_gap
+                
+            # Render Weather
+            if show_w:
                 painter.save()
-                painter.translate(bat_icon_x + bat_icon_w/2, bat_icon_y + bat_icon_h/2)
-                bolt = QPainterPath()
-                bw = bat_icon_w * 0.15
-                bh = bat_icon_h * 0.35
-                bolt.moveTo(bw*0.3, -bh)
-                bolt.lineTo(-bw*0.8, 0)
-                bolt.lineTo(0, 0)
-                bolt.lineTo(-bw*0.3, bh)
-                bolt.lineTo(bw*0.8, 0)
-                bolt.lineTo(0, 0)
-                bolt.closeSubpath()
-                painter.setBrush(QColor(255, 255, 255)) # Pure white bolt
+                painter.translate(weather_icon_x + emoji_w/2, info_y + info_h/2)
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.drawPath(bolt)
+                code = getattr(self, 'weather_code', 0) if getattr(self, "live_weather", False) else 0
+                if code in [0, 1]:
+                    painter.setBrush(QColor(255, 210, 80))
+                    painter.drawEllipse(QRectF(-w_icon_size*0.4, -w_icon_size*0.4, w_icon_size*0.8, w_icon_size*0.8))
+                elif code in [2, 3, 45, 48]:
+                    painter.setBrush(QColor(180, 190, 200))
+                    painter.drawEllipse(QRectF(-w_icon_size*0.4, -w_icon_size*0.2, w_icon_size*0.8, w_icon_size*0.5))
+                    painter.drawEllipse(QRectF(-w_icon_size*0.2, -w_icon_size*0.4, w_icon_size*0.5, w_icon_size*0.5))
+                elif 50 <= code <= 67 or 80 <= code <= 82:
+                    painter.setBrush(QColor(100, 150, 255))
+                    path = QPainterPath()
+                    path.moveTo(0, -w_icon_size*0.4)
+                    path.lineTo(-w_icon_size*0.3, w_icon_size*0.1)
+                    path.arcTo(QRectF(-w_icon_size*0.3, -w_icon_size*0.2, w_icon_size*0.6, w_icon_size*0.6), 180, 180)
+                    path.closeSubpath()
+                    painter.drawPath(path)
+                elif 70 <= code <= 77 or 85 <= code <= 86:
+                    painter.setPen(QPen(QColor(255, 255, 255), 2))
+                    painter.drawLine(int(-w_icon_size*0.3), 0, int(w_icon_size*0.3), 0)
+                    painter.drawLine(0, int(-w_icon_size*0.3), 0, int(w_icon_size*0.3))
+                    painter.drawLine(int(-w_icon_size*0.2), int(-w_icon_size*0.2), int(w_icon_size*0.2), int(w_icon_size*0.2))
+                    painter.drawLine(int(-w_icon_size*0.2), int(w_icon_size*0.2), int(w_icon_size*0.2), int(-w_icon_size*0.2))
+                elif 95 <= code <= 99:
+                    painter.setBrush(QColor(200, 100, 255))
+                    path = QPainterPath()
+                    path.moveTo(0, -w_icon_size*0.4)
+                    path.lineTo(-w_icon_size*0.3, w_icon_size*0.1)
+                    path.lineTo(0, 0)
+                    path.lineTo(0, w_icon_size*0.4)
+                    path.lineTo(w_icon_size*0.3, -w_icon_size*0.1)
+                    path.lineTo(0, 0)
+                    path.closeSubpath()
+                    painter.drawPath(path)
+                else:
+                    painter.setBrush(QColor(255, 210, 80))
+                    painter.drawEllipse(QRectF(-w_icon_size*0.4, -w_icon_size*0.4, w_icon_size*0.8, w_icon_size*0.8))
                 painter.restore()
                 
-            painter.setFont(font_info)
-            painter.setPen(QColor(230, 235, 240))
-            # Align text exactly with the battery icon height
-            painter.drawText(QRectF(bat_text_x, bat_icon_y, w*0.1, bat_icon_h), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, bat_text)
+                painter.setFont(font_info)
+                painter.setPen(QColor(230, 235, 240))
+                painter.drawText(QRectF(weather_text_x, info_y, w_text_width, info_h), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, weather_text)
+                
+            # Render Battery
+            if show_b:
+                painter.setPen(QPen(QColor(255, 255, 255), 1.5))
+                painter.setBrush(Qt.BrushStyle.NoBrush)
+                painter.drawRoundedRect(QRectF(bat_icon_x, bat_icon_y, bat_icon_w, bat_icon_h), 2, 2)
+                
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(QColor(255, 255, 255))
+                painter.drawRoundedRect(QRectF(bat_icon_x + bat_icon_w + 1.5, bat_icon_y + bat_icon_h*0.3, w*0.0015, bat_icon_h*0.4), 1, 1)
+                
+                fill_margin = 2.5
+                fill_w = (bat_icon_w - fill_margin * 2) * (bat_val / 100.0)
+                fill_h = bat_icon_h - fill_margin * 2
+                if bat_val <= 20:
+                    painter.setBrush(QColor(255, 80, 80))
+                else:
+                    painter.setBrush(QColor(160, 230, 160))
+                if fill_w > 0:
+                    painter.drawRoundedRect(QRectF(bat_icon_x + fill_margin, bat_icon_y + fill_margin, fill_w, fill_h), 1, 1)
+                
+                if is_charging:
+                    painter.save()
+                    painter.translate(bat_icon_x + bat_icon_w/2, bat_icon_y + bat_icon_h/2)
+                    bolt = QPainterPath()
+                    bw = bat_icon_w * 0.15
+                    bh = bat_icon_h * 0.35
+                    bolt.moveTo(bw*0.3, -bh)
+                    bolt.lineTo(-bw*0.8, 0)
+                    bolt.lineTo(0, 0)
+                    bolt.lineTo(-bw*0.3, bh)
+                    bolt.lineTo(bw*0.8, 0)
+                    bolt.lineTo(0, 0)
+                    bolt.closeSubpath()
+                    painter.setBrush(QColor(255, 255, 255))
+                    painter.setPen(Qt.PenStyle.NoPen)
+                    painter.drawPath(bolt)
+                    painter.restore()
+                    
+                painter.setFont(font_info)
+                painter.setPen(QColor(230, 235, 240))
+                painter.drawText(QRectF(bat_text_x, bat_icon_y, bat_text_w + 5, bat_icon_h), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, bat_text)
 
     # ==========================================
     # DESIGN 3: DINO GAME CLOCK
@@ -776,14 +793,21 @@ class CrispAestheticFlipClock(QWidget):
         base_date = int(h * 0.025)
         scaled_date = int(base_date * (self.clock_scales[str(self.clock_style)] / 0.45))
         date_str = QDate.currentDate().toString("dddd, d MMMM")
-        font_date = QFont(["Google Sans", "Product Sans", "Segoe UI"])
+        font_date = QFont(["Segoe UI Variable Text", "Segoe UI", "Arial", "sans-serif"])
         font_date.setPixelSize(scaled_date)
-        font_date.setWeight(QFont.Weight.Medium)
+        font_date.setWeight(QFont.Weight.DemiBold)
+        font_date.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.PreferQuality)
+        font_date.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
         
+        painter.save()
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.setRenderHint(QPainter.RenderHint.TextAntialiasing, True)
         painter.setFont(font_date)
+        painter.setPen(QColor(245, 248, 252))
         date_y = h * 0.05 + scaled_size * 1.30
         date_rect = QRectF(0, date_y, w, scaled_date * 2)
         painter.drawText(date_rect, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, date_str)
+        painter.restore()
         
         if self.dino_sound:
             painter.setPen(QColor(100, 100, 100))
@@ -1099,18 +1123,18 @@ def get_color_variants(hex_color):
 def get_or_create_check_icon(color_hex="#FFFFFF"):
     import tempfile
     clean_col = color_hex.replace("#", "")
-    temp_path = os.path.join(tempfile.gettempdir(), f"dinoscreener_chk_{clean_col}.png").replace("\\", "/")
+    temp_path = os.path.join(tempfile.gettempdir(), f"dinoscreener_chk_{clean_col}_hires.png").replace("\\", "/")
     if not os.path.exists(temp_path):
-        img = QImage(16, 16, QImage.Format.Format_ARGB32)
+        img = QImage(64, 64, QImage.Format.Format_ARGB32)
         img.fill(Qt.GlobalColor.transparent)
         p = QPainter(img)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        pen = QPen(QColor(color_hex), 2.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        pen = QPen(QColor(color_hex), 6.5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
         p.setPen(pen)
         path = QPainterPath()
-        path.moveTo(3.5, 8.5)
-        path.lineTo(6.5, 11.5)
-        path.lineTo(12.5, 4.5)
+        path.moveTo(14, 34)
+        path.lineTo(26, 46)
+        path.lineTo(50, 18)
         p.drawPath(path)
         p.end()
         img.save(temp_path, "PNG")
@@ -1120,22 +1144,62 @@ def get_or_create_check_icon(color_hex="#FFFFFF"):
 def get_or_create_chevron_icon():
     import tempfile
     temp_dir = tempfile.gettempdir()
-    temp_path = os.path.join(temp_dir, "dinoscreener_chevron.png").replace("\\", "/")
+    temp_path = os.path.join(temp_dir, "dinoscreener_chevron_hires.png").replace("\\", "/")
     if not os.path.exists(temp_path):
-        img = QImage(14, 14, QImage.Format.Format_ARGB32)
+        img = QImage(56, 56, QImage.Format.Format_ARGB32)
         img.fill(Qt.GlobalColor.transparent)
         p = QPainter(img)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        pen = QPen(QColor(180, 195, 215), 1.8, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        pen = QPen(QColor(180, 195, 215), 5.5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
         p.setPen(pen)
         path = QPainterPath()
-        path.moveTo(3, 5)
-        path.lineTo(7, 9)
-        path.lineTo(11, 5)
+        path.moveTo(12, 20)
+        path.lineTo(28, 36)
+        path.lineTo(44, 20)
         p.drawPath(path)
         p.end()
         img.save(temp_path, "PNG")
     return temp_path
+
+
+def get_or_create_fullscreen_duotone_icon(accent_hex):
+    img = QImage(48, 48, QImage.Format.Format_ARGB32)
+    img.fill(Qt.GlobalColor.transparent)
+    p = QPainter(img)
+    p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+    
+    accent_q = QColor(accent_hex)
+    accent_soft = QColor(accent_q.red(), accent_q.green(), accent_q.blue(), 180)
+    white_soft = QColor(255, 255, 255, 235)
+    
+    pen_accent = QPen(accent_soft, 3.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
+    pen_white = QPen(white_soft, 3.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
+    
+    # Top-Left Bracket (Tone 1: Windows Accent)
+    p.setPen(pen_accent)
+    p.drawLine(10, 20, 10, 10)
+    p.drawLine(10, 10, 20, 10)
+    
+    # Bottom-Right Bracket (Tone 1: Windows Accent)
+    p.drawLine(38, 28, 38, 38)
+    p.drawLine(38, 38, 28, 38)
+    
+    # Top-Right Bracket (Tone 2: Crisp White)
+    p.setPen(pen_white)
+    p.drawLine(28, 10, 38, 10)
+    p.drawLine(38, 10, 38, 20)
+    
+    # Bottom-Left Bracket (Tone 2: Crisp White)
+    p.drawLine(10, 28, 10, 38)
+    p.drawLine(10, 38, 20, 38)
+    
+    # Center Duotone Diamond / Target
+    p.setPen(Qt.PenStyle.NoPen)
+    p.setBrush(accent_q)
+    p.drawRoundedRect(QRectF(21, 21, 6, 6), 2, 2)
+    
+    p.end()
+    return QIcon(QPixmap.fromImage(img))
 
 
 class CollapsibleModeCapsule(QFrame):
@@ -1351,8 +1415,16 @@ class SettingsDialog(QDialog):
     def __init__(self, config_path):
         super().__init__()
         self.setWindowTitle("Dinoscreener Settings")
-        self.setFixedSize(680, 660)
+        self.setFixedSize(680, 715)
         self.setAcceptDrops(True)
+        
+        # Load Application Icon
+        logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_icon.png")
+        if getattr(sys, 'frozen', False):
+            logo_path = os.path.join(sys._MEIPASS, "app_icon.png")
+        if os.path.exists(logo_path):
+            self.setWindowIcon(QIcon(logo_path))
+        self.logo_path = logo_path
         
         # Windows 11 Dark Mode Titlebar
         try:
@@ -1420,28 +1492,28 @@ class SettingsDialog(QDialog):
                 background: transparent;
             }}
             QSlider::groove:horizontal {{
-                height: 8px;
+                height: 6px;
                 background: rgba(255, 255, 255, 0.12);
-                border-radius: 4px;
+                border-radius: 3px;
             }}
             QSlider::sub-page:horizontal {{
                 background: {self.win_accent};
-                border-radius: 4px;
+                border-radius: 3px;
             }}
             QSlider::handle:horizontal {{
                 background: #FFFFFF;
                 border: 2px solid {self.win_accent};
                 width: 18px;
                 height: 18px;
-                margin: -5px 0;
+                margin: -6px 0;
                 border-radius: 9px;
             }}
             QSlider::handle:horizontal:hover {{
                 background: #FFFFFF;
-                border-color: #FFFFFF;
+                border: 2px solid #FFFFFF;
                 width: 20px;
                 height: 20px;
-                margin: -6px 0;
+                margin: -7px 0;
                 border-radius: 10px;
             }}
             /* Comboboxes - Smooth Rounded Pill Style with Visible Chevron Arrow */
@@ -1534,7 +1606,11 @@ class SettingsDialog(QDialog):
 
     def eventFilter(self, obj, event):
         if event.type() == event.Type.KeyPress:
-            if event.key() == Qt.Key.Key_Up or event.key() == Qt.Key.Key_Down:
+            if event.key() == Qt.Key.Key_Space:
+                if hasattr(self, 'ambient_cb'):
+                    self.ambient_cb.setChecked(not self.ambient_cb.isChecked())
+                    return True
+            elif event.key() == Qt.Key.Key_Up or event.key() == Qt.Key.Key_Down:
                 new_style = (self.preview.clock_style + (1 if event.key() == Qt.Key.Key_Up else -1)) % 3
                 self.set_mode(new_style)
                 return True
@@ -1550,6 +1626,10 @@ class SettingsDialog(QDialog):
         default_config = {
             "accent_color": self.win_accent,
             "show_info": True,
+            "show_weather": True,
+            "show_battery": True,
+            "use_fahrenheit": False,
+            "ambient_mode": False,
             "strict_exit": False,
             "enable_win_key": False,
             "brightness": 100,
@@ -1572,13 +1652,23 @@ class SettingsDialog(QDialog):
                     loaded = json.load(f)
                     if loaded.get("accent_color") in ["#0078D4", "#8F96BF", None]:
                         loaded["accent_color"] = self.win_accent
+                    if "show_weather" not in loaded and "show_info" in loaded:
+                        loaded["show_weather"] = loaded["show_info"]
+                    if "show_battery" not in loaded and "show_info" in loaded:
+                        loaded["show_battery"] = loaded["show_info"]
+                    if "use_fahrenheit" not in loaded and "live_weather" in loaded:
+                        loaded["use_fahrenheit"] = loaded["live_weather"]
                     default_config.update(loaded)
             except Exception:
                 pass
         return default_config
 
     def save_config(self):
-        self.config["show_info"] = self.info_cb.isChecked()
+        self.config["show_weather"] = self.show_weather_cb.isChecked()
+        self.config["show_battery"] = self.show_battery_cb.isChecked()
+        self.config["use_fahrenheit"] = self.fahrenheit_cb.isChecked()
+        self.config["show_info"] = self.show_weather_cb.isChecked() or self.show_battery_cb.isChecked()
+        self.config["ambient_mode"] = self.ambient_cb.isChecked()
         self.config["strict_exit"] = self.strict_cb.isChecked()
         self.config["enable_win_key"] = self.win_cb.isChecked()
         self.config["brightness"] = self.bright_slider.value()
@@ -1586,7 +1676,6 @@ class SettingsDialog(QDialog):
         self.config["clock_scales"] = self.preview.clock_scales
         self.config["use_24hr"] = self.use_24hr_cb.isChecked()
         self.config["leading_zeros"] = self.preview.leading_zeros
-        self.config["live_weather"] = self.live_weather_cb.isChecked()
         self.config["pixel_shift"] = self.pixel_shift_cb.isChecked()
         self.config["primary_font"] = getattr(self, 'primary_font', "")
         self.config["ignore_media_keys"] = self.ignore_media_cb.isChecked()
@@ -1605,7 +1694,11 @@ class SettingsDialog(QDialog):
                 accent_color=self.config.get("accent_color", self.win_accent),
                 enable_win_key=self.win_cb.isChecked(),
                 strict_exit=False,
-                show_info=self.info_cb.isChecked(),
+                show_info=self.show_weather_cb.isChecked() or self.show_battery_cb.isChecked(),
+                show_weather=self.show_weather_cb.isChecked(),
+                show_battery=self.show_battery_cb.isChecked(),
+                use_fahrenheit=self.fahrenheit_cb.isChecked(),
+                ambient_mode=self.ambient_cb.isChecked(),
                 preview_mode=False,
                 brightness=self.bright_slider.value(),
                 clock_style=self.preview.clock_style,
@@ -1617,7 +1710,7 @@ class SettingsDialog(QDialog):
                 primary_font=getattr(self, 'primary_font', ""),
                 character_type=getattr(self.preview, 'character_type', "dino"),
                 custom_character_image=getattr(self, 'custom_character_image', ""),
-                live_weather=self.live_weather_cb.isChecked(),
+                live_weather=False,
                 pixel_shift=self.pixel_shift_cb.isChecked()
             )
             self.test_clock.showFullScreen()
@@ -1636,13 +1729,14 @@ class SettingsDialog(QDialog):
         self.bright_slider.setValue(100)
         self.use_24hr_cb.setChecked(False)
         self.leading_zero_cb.setChecked(False)
-        self.flip_leading_cb.setChecked(False)
+        self.ambient_cb.setChecked(False)
         self.strict_cb.setChecked(False)
         self.ignore_media_cb.setChecked(False)
         self.win_cb.setChecked(False)
         self.pixel_shift_cb.setChecked(False)
-        self.info_cb.setChecked(True)
-        self.live_weather_cb.setChecked(False)
+        self.show_weather_cb.setChecked(True)
+        self.show_battery_cb.setChecked(True)
+        self.fahrenheit_cb.setChecked(False)
         self.revert_font()
         self.revert_character()
         self.set_accent_color(self.win_accent)
@@ -1660,7 +1754,7 @@ class SettingsDialog(QDialog):
         root_layout.setContentsMargins(18, 12, 18, 12)
         root_layout.setSpacing(8)
         
-        # 1. TOP HEADER (Clean branding without live pill)
+        # 1. TOP HEADER (Clean branding with App Icon holder on the right)
         header_row = QHBoxLayout()
         header_row.setContentsMargins(2, 0, 2, 0)
         
@@ -1674,6 +1768,25 @@ class SettingsDialog(QDialog):
         brand_box.addWidget(lbl_app_sub)
         header_row.addLayout(brand_box)
         header_row.addStretch()
+        
+        logo_frame = QFrame()
+        logo_frame.setFixedSize(38, 38)
+        logo_frame.setStyleSheet("""
+            QFrame {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 10px;
+            }
+        """)
+        logo_box = QVBoxLayout(logo_frame)
+        logo_box.setContentsMargins(3, 3, 3, 3)
+        lbl_logo = QLabel()
+        lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        if hasattr(self, 'logo_path') and os.path.exists(self.logo_path):
+            pix = QPixmap(self.logo_path).scaled(32, 32, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            lbl_logo.setPixmap(pix)
+        logo_box.addWidget(lbl_logo)
+        header_row.addWidget(logo_frame, alignment=Qt.AlignmentFlag.AlignVCenter)
         root_layout.addLayout(header_row)
         
         # 2. 16:9 WIDESCREEN PREVIEW STAGE (Authentic Monitor Aspect Ratio)
@@ -1693,6 +1806,10 @@ class SettingsDialog(QDialog):
             enable_win_key=self.config.get("enable_win_key", False),
             strict_exit=self.config.get("strict_exit", False),
             show_info=self.config.get("show_info", True),
+            show_weather=self.config.get("show_weather", True),
+            show_battery=self.config.get("show_battery", True),
+            use_fahrenheit=self.config.get("use_fahrenheit", False),
+            ambient_mode=self.config.get("ambient_mode", False),
             preview_mode=True,
             brightness=self.config.get("brightness", 100),
             clock_style=start_style,
@@ -1713,7 +1830,7 @@ class SettingsDialog(QDialog):
         
         # 3. FLOATING COLLAPSIBLE CAPSULE (Minimized Pill that Expands on Hover)
         capsule_row = QHBoxLayout()
-        capsule_row.setContentsMargins(0, 0, 0, 0)
+        capsule_row.setContentsMargins(0, 4, 0, 4)
         capsule_row.addStretch()
         
         self.mode_capsule = CollapsibleModeCapsule(win_accent=self.win_accent)
@@ -1797,10 +1914,11 @@ class SettingsDialog(QDialog):
         scale_box.addWidget(self.btn_scale_plus)
         flip_layout.addLayout(scale_box)
         
-        self.flip_leading_cb = QCheckBox("Leading Zero (09:00)")
-        self.flip_leading_cb.setChecked(self.preview.leading_zeros.get("0", False))
-        self.flip_leading_cb.stateChanged.connect(self.on_flip_leading_changed)
-        flip_layout.addWidget(self.flip_leading_cb)
+        self.ambient_cb = QCheckBox("Ambient Mode (Space)")
+        self.ambient_cb.setChecked(self.config.get("ambient_mode", self.preview.show_bg))
+        self.ambient_cb.setToolTip("Subtle ambient glow orbs behind clock (press Spacebar to toggle)")
+        self.ambient_cb.stateChanged.connect(self.on_ambient_cb_changed)
+        flip_layout.addWidget(self.ambient_cb)
         flip_layout.addStretch()
         self.pages.addWidget(page_flip)
         
@@ -1857,16 +1975,21 @@ class SettingsDialog(QDialog):
         accent_box.addStretch()
         rot_layout.addLayout(accent_box)
         
-        self.info_cb = QCheckBox("Weather && Battery Ring")
-        self.info_cb.setChecked(self.config.get("show_info", True))
-        self.info_cb.stateChanged.connect(lambda s: self.preview.set_show_info(self.info_cb.isChecked()))
-        rot_layout.addWidget(self.info_cb)
+        self.show_weather_cb = QCheckBox("Show Weather")
+        self.show_weather_cb.setChecked(self.config.get("show_weather", self.config.get("show_info", True)))
+        self.show_weather_cb.stateChanged.connect(self.update_rotary_telemetry)
+        rot_layout.addWidget(self.show_weather_cb)
         
-        self.live_weather_cb = QCheckBox("Live Weather Updates")
-        self.live_weather_cb.setChecked(self.config.get("live_weather", False))
-        self.live_weather_cb.setToolTip("Open-Meteo astronomical & temperature feeds")
-        self.live_weather_cb.stateChanged.connect(self.update_live_weather)
-        rot_layout.addWidget(self.live_weather_cb)
+        self.show_battery_cb = QCheckBox("Show Battery")
+        self.show_battery_cb.setChecked(self.config.get("show_battery", self.config.get("show_info", True)))
+        self.show_battery_cb.stateChanged.connect(self.update_rotary_telemetry)
+        rot_layout.addWidget(self.show_battery_cb)
+        
+        self.fahrenheit_cb = QCheckBox("Fahrenheit Format (°F)")
+        self.fahrenheit_cb.setChecked(self.config.get("use_fahrenheit", self.config.get("live_weather", False)))
+        self.fahrenheit_cb.setToolTip("Toggle temperature display between Celsius (°C) and Fahrenheit (°F)")
+        self.fahrenheit_cb.stateChanged.connect(self.update_rotary_telemetry)
+        rot_layout.addWidget(self.fahrenheit_cb)
         rot_layout.addStretch()
         self.pages.addWidget(page_rotary)
         
@@ -2041,27 +2164,29 @@ class SettingsDialog(QDialog):
         footer_row = QHBoxLayout()
         footer_row.setContentsMargins(4, 2, 4, 0)
         
-        btn_test = QPushButton("Test Fullscreen")
-        btn_test.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_test.setStyleSheet("""
+        self.btn_fullscreen = QPushButton()
+        self.btn_fullscreen.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_fullscreen.setIcon(get_or_create_fullscreen_duotone_icon(self.win_accent))
+        self.btn_fullscreen.setIconSize(QSize(20, 20))
+        self.btn_fullscreen.setFixedSize(36, 32)
+        self.btn_fullscreen.setToolTip("Fullscreen Preview")
+        self.btn_fullscreen.setStyleSheet("""
             QPushButton {
                 background: rgba(255, 255, 255, 0.05);
-                color: #CBD5E1;
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 16px;
-                padding: 7px 22px;
-                font-size: 12px;
-                font-weight: 500;
-                font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+                outline: none;
             }
             QPushButton:hover {
-                background: rgba(255, 255, 255, 0.1);
-                color: #FFFFFF;
-                border-color: rgba(255, 255, 255, 0.25);
+                background: rgba(255, 255, 255, 0.12);
+                border-color: rgba(255, 255, 255, 0.28);
+            }
+            QPushButton:pressed {
+                background: rgba(255, 255, 255, 0.04);
             }
         """)
-        btn_test.clicked.connect(self.test_fullscreen)
-        footer_row.addWidget(btn_test)
+        self.btn_fullscreen.clicked.connect(self.test_fullscreen)
+        footer_row.addWidget(self.btn_fullscreen)
         footer_row.addStretch()
         
         btn_reset = QPushButton("Reset Defaults")
@@ -2149,6 +2274,8 @@ class SettingsDialog(QDialog):
             self.stage_frame.set_stage_theme(self.preview.clock_style, hex_code)
         if hasattr(self, 'mode_capsule'):
             self.mode_capsule.update_accent(hex_code)
+        if hasattr(self, 'btn_fullscreen'):
+            self.btn_fullscreen.setIcon(get_or_create_fullscreen_duotone_icon(hex_code))
         self.update_swatch_highlights()
 
 
@@ -2169,16 +2296,15 @@ class SettingsDialog(QDialog):
             new_val = max(15, min(95, self.scale_slider.value() + delta))
             self.scale_slider.setValue(new_val)
 
-    def on_flip_leading_changed(self, state):
-        self.leading_zero_cb.setChecked(self.flip_leading_cb.isChecked())
+    def on_ambient_cb_changed(self, state=None):
+        val = self.ambient_cb.isChecked()
+        self.preview.show_bg = val
+        self.config["ambient_mode"] = val
+        self.preview.update()
 
     def update_leading_zero(self, state=None):
         val = self.leading_zero_cb.isChecked()
         self.preview.leading_zeros[str(self.preview.clock_style)] = val
-        if self.preview.clock_style == 0:
-            self.flip_leading_cb.blockSignals(True)
-            self.flip_leading_cb.setChecked(val)
-            self.flip_leading_cb.blockSignals(False)
         self.preview.update()
 
     def update_brightness(self, val):
@@ -2189,8 +2315,13 @@ class SettingsDialog(QDialog):
         self.preview.use_24hr = self.use_24hr_cb.isChecked()
         self.preview.update()
 
-    def update_live_weather(self, state=None):
-        self.preview.live_weather = self.live_weather_cb.isChecked()
+    def update_rotary_telemetry(self, state=None):
+        self.preview.show_weather = self.show_weather_cb.isChecked()
+        self.preview.show_battery = self.show_battery_cb.isChecked()
+        self.preview.use_fahrenheit = self.fahrenheit_cb.isChecked()
+        self.config["show_weather"] = self.show_weather_cb.isChecked()
+        self.config["show_battery"] = self.show_battery_cb.isChecked()
+        self.config["use_fahrenheit"] = self.fahrenheit_cb.isChecked()
         self.preview.update()
 
     def update_pixel_shift(self, state=None):
@@ -2404,6 +2535,12 @@ class SettingsDialog(QDialog):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     
+    logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_icon.png")
+    if getattr(sys, 'frozen', False):
+        logo_path = os.path.join(sys._MEIPASS, "app_icon.png")
+    if os.path.exists(logo_path):
+        app.setWindowIcon(QIcon(logo_path))
+        
     font_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Bungee-Regular.ttf")
     if getattr(sys, 'frozen', False):
         font_path = os.path.join(sys._MEIPASS, "Bungee-Regular.ttf")
@@ -2436,6 +2573,10 @@ if __name__ == '__main__':
     default_config = {
         "accent_color": "#8F96BF",
         "show_info": True,
+        "show_weather": True,
+        "show_battery": True,
+        "use_fahrenheit": False,
+        "ambient_mode": False,
         "strict_exit": False,
         "enable_win_key": False,
         "brightness": 100,
@@ -2463,6 +2604,10 @@ if __name__ == '__main__':
         enable_win_key=default_config["enable_win_key"], 
         strict_exit=default_config["strict_exit"],
         show_info=default_config["show_info"],
+        show_weather=default_config.get("show_weather", default_config.get("show_info", True)),
+        show_battery=default_config.get("show_battery", default_config.get("show_info", True)),
+        use_fahrenheit=default_config.get("use_fahrenheit", default_config.get("live_weather", False)),
+        ambient_mode=default_config.get("ambient_mode", False),
         brightness=default_config.get("brightness", 100),
         clock_style=default_config.get("clock_style", 1),
         clock_scales=default_config.get("clock_scales", {"0": 0.45, "1": 0.45, "2": 0.45}),
@@ -2472,7 +2617,7 @@ if __name__ == '__main__':
         full_config=default_config,
         ignore_media_keys=default_config.get("ignore_media_keys", False),
         dino_font=default_config.get("dino_font", "Bungee"),
-        live_weather=default_config.get("live_weather", False),
+        live_weather=False,
         pixel_shift=default_config.get("pixel_shift", False),
         primary_font=default_config.get("primary_font", ""),
         character_type=default_config.get("character_type", "dino"),
