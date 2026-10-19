@@ -6,7 +6,7 @@ import os
 import random
 from PyQt6.QtWidgets import QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider, QFileDialog, QStackedWidget, QFrame, QGridLayout, QComboBox, QFontComboBox, QStackedLayout, QGraphicsOpacityEffect
 from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate, QPointF, QByteArray, QThread, pyqtSignal, QPropertyAnimation, QEasingCurve, pyqtProperty, QParallelAnimationGroup, QSize
-from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath, QFontDatabase, QPixmap, QImage, QIcon
+from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath, QFontDatabase, QPixmap, QImage, QIcon, QBrush
 
 SPRITE_B64 = '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'
 class CrispAestheticFlipClock(QWidget):
@@ -1202,23 +1202,55 @@ def get_or_create_fullscreen_duotone_icon(accent_hex):
     return QIcon(QPixmap.fromImage(img))
 
 
-def get_rounded_pixmap(src_path, size=36, radius=9):
+def get_rounded_pixmap(src_path, size=38, radius=9, dpr=3.0):
     pix = QPixmap(src_path)
     if pix.isNull():
         return QPixmap()
-    scaled = pix.scaled(size, size, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-    dest = QPixmap(size, size)
+    target_physical = int(size * dpr)
+    scaled = pix.scaled(
+        target_physical, 
+        target_physical, 
+        Qt.AspectRatioMode.KeepAspectRatio, 
+        Qt.TransformationMode.SmoothTransformation
+    )
+    dest = QPixmap(target_physical, target_physical)
     dest.fill(Qt.GlobalColor.transparent)
     p = QPainter(dest)
     p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+    p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform, True)
     path = QPainterPath()
-    path.addRoundedRect(QRectF(0, 0, size, size), radius, radius)
+    path.addRoundedRect(QRectF(0, 0, target_physical, target_physical), radius * dpr, radius * dpr)
     p.setClipPath(path)
-    ox = (size - scaled.width()) // 2
-    oy = (size - scaled.height()) // 2
+    ox = (target_physical - scaled.width()) // 2
+    oy = (target_physical - scaled.height()) // 2
     p.drawPixmap(ox, oy, scaled)
     p.end()
+    dest.setDevicePixelRatio(dpr)
     return dest
+
+
+class PagingDot(QWidget):
+    """Smooth antialiased circular dot indicator."""
+    def __init__(self, color="#0078D4", size=5, parent=None):
+        super().__init__(parent)
+        self._color = QColor(color)
+        self._size = size
+        self.setFixedSize(size, size)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+
+    def set_color(self, hex_or_color):
+        self._color = QColor(hex_or_color)
+        self.update()
+
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        p.setBrush(QBrush(self._color))
+        p.setPen(Qt.PenStyle.NoPen)
+        w, h = self.width(), self.height()
+        r = min(w, h) / 2.0
+        p.drawEllipse(QPointF(w / 2.0, h / 2.0), r, r)
+        p.end()
 
 
 class CollapsibleModeCapsule(QFrame):
@@ -1260,14 +1292,21 @@ class CollapsibleModeCapsule(QFrame):
         # --- Page 0: Collapsed Pill View ---
         self.collapsed_view = QWidget()
         col_layout = QHBoxLayout(self.collapsed_view)
-        col_layout.setContentsMargins(12, 0, 12, 0)
-        col_layout.setSpacing(8)
+        col_layout.setContentsMargins(14, 0, 14, 0)
+        col_layout.setSpacing(0)
         
-        self.dot_left = QFrame()
-        self.dot_left.setFixedSize(5, 5)
-        self.dot_left.setStyleSheet(f"background-color: {self.win_accent}; border-radius: 2px;")
+        # Left corner indicator slot (fixed width so center label never shifts)
+        self.left_slot = QWidget()
+        self.left_slot.setFixedSize(14, 14)
+        left_layout = QHBoxLayout(self.left_slot)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.dot_left = PagingDot(self.win_accent, size=5)
+        left_layout.addWidget(self.dot_left)
         
+        # Center title
         self.lbl_mode_name = QLabel("Flip Clock")
+        self.lbl_mode_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lbl_mode_name.setStyleSheet("""
             color: #FFFFFF;
             font-size: 11.5px;
@@ -1275,15 +1314,18 @@ class CollapsibleModeCapsule(QFrame):
             font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
         """)
         
-        self.dot_right = QFrame()
-        self.dot_right.setFixedSize(5, 5)
-        self.dot_right.setStyleSheet(f"background-color: {self.win_accent}; border-radius: 2px;")
+        # Right corner indicator slot (fixed width identical to left slot)
+        self.right_slot = QWidget()
+        self.right_slot.setFixedSize(14, 14)
+        right_layout = QHBoxLayout(self.right_slot)
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.dot_right = PagingDot(self.win_accent, size=5)
+        right_layout.addWidget(self.dot_right)
         
-        col_layout.addStretch()
-        col_layout.addWidget(self.dot_left, alignment=Qt.AlignmentFlag.AlignVCenter)
-        col_layout.addWidget(self.lbl_mode_name, alignment=Qt.AlignmentFlag.AlignVCenter)
-        col_layout.addWidget(self.dot_right, alignment=Qt.AlignmentFlag.AlignVCenter)
-        col_layout.addStretch()
+        col_layout.addWidget(self.left_slot, alignment=Qt.AlignmentFlag.AlignVCenter)
+        col_layout.addWidget(self.lbl_mode_name, 1, alignment=Qt.AlignmentFlag.AlignCenter)
+        col_layout.addWidget(self.right_slot, alignment=Qt.AlignmentFlag.AlignVCenter)
         
         self.stack.addWidget(self.collapsed_view)
         
@@ -1373,11 +1415,10 @@ class CollapsibleModeCapsule(QFrame):
 
     def update_accent(self, accent_hex):
         self.win_accent = accent_hex
-        dot_style = f"background-color: {accent_hex}; border-radius: 2px;"
         if hasattr(self, 'dot_left'):
-            self.dot_left.setStyleSheet(dot_style)
+            self.dot_left.set_color(accent_hex)
         if hasattr(self, 'dot_right'):
-            self.dot_right.setStyleSheet(dot_style)
+            self.dot_right.set_color(accent_hex)
 
     def select_mode(self, idx):
         self.set_current_mode(idx)
@@ -1800,7 +1841,7 @@ class SettingsDialog(QDialog):
         header_row.setSpacing(10)
         
         lbl_logo = QLabel()
-        lbl_logo.setFixedSize(36, 36)
+        lbl_logo.setFixedSize(38, 38)
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_logo.setStyleSheet("""
             QLabel {
@@ -1810,7 +1851,7 @@ class SettingsDialog(QDialog):
             }
         """)
         if hasattr(self, 'logo_path') and os.path.exists(self.logo_path):
-            lbl_logo.setPixmap(get_rounded_pixmap(self.logo_path, size=36, radius=9))
+            lbl_logo.setPixmap(get_rounded_pixmap(self.logo_path, size=38, radius=9, dpr=3.0))
         header_row.addWidget(lbl_logo, alignment=Qt.AlignmentFlag.AlignVCenter)
         
         brand_box = QVBoxLayout()
