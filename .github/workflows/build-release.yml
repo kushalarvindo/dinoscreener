@@ -21,12 +21,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install PyQt6 pillow pyinstaller
+          pip install -r requirements.txt
 
       - name: Build Windows Executable
         run: |
@@ -55,7 +54,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             libegl1 \
-            libgl1-mesa-glx \
+            libgl1 \
+            libglx-mesa0 \
             libxkbcommon-x11-0 \
             libdbus-1-3 \
             libxcb-cursor0 \
@@ -72,12 +72,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
 
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install PyQt6 pillow pyinstaller
+          pip install -r requirements.txt
 
       - name: Build Linux Standalone Executable
         run: |
@@ -115,7 +114,7 @@ jobs:
   create-release:
     name: Publish Release
     needs: [build-windows, build-linux]
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Download all built artifacts
@@ -125,9 +124,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            windows-binaries/Dinoscreener.scr
-            windows-binaries/Dinoscreener.exe
-            windows-binaries/Dinoscreener-Windows.zip
-            linux-binaries/dinoscreener-linux-x86_64
-            linux-binaries/dinoscreener-linux-x86_64.tar.gz
+            windows-binaries/*
+            linux-binaries/*
           generate_release_notes: true
