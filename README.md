@@ -1,7 +1,16 @@
 <div align="center">
+  <img src="app_icon.png" width="96" height="96" alt="Dinoscreener Logo" style="border-radius: 20px;" />
   <h1>🦕 Dinoscreener</h1>
   <p><strong>A stunning, ultra-minimalist modern clock screensaver suite for Windows & Linux.</strong></p>
   <p>Featuring <strong>Modern Rotary</strong>, <strong>Classic Flip Clock</strong>, and <strong>Chrome Dino Runner</strong> with custom typography & sprite imports.</p>
+
+  <p>
+    <a href="https://github.com/kushalarvindo/dinoscreener/releases"><img src="https://img.shields.io/github/v/release/kushalarvindo/dinoscreener?color=0078D4&style=flat-square" alt="Latest Release" /></a>
+    <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Platform" />
+    <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
+    <img src="https://img.shields.io/badge/GUI-PyQt6-41CD52?style=flat-square&logo=qt&logoColor=white" alt="PyQt6" />
+    <img src="https://img.shields.io/badge/License-MIT-gray?style=flat-square" alt="License" />
+  </p>
 </div>
 
 <br />
@@ -35,13 +44,15 @@ Dinoscreener features three distinct, meticulously crafted clock styles. Switch 
 </div>
 
 - **16:9 Authentic Widescreen Preview**: Real-time live canvas displaying exact font scaling, sprite styling, and visual luminance before applying.
-- **Collapsible Mode Switcher Pill**: A minimalist capsule indicator that automatically expands on hover into a floating segmented pill switcher with comfortable vertical padding.
+- **Symmetrical Capsule Mode Switcher**: A minimalist pill indicator that automatically expands on hover into a floating segmented switcher, featuring corner-anchored directional indicator dots and dead-centered active mode typography.
 - **Windows 11 Dynamic Accent Color**: Automatically reads your Windows 11 accent color (`DWM / AccentColorMenu`) and harmonizes buttons, sliders, duotone icons, and checkboxes with your desktop theme.
 - **Custom Typography & Sprite Engine**: Simply **drag and drop** any `.ttf` / `.otf` font file or `.png` / `.jpg` sprite image directly onto the window to customize clock numbers or character sprites. Revert anytime with one click.
 - **Ambient Lighting Mode**: Soft, silky background glow orbs that can be toggled via the settings menu or instantly with the **Spacebar**.
 - **Tactile Luminance & Scale Controls**: Full-width brightness slider (10% to 100%) and interactive scale slider with tactile `-` / `+` micro-adjusters.
+- **High-DPI Super-Sampling**: Crystal-sharp vector graphics and icon rendering with full multi-monitor DPI awareness (100%, 125%, 150%, 200%).
 - **OLED Burn-in Protection**: Automatic subtle pixel-shifting algorithm prevents burn-in on OLED and AMOLED panels.
 - **Independent Telemetry & Weather Feeds**: Toggle Weather and Battery displays independently (centered alone or joined with a separator dot), and toggle between Celsius (`°C`) and Fahrenheit (`°F`).
+- **Cross-Platform Battery Telemetry**: Native battery reading via `kernel32` on Windows and `/sys/class/power_supply` on Linux laptops.
 - **Strict Exit & System Intercepts**:
   - **Lock Screen on Exit (`Ctrl + Z`)**: Keeps the screensaver active even on mouse movement; requires `Ctrl + Z` to unlock.
   - **Ignore Media Keys**: Prevents volume knobs or Spotify track changes from prematurely closing the screensaver.
@@ -63,19 +74,25 @@ While the screensaver is running, you can use these keyboard shortcuts to modify
 ## 🚀 Quick Setup (Pre-Compiled)
 
 ### 🪟 Windows Setup
-1. Download the latest **`Dinoscreener.scr`** (or `Dinoscreener.exe`) from the [Releases](https://github.com/kushalarvindo/dinoscreener/releases) page.
-2. Right-click on **`Dinoscreener.scr`**.
-3. Select **Install**.
-4. The Windows Screen Saver Settings dialog will open. Click **Settings...** to customize your modes, fonts, and display preferences!
+You can use Dinoscreener in two ways on Windows:
+
+1. **Native Screensaver Mode (`.scr`)**:
+   - Download **`Dinoscreener.scr`** from the [Releases](https://github.com/kushalarvindo/dinoscreener/releases) page.
+   - Right-click on **`Dinoscreener.scr`** and select **Install**.
+   - The Windows Screen Saver Settings dialog will open automatically. Click **Settings...** to customize your preferences!
+
+2. **Standalone Desktop Mode (`.exe`)**:
+   - Download **`Dinoscreener.exe`** from the [Releases](https://github.com/kushalarvindo/dinoscreener/releases) page.
+   - Double-click to run immediately without needing installation.
 
 > [!WARNING]
-> **Windows Defender False Positive**  
-> Because `Dinoscreener.scr` is compiled into a standalone executable using PyInstaller without an expensive commercial code-signing certificate, Windows Defender might occasionally flag it as an unrecognized binary (`Trojan:Win32/Wacatac.B!ml`).  
-> **This is a false positive.** The entire codebase is open source and transparent. You can inspect the source code or compile it yourself using the instructions below. To allow it, select **Allow on device** in Windows Security.
+> **Windows Defender Notice**  
+> Because `Dinoscreener.scr` is compiled into a standalone executable without an expensive enterprise code-signing certificate, Windows Defender SmartScreen might prompt an unrecognized binary notice.  
+> **This is normal and safe.** The entire codebase is 100% open source. To proceed, click **More Info** $\rightarrow$ **Run Anyway** (or select **Allow on device** in Windows Security).
 
 ### 🐧 Linux Setup
 1. Download **`dinoscreener-linux-x86_64.tar.gz`** from the [Releases](https://github.com/kushalarvindo/dinoscreener/releases) page.
-2. Extract the archive and run the installer:
+2. Extract the archive and run the one-click installer:
    ```bash
    tar -xzvf dinoscreener-linux-x86_64.tar.gz
    cd dinoscreener
@@ -83,7 +100,7 @@ While the screensaver is running, you can use these keyboard shortcuts to modify
    ./install-linux.sh
    ```
 3. Launch **Dinoscreener** from your application menu, or run from the command line:
-   - `./dinoscreener` or `dinoscreener --settings` $\rightarrow$ Opens the visual settings studio.
+   - `dinoscreener` or `dinoscreener --settings` $\rightarrow$ Opens the visual settings studio.
    - `dinoscreener --fullscreen` or `dinoscreener -s` $\rightarrow$ Launches the screensaver directly in fullscreen.
 
 ---
@@ -100,7 +117,7 @@ If you prefer building the binary directly from source:
 ```cmd
 git clone https://github.com/kushalarvindo/dinoscreener.git
 cd dinoscreener
-pip install PyQt6 pillow pyinstaller
+pip install -r requirements.txt
 pyinstaller Dinoscreener.spec --noconfirm
 copy /y dist\Dinoscreener.exe Dinoscreener.scr
 ```
@@ -109,7 +126,7 @@ copy /y dist\Dinoscreener.exe Dinoscreener.scr
 ```bash
 git clone https://github.com/kushalarvindo/dinoscreener.git
 cd dinoscreener
-pip install PyQt6 pillow pyinstaller
+pip install -r requirements.txt
 pyinstaller --noconfirm --onefile --windowed --add-data "Bungee-Regular.ttf:." --add-data "app_icon.png:." --name dinoscreener screensaver.py
 chmod +x dist/dinoscreener
 ./dist/dinoscreener --settings
@@ -118,5 +135,9 @@ chmod +x dist/dinoscreener
 ---
 
 <div align="center">
+  <a href="https://github.com/kushalarvindo/dinoscreener">
+    <img src="https://komarev.com/ghpvc/?username=kushalarvindo-dinoscreener&label=Views&color=0078D4&style=flat-square" alt="Repository Views" />
+  </a>
+  <br /><br />
   <p>Crafted with precision using Python & PyQt6</p>
 </div>
