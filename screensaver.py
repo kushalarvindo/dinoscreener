@@ -120,7 +120,7 @@ class CrispAestheticFlipClock(QWidget):
         self.weather_code = 0  # 0 is clear sky
         self.weather_loaded = False
         
-        if getattr(self, "live_weather", False):
+        if getattr(self, "live_weather", False) or (getattr(self, "show_weather", True) and not self.preview_mode):
             self.weather_thread = WeatherWorker()
             self.weather_thread.weather_updated.connect(self.on_weather_updated)
             self.weather_thread.start()
@@ -1377,28 +1377,102 @@ def get_rounded_pixmap(src_path, size=38, radius=9, dpr=3.0):
     return dest
 
 
-class PagingDot(QWidget):
-    """Smooth antialiased circular dot indicator."""
-    def __init__(self, color="#0078D4", size=5, parent=None):
+class EdgeGlowIndicator(QWidget):
+    """Subtle crescent / curved arc light glow hugging the inner pill border."""
+    def __init__(self, side="left", color="#818cf8", parent=None):
         super().__init__(parent)
+        self.side = side
         self._color = QColor(color)
-        self._size = size
-        self.setFixedSize(size, size)
+        self._glow_visible = True
+        self.setFixedSize(18, 38)
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
 
     def set_color(self, hex_or_color):
         self._color = QColor(hex_or_color)
         self.update()
 
+    def set_glow_visible(self, visible):
+        self._glow_visible = visible
+        self.update()
+
+    def setVisible(self, visible):
+        self.set_glow_visible(visible)
+
     def paintEvent(self, event):
+        if not self._glow_visible:
+            return
+            
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        p.setBrush(QBrush(self._color))
-        p.setPen(Qt.PenStyle.NoPen)
-        w, h = self.width(), self.height()
-        r = min(w, h) / 2.0
-        p.drawEllipse(QPointF(w / 2.0, h / 2.0), r, r)
-        p.end()
+        
+        w = float(self.width())
+        h = float(self.height())
+        r = 19.0
+        
+        c_periwinkle = QColor("#a5b4fc")
+        c_accent = self._color
+        c_bright = QColor("#e0e7ff")
+        
+        if self.side == "left":
+            p.save()
+            clip_path = QPainterPath()
+            clip_path.addRoundedRect(QRectF(1, 1, r * 2, h - 2), r - 1, r - 1)
+            p.setClipPath(clip_path)
+            
+            # 1. Soft ambient radial bleed from apex
+            rad_grad = QRadialGradient(QPointF(0, r), 20.0)
+            rad_grad.setColorAt(0.0, QColor(c_periwinkle.red(), c_periwinkle.green(), c_periwinkle.blue(), 100))
+            rad_grad.setColorAt(0.45, QColor(c_accent.red(), c_accent.green(), c_accent.blue(), 55))
+            rad_grad.setColorAt(1.0, QColor(c_accent.red(), c_accent.green(), c_accent.blue(), 0))
+            p.setBrush(QBrush(rad_grad))
+            p.setPen(Qt.PenStyle.NoPen)
+            p.drawEllipse(QPointF(0, r), 20.0, 20.0)
+            
+            # 2. Glowing curved arc hugging the inner border (tapered)
+            arc_rect = QRectF(1.2, 1.2, (r - 1.2) * 2, (r - 1.2) * 2)
+            
+            pen_bloom = QPen(QColor(c_periwinkle.red(), c_periwinkle.green(), c_periwinkle.blue(), 85))
+            pen_bloom.setWidthF(3.2)
+            pen_bloom.setCapStyle(Qt.PenCapStyle.RoundCap)
+            p.setPen(pen_bloom)
+            p.drawArc(arc_rect, int(130 * 16), int(100 * 16))
+            
+            pen_core = QPen(QColor(c_bright.red(), c_bright.green(), c_bright.blue(), 220))
+            pen_core.setWidthF(1.4)
+            pen_core.setCapStyle(Qt.PenCapStyle.RoundCap)
+            p.setPen(pen_core)
+            p.drawArc(arc_rect, int(145 * 16), int(70 * 16))
+            p.restore()
+        else: # right
+            p.save()
+            clip_path = QPainterPath()
+            clip_path.addRoundedRect(QRectF(w - r * 2 - 1, 1, r * 2, h - 2), r - 1, r - 1)
+            p.setClipPath(clip_path)
+            
+            # 1. Soft ambient radial bleed from right apex
+            rad_grad = QRadialGradient(QPointF(w, r), 20.0)
+            rad_grad.setColorAt(0.0, QColor(c_periwinkle.red(), c_periwinkle.green(), c_periwinkle.blue(), 100))
+            rad_grad.setColorAt(0.45, QColor(c_accent.red(), c_accent.green(), c_accent.blue(), 55))
+            rad_grad.setColorAt(1.0, QColor(c_accent.red(), c_accent.green(), c_accent.blue(), 0))
+            p.setBrush(QBrush(rad_grad))
+            p.setPen(Qt.PenStyle.NoPen)
+            p.drawEllipse(QPointF(w, r), 20.0, 20.0)
+            
+            # 2. Glowing curved arc hugging the inner border (tapered)
+            arc_rect = QRectF(w - (r - 1.2) * 2 - 1.2, 1.2, (r - 1.2) * 2, (r - 1.2) * 2)
+            
+            pen_bloom = QPen(QColor(c_periwinkle.red(), c_periwinkle.green(), c_periwinkle.blue(), 85))
+            pen_bloom.setWidthF(3.2)
+            pen_bloom.setCapStyle(Qt.PenCapStyle.RoundCap)
+            p.setPen(pen_bloom)
+            p.drawArc(arc_rect, int(-50 * 16), int(100 * 16))
+            
+            pen_core = QPen(QColor(c_bright.red(), c_bright.green(), c_bright.blue(), 220))
+            pen_core.setWidthF(1.4)
+            pen_core.setCapStyle(Qt.PenCapStyle.RoundCap)
+            p.setPen(pen_core)
+            p.drawArc(arc_rect, int(-35 * 16), int(70 * 16))
+            p.restore()
 
 
 class CollapsibleModeCapsule(QFrame):
@@ -1434,23 +1508,19 @@ class CollapsibleModeCapsule(QFrame):
         self.setObjectName("capsuleFrame")
         
         self.stack = QStackedLayout(self)
-        self.stack.setContentsMargins(3, 3, 3, 3)
+        self.stack.setContentsMargins(0, 0, 0, 0)
         self.stack.setStackingMode(QStackedLayout.StackingMode.StackOne)
         
         # --- Page 0: Collapsed Pill View ---
         self.collapsed_view = QWidget()
         col_layout = QHBoxLayout(self.collapsed_view)
-        col_layout.setContentsMargins(14, 0, 14, 0)
+        col_layout.setContentsMargins(0, 0, 0, 0)
         col_layout.setSpacing(0)
         
-        # Left corner indicator slot (fixed width so center label never shifts)
-        self.left_slot = QWidget()
-        self.left_slot.setFixedSize(14, 14)
-        left_layout = QHBoxLayout(self.left_slot)
-        left_layout.setContentsMargins(0, 0, 0, 0)
-        left_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.dot_left = PagingDot(self.win_accent, size=5)
-        left_layout.addWidget(self.dot_left)
+        self.glow_left = EdgeGlowIndicator("left", self.win_accent, parent=self.collapsed_view)
+        self.glow_right = EdgeGlowIndicator("right", self.win_accent, parent=self.collapsed_view)
+        self.dot_left = self.glow_left
+        self.dot_right = self.glow_right
         
         # Center title
         self.lbl_mode_name = QLabel("Flip Clock")
@@ -1462,25 +1532,16 @@ class CollapsibleModeCapsule(QFrame):
             font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
         """)
         
-        # Right corner indicator slot (fixed width identical to left slot)
-        self.right_slot = QWidget()
-        self.right_slot.setFixedSize(14, 14)
-        right_layout = QHBoxLayout(self.right_slot)
-        right_layout.setContentsMargins(0, 0, 0, 0)
-        right_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.dot_right = PagingDot(self.win_accent, size=5)
-        right_layout.addWidget(self.dot_right)
-        
-        col_layout.addWidget(self.left_slot, alignment=Qt.AlignmentFlag.AlignVCenter)
-        col_layout.addWidget(self.lbl_mode_name, 1, alignment=Qt.AlignmentFlag.AlignCenter)
-        col_layout.addWidget(self.right_slot, alignment=Qt.AlignmentFlag.AlignVCenter)
+        col_layout.addWidget(self.glow_left)
+        col_layout.addWidget(self.lbl_mode_name, 1)
+        col_layout.addWidget(self.glow_right)
         
         self.stack.addWidget(self.collapsed_view)
         
         # --- Page 1: Expanded 3-Button View ---
         self.expanded_view = QWidget()
         exp_layout = QHBoxLayout(self.expanded_view)
-        exp_layout.setContentsMargins(0, 0, 0, 0)
+        exp_layout.setContentsMargins(3, 3, 3, 3)
         exp_layout.setSpacing(4)
         
         self.mode_buttons = []
@@ -1542,19 +1603,19 @@ class CollapsibleModeCapsule(QFrame):
         if 0 <= idx < len(self._modes):
             self.lbl_mode_name.setText(self._modes[idx][0])
             
-        # Paging indicator dots based on active mode position:
-        # idx == 0 (Flip Clock, leftmost): only dot on the right side
-        # idx == 1 (Rotary Modern, middle): small dots on either sides
-        # idx == 2 (Dino Runner, rightmost): only dot on the left side
+        # Crescent edge glows indicating which direction has more modes:
+        # idx == 0 (Flip Clock, leftmost): indicator on the right side
+        # idx == 1 (Rotary Modern, middle): indicators on both left and right sides
+        # idx == 2 (Dino Runner, rightmost): indicator on the left side
         if idx == 0:
-            self.dot_left.setVisible(False)
-            self.dot_right.setVisible(True)
+            self.glow_left.set_glow_visible(False)
+            self.glow_right.set_glow_visible(True)
         elif idx == 1:
-            self.dot_left.setVisible(True)
-            self.dot_right.setVisible(True)
+            self.glow_left.set_glow_visible(True)
+            self.glow_right.set_glow_visible(True)
         else: # idx == 2
-            self.dot_left.setVisible(True)
-            self.dot_right.setVisible(False)
+            self.glow_left.set_glow_visible(True)
+            self.glow_right.set_glow_visible(False)
             
         for i, btn in enumerate(self.mode_buttons):
             btn.blockSignals(True)
@@ -1563,10 +1624,10 @@ class CollapsibleModeCapsule(QFrame):
 
     def update_accent(self, accent_hex):
         self.win_accent = accent_hex
-        if hasattr(self, 'dot_left'):
-            self.dot_left.set_color(accent_hex)
-        if hasattr(self, 'dot_right'):
-            self.dot_right.set_color(accent_hex)
+        if hasattr(self, 'glow_left'):
+            self.glow_left.set_color(accent_hex)
+        if hasattr(self, 'glow_right'):
+            self.glow_right.set_color(accent_hex)
 
     def select_mode(self, idx):
         self.set_current_mode(idx)
@@ -2102,8 +2163,8 @@ class AboutDialog(QDialog):
         card_story = QFrame()
         card_story.setObjectName("aboutCard")
         story_layout = QVBoxLayout(card_story)
-        story_layout.setContentsMargins(16, 14, 16, 14)
-        story_layout.setSpacing(10)
+        story_layout.setContentsMargins(18, 16, 18, 16)
+        story_layout.setSpacing(12)
         
         lbl_story_title = QLabel("ABOUT")
         lbl_story_title.setStyleSheet("font-size: 10px; font-weight: 700; color: #64748B; letter-spacing: 0.6px;")
@@ -2112,21 +2173,18 @@ class AboutDialog(QDialog):
         inner_box = QFrame()
         inner_box.setObjectName("storyInnerBox")
         inner_layout = QVBoxLayout(inner_box)
-        inner_layout.setContentsMargins(16, 12, 16, 12)
+        inner_layout.setContentsMargins(18, 14, 18, 14)
         inner_layout.setSpacing(0)
         
         story_text = (
-            '<p style="margin: 0 0 8px 0; line-height: 1.48;">'
-            "✦ Hey, I'm Kushal! Honestly, I got super tired of exploring countless screensavers online and "
-            "never finding one that had everything I wanted, so I decided to build my own with all the good stuff packed in! 😄</p>"
-            '<p style="margin: 0 0 8px 0; line-height: 1.48;">'
-            "✦ You get <b>3 distinct modes</b> to fit your setup: an authentic offline <b>Chrome Dino</b> runner, "
-            "a retro mechanical <b>Flip Clock</b>, and a modern <b>Rotary Dial</b> with live weather & battery.</p>"
-            '<p style="margin: 0 0 8px 0; line-height: 1.48;">'
-            "✦ Engineered with <b>smooth frame pacing (165Hz)</b>, automatic <b>OLED burn-in protection</b>, "
-            "and chill <b>hourly bell chimes</b>.</p>"
-            '<p style="margin: 0 0 0px 0; line-height: 1.48; color: #94A3B8;">'
-            "Any suggestions or ideas are always welcomed! 😉</p>"
+            '<p style="margin: 0 0 10px 0; line-height: 1.54;">'
+            "✦ Hi, I'm Kushal! 👋 I wanted a screensaver that was simple, neat, and actually fun to look at—so I built <b>Dinoscreener</b>.</p>"
+            '<p style="margin: 0 0 10px 0; line-height: 1.54;">'
+            "✦ <b>3 cozy styles</b> in one: a playful <b>Jumping Dino</b>, a classic <b>Flip Clock</b>, and a clean <b>Rotary Dial</b> with your weather & battery.</p>"
+            '<p style="margin: 0 0 10px 0; line-height: 1.54;">'
+            "✦ Made with love to be <b>super smooth</b>, <b>safe for OLED screens</b>, and complete with gentle <b>hourly bell chimes</b>.</p>"
+            '<p style="margin: 0; line-height: 1.54; color: #94A3B8;">'
+            "Hope it makes your desk smile! Ideas are always welcome 😊</p>"
         )
         lbl_story = QLabel(story_text)
         lbl_story.setTextFormat(Qt.TextFormat.RichText)
@@ -2135,20 +2193,22 @@ class AboutDialog(QDialog):
         inner_layout.addWidget(lbl_story)
         story_layout.addWidget(inner_box)
         
-        # Mode Pills Row
+        # Mode Pills Row (Symmetrically centered and evenly spaced)
         pills_row = QHBoxLayout()
         pills_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        pills_row.setSpacing(8)
+        pills_row.setSpacing(10)
         for icon_text in ["🦕 Chrome Dino", "⏱️ 3D Flip Clock", "⭕ Rotary Dial"]:
             lbl_pill = QLabel(icon_text)
+            lbl_pill.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            lbl_pill.setFixedHeight(27)
             lbl_pill.setStyleSheet("""
                 background: rgba(255, 255, 255, 0.04);
                 border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 7px;
+                border-radius: 8px;
                 color: #94A3B8;
                 font-size: 11px;
                 font-weight: 500;
-                padding: 4px 10px;
+                padding: 0 14px;
             """)
             pills_row.addWidget(lbl_pill)
         story_layout.addLayout(pills_row)
@@ -2666,7 +2726,7 @@ class SettingsDialog(QDialog):
                 primary_font=getattr(self, 'primary_font', ""),
                 character_type=getattr(self.preview, 'character_type', "dino"),
                 custom_character_image=getattr(self, 'custom_character_image', ""),
-                live_weather=False,
+                live_weather=self.show_weather_cb.isChecked(),
                 pixel_shift=self.pixel_shift_cb.isChecked(),
                 hourly_chime=self.hourly_chime_cb.isChecked(),
                 chime_preset=self.chime_sound_cb.currentData() if hasattr(self, 'chime_sound_cb') else self.config.get("chime_preset", "acoustic_bell"),
@@ -3825,7 +3885,7 @@ if __name__ == '__main__':
         full_config=default_config,
         ignore_media_keys=default_config.get("ignore_media_keys", False),
         dino_font=default_config.get("dino_font", "Bungee"),
-        live_weather=False,
+        live_weather=default_config.get("show_weather", True),
         pixel_shift=default_config.get("pixel_shift", False),
         hourly_chime=default_config.get("hourly_chime", False),
         chime_preset=default_config.get("chime_preset", "acoustic_bell"),
