@@ -16,7 +16,7 @@ from PyQt6.QtWidgets import (
     QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
     QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider, 
     QFileDialog, QStackedWidget, QFrame, QGridLayout, QComboBox, QFontComboBox, 
-    QStackedLayout, QGraphicsOpacityEffect, QProgressBar, QMessageBox
+    QStackedLayout, QGraphicsOpacityEffect, QProgressBar, QMessageBox, QSizePolicy
 )
 from PyQt6.QtCore import (
     Qt, QTimer, QTime, QRectF, QDate, QPointF, QByteArray, QThread, 
@@ -1236,111 +1236,110 @@ def get_color_variants(hex_color):
 def get_or_create_check_icon(color_hex="#FFFFFF"):
     import tempfile
     clean_col = color_hex.replace("#", "")
-    temp_path = os.path.join(tempfile.gettempdir(), f"dinoscreener_chk_{clean_col}_hires.png").replace("\\", "/")
-    if not os.path.exists(temp_path):
-        img = QImage(64, 64, QImage.Format.Format_ARGB32)
-        img.fill(Qt.GlobalColor.transparent)
-        p = QPainter(img)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        pen = QPen(QColor(color_hex), 6.5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
-        p.setPen(pen)
-        path = QPainterPath()
-        path.moveTo(14, 34)
-        path.lineTo(26, 46)
-        path.lineTo(50, 18)
-        p.drawPath(path)
-        p.end()
-        img.save(temp_path, "PNG")
+    temp_path = os.path.join(tempfile.gettempdir(), f"dinoscreener_chk_{clean_col}.svg").replace("\\", "/")
+    svg_data = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+<path d="M4.5 12.5l5 5L19.5 6.5" fill="none" stroke="{color_hex}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>"""
+    try:
+        with open(temp_path, "w", encoding="utf-8") as f:
+            f.write(svg_data)
+    except Exception:
+        pass
     return temp_path
 
 
 def get_or_create_chevron_icon():
     import tempfile
-    temp_dir = tempfile.gettempdir()
-    temp_path = os.path.join(temp_dir, "dinoscreener_chevron_hires.png").replace("\\", "/")
-    if not os.path.exists(temp_path):
-        img = QImage(56, 56, QImage.Format.Format_ARGB32)
-        img.fill(Qt.GlobalColor.transparent)
-        p = QPainter(img)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        pen = QPen(QColor(180, 195, 215), 5.5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
-        p.setPen(pen)
-        path = QPainterPath()
-        path.moveTo(12, 20)
-        path.lineTo(28, 36)
-        path.lineTo(44, 20)
-        p.drawPath(path)
-        p.end()
-        img.save(temp_path, "PNG")
+    temp_path = os.path.join(tempfile.gettempdir(), "dinoscreener_chevron.svg").replace("\\", "/")
+    svg_data = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+<path d="M6 9.5l6 5.5 6-5.5" fill="none" stroke="#B4C3D7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>"""
+    try:
+        with open(temp_path, "w", encoding="utf-8") as f:
+            f.write(svg_data)
+    except Exception:
+        pass
     return temp_path
 
 
 def get_or_create_fullscreen_duotone_icon(accent_hex):
-    img = QImage(48, 48, QImage.Format.Format_ARGB32)
-    img.fill(Qt.GlobalColor.transparent)
-    p = QPainter(img)
-    p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-    
-    accent_q = QColor(accent_hex)
-    accent_soft = QColor(accent_q.red(), accent_q.green(), accent_q.blue(), 180)
-    white_soft = QColor(255, 255, 255, 235)
-    
-    pen_accent = QPen(accent_soft, 3.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
-    pen_white = QPen(white_soft, 3.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
-    
-    # Top-Left Bracket (Tone 1: Windows Accent)
-    p.setPen(pen_accent)
-    p.drawLine(10, 20, 10, 10)
-    p.drawLine(10, 10, 20, 10)
-    
-    # Bottom-Right Bracket (Tone 1: Windows Accent)
-    p.drawLine(38, 28, 38, 38)
-    p.drawLine(38, 38, 28, 38)
-    
-    # Top-Right Bracket (Tone 2: Crisp White)
-    p.setPen(pen_white)
-    p.drawLine(28, 10, 38, 10)
-    p.drawLine(38, 10, 38, 20)
-    
-    # Bottom-Left Bracket (Tone 2: Crisp White)
-    p.drawLine(10, 28, 10, 38)
-    p.drawLine(10, 38, 20, 38)
-    
-    # Center Duotone Diamond / Target
-    p.setPen(Qt.PenStyle.NoPen)
-    p.setBrush(accent_q)
-    p.drawRoundedRect(QRectF(21, 21, 6, 6), 2, 2)
-    
-    p.end()
-    return QIcon(QPixmap.fromImage(img))
+    import tempfile
+    clean_col = accent_hex.replace("#", "")
+    temp_path = os.path.join(tempfile.gettempdir(), f"dinoscreener_fs_duotone_{clean_col}.svg").replace("\\", "/")
+    svg_data = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path d="M4 9V4h5M20 15v5h-5" fill="none" stroke="{accent_hex}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M15 4h5v5M9 20H4v-5" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="10.5" y="10.5" width="3" height="3" rx="0.8" fill="{accent_hex}"/>
+</svg>"""
+    try:
+        with open(temp_path, "w", encoding="utf-8") as f:
+            f.write(svg_data)
+    except Exception:
+        pass
+    icon = QIcon(temp_path)
+    for sz in [20, 24, 32, 40, 48, 64]:
+        pix = QPixmap(sz, sz)
+        pix.fill(Qt.GlobalColor.transparent)
+        p = QPainter(pix)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        accent_q = QColor(accent_hex)
+        white_q = QColor(255, 255, 255, 240)
+        s = sz / 24.0
+        pen_acc = QPen(accent_q, 2.2 * s, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
+        pen_w = QPen(white_q, 2.2 * s, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
+        p.setPen(pen_acc)
+        p.drawLine(QPointF(4 * s, 9 * s), QPointF(4 * s, 4 * s))
+        p.drawLine(QPointF(4 * s, 4 * s), QPointF(9 * s, 4 * s))
+        p.drawLine(QPointF(20 * s, 15 * s), QPointF(20 * s, 20 * s))
+        p.drawLine(QPointF(20 * s, 20 * s), QPointF(15 * s, 20 * s))
+        p.setPen(pen_w)
+        p.drawLine(QPointF(15 * s, 4 * s), QPointF(20 * s, 4 * s))
+        p.drawLine(QPointF(20 * s, 4 * s), QPointF(20 * s, 9 * s))
+        p.drawLine(QPointF(9 * s, 20 * s), QPointF(4 * s, 20 * s))
+        p.drawLine(QPointF(4 * s, 20 * s), QPointF(4 * s, 15 * s))
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(accent_q)
+        p.drawRoundedRect(QRectF(10.5 * s, 10.5 * s, 3 * s, 3 * s), 0.8 * s, 0.8 * s)
+        p.end()
+        icon.addPixmap(pix)
+    return icon
 
 
 def get_or_create_info_duotone_icon(accent_hex):
-    img = QImage(64, 64, QImage.Format.Format_ARGB32)
-    img.fill(Qt.GlobalColor.transparent)
-    p = QPainter(img)
-    p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-    
-    accent_q = QColor(accent_hex)
-    accent_glow = QColor(accent_q.red(), accent_q.green(), accent_q.blue(), 45)
-    white_q = QColor(255, 255, 255, 235)
-    
-    # Outer subtle filled duotone disk
-    p.setPen(QPen(accent_q, 3.2))
-    p.setBrush(QBrush(accent_glow))
-    p.drawEllipse(QRectF(8, 8, 48, 48))
-    
-    # Top Dot (Crisp White)
-    p.setPen(Qt.PenStyle.NoPen)
-    p.setBrush(QBrush(white_q))
-    p.drawEllipse(QRectF(29, 18, 6, 6))
-    
-    # Lower Stem (Crisp White with rounded cap)
-    pen_stem = QPen(white_q, 4.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
-    p.setPen(pen_stem)
-    p.drawLine(32, 30, 32, 44)
-    p.end()
-    return QIcon(QPixmap.fromImage(img))
+    import tempfile
+    clean_col = accent_hex.replace("#", "")
+    temp_path = os.path.join(tempfile.gettempdir(), f"dinoscreener_info_duotone_{clean_col}.svg").replace("\\", "/")
+    svg_data = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <circle cx="12" cy="12" r="9.5" fill="{accent_hex}" fill-opacity="0.22" stroke="{accent_hex}" stroke-width="1.8"/>
+  <circle cx="12" cy="7.8" r="1.3" fill="#FFFFFF"/>
+  <line x1="12" y1="11" x2="12" y2="16.5" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round"/>
+</svg>"""
+    try:
+        with open(temp_path, "w", encoding="utf-8") as f:
+            f.write(svg_data)
+    except Exception:
+        pass
+    icon = QIcon(temp_path)
+    for sz in [20, 24, 30, 40, 48, 64]:
+        pix = QPixmap(sz, sz)
+        pix.fill(Qt.GlobalColor.transparent)
+        p = QPainter(pix)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        accent_q = QColor(accent_hex)
+        accent_glow = QColor(accent_q.red(), accent_q.green(), accent_q.blue(), 55)
+        white_q = QColor(255, 255, 255, 245)
+        s = sz / 24.0
+        p.setPen(QPen(accent_q, 1.8 * s))
+        p.setBrush(QBrush(accent_glow))
+        p.drawEllipse(QRectF(2.5 * s, 2.5 * s, 19 * s, 19 * s))
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(white_q)
+        p.drawEllipse(QRectF(10.7 * s, 6.5 * s, 2.6 * s, 2.6 * s))
+        p.setPen(QPen(white_q, 1.8 * s, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+        p.drawLine(QPointF(12 * s, 11 * s), QPointF(12 * s, 16.5 * s))
+        p.end()
+        icon.addPixmap(pix)
+    return icon
 
 
 def get_rounded_pixmap(src_path, size=38, radius=9, dpr=3.0):
@@ -1880,13 +1879,82 @@ class DownloadWorker(QThread):
 
 
 # ==========================================
-# GOLDEN RATIO SYMMETRICAL ABOUT DIALOG
+# MATERIAL YOU EXPRESSIVE LOADER & ABOUT DIALOG
 # ==========================================
+class MaterialYouLoader(QWidget):
+    """Google Material Design 3 Expressive indeterminate linear loader with fluid sinusoidal dual pulse."""
+    def __init__(self, accent_hex="#0078D4", parent=None):
+        super().__init__(parent)
+        self.accent_hex = accent_hex
+        self.setFixedHeight(5)
+        self._anim_pos = 0.0
+        self._timer = QTimer(self)
+        self._timer.setInterval(16)  # ~60 fps smooth frame pacing
+        self._timer.timeout.connect(self._on_tick)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.setVisible(False)
+
+    def set_accent_color(self, hex_code):
+        self.accent_hex = hex_code
+        self.update()
+
+    def start(self):
+        self._anim_pos = 0.0
+        self.setVisible(True)
+        if not self._timer.isActive():
+            self._timer.start()
+        self.update()
+
+    def stop(self):
+        self._timer.stop()
+        self.setVisible(False)
+
+    def _on_tick(self):
+        self._anim_pos = (self._anim_pos + 0.018) % 1.0
+        self.update()
+
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        w, h = float(self.width()), float(self.height())
+        r = h / 2.0
+        
+        # Subtle translucent track
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(QColor(255, 255, 255, 20))
+        p.drawRoundedRect(QRectF(0, 0, w, h), r, r)
+        
+        # Primary expressive pulse
+        t = self._anim_pos
+        accent_q = QColor(self.accent_hex)
+        s1_head = min(1.0, t * 1.5)
+        s1_tail = max(0.0, (t - 0.35) * 1.5)
+        x1 = s1_tail * w
+        x2 = s1_head * w
+        bar1_w = max(16.0, x2 - x1)
+        p.setBrush(accent_q)
+        p.drawRoundedRect(QRectF(x1, 0, bar1_w, h), r, r)
+        
+        # Secondary trailing pulse (Material You expressive rhythm)
+        if t > 0.35:
+            t2 = (t - 0.35) / 0.65
+            s2_head = min(1.0, t2 * 1.4)
+            s2_tail = max(0.0, (t2 - 0.35) * 1.4)
+            x2_1 = s2_tail * w
+            x2_2 = s2_head * w
+            bar2_w = max(9.0, x2_2 - x2_1)
+            accent_soft = QColor(accent_q.red(), accent_q.green(), accent_q.blue(), 180)
+            p.setBrush(accent_soft)
+            p.drawRoundedRect(QRectF(x2_1, 0, bar2_w, h), r, r)
+            
+        p.end()
+
+
 class AboutDialog(QDialog):
     def __init__(self, parent=None, win_accent="#8F96BF", auto_check=False):
         super().__init__(parent)
         self.setWindowTitle("About Dinoscreener")
-        self.setFixedSize(540, 560)
+        self.setFixedSize(540, 615)
         self.win_accent = win_accent
         self.contrast_text, self.hover_accent, self.press_accent = get_color_variants(self.win_accent)
         
@@ -2017,7 +2085,7 @@ class AboutDialog(QDialog):
         
         layout.addLayout(header_box)
         
-        # 2. Card 1: Authentic Creator Story & Modes
+        # 2. Card 1: Authentic Creator Story & Modes (User Option 2)
         card_story = QFrame()
         card_story.setObjectName("aboutCard")
         story_layout = QVBoxLayout(card_story)
@@ -2029,11 +2097,11 @@ class AboutDialog(QDialog):
         story_layout.addWidget(lbl_story_title)
         
         story_text = (
-            f"A clean, minimal screensaver built with Python & PyQt6.<br><br>"
-            f"<b>&middot; CHROME DINO</b> &mdash; Authentic retro runner<br>"
-            f"<b>&middot; 3D FLIP CLOCK</b> &mdash; Retro mechanical display<br>"
-            f"<b>&middot; ROTARY DIAL</b> &mdash; Modern dial with live weather & battery info<br><br>"
-            f"Designed with OLED burn-in protection, high-refresh frame pacing, and custom hourly bell chimes."
+            "Hey, I'm Kushal. I built this screensaver for my desk setup because I wanted "
+            "something clean that looks good and protects my monitor.<br><br>"
+            "It gives you <b>3 distinct modes</b>: an offline <b>Chrome Dino</b> game, a retro mechanical <b>Flip Clock</b>, "
+            "and a modern glowing <b>Rotary Dial</b>.<br><br>"
+            "Engineered with zero-lag <b>165Hz frame pacing</b>, automatic <b>OLED burn-in prevention</b>, and peaceful <b>hourly bell chimes</b>."
         )
         lbl_story = QLabel(story_text)
         lbl_story.setTextFormat(Qt.TextFormat.RichText)
@@ -2060,7 +2128,7 @@ class AboutDialog(QDialog):
         story_layout.addLayout(pills_row)
         layout.addWidget(card_story)
         
-        # 3. Card 2: Updates (Symmetrical Layout)
+        # 3. Card 2: Updates (Symmetrical Layout with Material You Loader)
         card_upd = QFrame()
         card_upd.setObjectName("aboutCard")
         upd_layout = QVBoxLayout(card_upd)
@@ -2075,6 +2143,9 @@ class AboutDialog(QDialog):
         self.lbl_status.setTextFormat(Qt.TextFormat.RichText)
         self.lbl_status.setStyleSheet("font-size: 11.5px; color: #E2E8F0;")
         upd_layout.addWidget(self.lbl_status)
+        
+        self.material_loader = MaterialYouLoader(self.win_accent, self)
+        upd_layout.addWidget(self.material_loader)
         
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
@@ -2094,20 +2165,23 @@ class AboutDialog(QDialog):
         self.btn_install.clicked.connect(self.install_update_clicked)
         upd_btn_row.addWidget(self.btn_install, stretch=1)
         
-        self.btn_github = QPushButton("GitHub")
-        self.btn_github.setObjectName("glassBtn")
-        self.btn_github.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(APP_GITHUB_URL)))
-        upd_btn_row.addWidget(self.btn_github, stretch=1)
-        
         upd_layout.addLayout(upd_btn_row)
         layout.addWidget(card_upd)
         
-        # 4. Footer Row
+        # 4. Footer Row (Golden Ratio Balance & Outer Symmetry)
         footer_row = QHBoxLayout()
+        
+        self.btn_github = QPushButton("GitHub")
+        self.btn_github.setObjectName("glassBtn")
+        self.btn_github.setFixedWidth(100)
+        self.btn_github.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(APP_GITHUB_URL)))
+        footer_row.addWidget(self.btn_github)
+        
         footer_row.addStretch()
+        
         btn_close = QPushButton("Close")
         btn_close.setObjectName("glassBtn")
-        btn_close.setFixedWidth(90)
+        btn_close.setFixedWidth(100)
         btn_close.clicked.connect(self.close)
         footer_row.addWidget(btn_close)
         layout.addLayout(footer_row)
@@ -2121,12 +2195,14 @@ class AboutDialog(QDialog):
     def check_updates_clicked(self):
         self.lbl_status.setText("Checking GitHub for the latest release...")
         self.btn_check.setEnabled(False)
+        self.material_loader.start()
         self.worker = UpdateCheckerWorker()
         self.worker.update_result.connect(self.on_update_result)
         self.worker.check_failed.connect(self.on_check_failed)
         self.worker.start()
 
     def on_update_result(self, has_update, latest_tag, body, download_url):
+        self.material_loader.stop()
         self.btn_check.setEnabled(True)
         self.latest_download_url = download_url
         self.latest_tag = latest_tag
@@ -2139,6 +2215,7 @@ class AboutDialog(QDialog):
             self.btn_install.setVisible(False)
 
     def on_check_failed(self, err_msg):
+        self.material_loader.stop()
         self.btn_check.setEnabled(True)
         self.lbl_status.setText(f"Could not connect to GitHub API: {err_msg}")
 
@@ -2148,6 +2225,7 @@ class AboutDialog(QDialog):
             return
         self.btn_install.setEnabled(False)
         self.btn_check.setEnabled(False)
+        self.material_loader.stop()
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)
         self.lbl_status.setText(f"Downloading {self.latest_tag} from GitHub...")
@@ -2630,7 +2708,7 @@ class SettingsDialog(QDialog):
         brand_box.setSpacing(1)
         lbl_app_name = QLabel("Dinoscreener")
         lbl_app_name.setStyleSheet("font-size: 15px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.2px;")
-        lbl_app_sub = QLabel("by Kushal")
+        lbl_app_sub = QLabel("ScreenSaver Settings :)")
         lbl_app_sub.setStyleSheet("font-size: 11px; color: #94A3B8;")
         brand_box.addWidget(lbl_app_name)
         brand_box.addWidget(lbl_app_sub)
