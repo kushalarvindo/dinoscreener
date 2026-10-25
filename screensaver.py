@@ -1562,51 +1562,12 @@ class CollapsibleModeCapsule(QFrame):
         self.opacity_effect = QGraphicsOpacityEffect(self.expanded_view)
         self.expanded_view.setGraphicsEffect(self.opacity_effect)
         self.opacity_effect.setOpacity(1.0)
-        
         self.on_mode_changed = None
+        self.on_width_changed = None
         self._anim_group = None
         self.set_current_mode(0)
 
-    def enable_frosted_glass(self, studio):
-        self.studio_parent = studio
-        self.setStyleSheet("""
-            QFrame#capsuleFrame {
-                background: transparent;
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 19px;
-            }
-            QFrame#capsuleFrame:hover {
-                background: transparent;
-                border: 1px solid rgba(255, 255, 255, 0.22);
-            }
-        """)
-
     def paintEvent(self, event):
-        if getattr(self, 'studio_parent', None):
-            p_glass = QPainter(self)
-            p_glass.setRenderHint(QPainter.RenderHint.Antialiasing)
-            w_g, h_g = self.width(), self.height()
-            top_left = self.mapTo(self.studio_parent, QPoint(0, 0))
-            sample_rect = QRect(top_left.x(), top_left.y(), w_g, h_g)
-            canvas_pix = getattr(self.studio_parent.clock, 'cached_frame', None)
-            clip_g = QPainterPath()
-            clip_g.addRoundedRect(QRectF(0, 0, w_g, h_g), 19, 19)
-            p_glass.setClipPath(clip_g)
-            if canvas_pix and not canvas_pix.isNull() and canvas_pix.rect().contains(sample_rect):
-                sub = canvas_pix.copy(sample_rect)
-                dw = max(4, w_g // 10)
-                dh = max(4, h_g // 10)
-                blurred = sub.scaled(dw, dh, Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation).scaled(w_g, h_g, Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
-                p_glass.drawPixmap(0, 0, blurred)
-            else:
-                p_glass.fillRect(QRectF(0, 0, w_g, h_g), QColor(10, 14, 23))
-            p_glass.fillRect(QRectF(0, 0, w_g, h_g), QColor(18, 21, 31, 192))
-            border_pen = QPen(QColor(255, 255, 255, 31), 1.0)
-            p_glass.setPen(border_pen)
-            p_glass.setBrush(Qt.BrushStyle.NoBrush)
-            p_glass.drawRoundedRect(QRectF(0.5, 0.5, w_g - 1.0, h_g - 1.0), 19, 19)
-            p_glass.end()
-
         super().paintEvent(event)
         
         # Do not render edge indicator glows in expanded 3-button view
@@ -1713,6 +1674,8 @@ class CollapsibleModeCapsule(QFrame):
     def set_capsule_width(self, w):
         self._width = w
         self.setFixedWidth(w)
+        if hasattr(self, 'on_width_changed') and callable(self.on_width_changed):
+            self.on_width_changed(w)
 
     capsuleWidth = pyqtProperty(int, get_capsule_width, set_capsule_width)
 
@@ -2517,12 +2480,12 @@ rm -- "$0"
 # INTERACTIVE FULLSCREEN STUDIO MODE (165Hz ZERO-LAG OBSIDIAN GLASS ARCHITECTURE)
 # ==============================================================================
 
-class CrescentEdgeGlow(QWidget):
+class SpatialGrabberBar(QWidget):
     """
-    Ultra-minimal, flat, frameless soft crescent edge glow.
-    Hugs the screen edge (left, top, right) with a delicate radial light bleed:
-    rgba(165, 180, 252, 0.35) fading smoothly to 0.0.
-    No solid 3D body, no metallic gradient, 100% transparent bounding box.
+    Apple visionOS-style spatial luminous pill grabber:
+    Thin, futuristic glowing capsule bar with soft periwinkle ambient bloom.
+    Top: 64x5px horizontal capsule floating 14px from top edge.
+    Left & Right: 5x64px vertical capsule floating 14px from screen border.
     """
     def __init__(self, studio, edge='left'):
         super().__init__(studio)
@@ -2532,9 +2495,9 @@ class CrescentEdgeGlow(QWidget):
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.hovered = False
         if self.edge == 'top':
-            self.setFixedSize(140, 22)
+            self.setFixedSize(80, 24)
         else:
-            self.setFixedSize(22, 140)
+            self.setFixedSize(24, 80)
 
     def enterEvent(self, event):
         super().enterEvent(event)
@@ -2563,80 +2526,40 @@ class CrescentEdgeGlow(QWidget):
 
     def paintEvent(self, event):
         p = QPainter(self)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        w = float(self.width())
-        h = float(self.height())
-        c_peri = QColor("#a5b4fc")
-        alpha_max = int(255 * (0.55 if self.hovered else 0.35))
-
-        if self.edge == 'left':
-            grad = QRadialGradient(QPointF(0.0, h / 2.0), h / 2.0)
-            grad.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), alpha_max))
-            grad.setColorAt(0.5, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), int(alpha_max * 0.4)))
-            grad.setColorAt(1.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 0))
-            p.setBrush(QBrush(grad))
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        
+        bloom_a = 95 if self.hovered else 45
+        core_a = 245 if self.hovered else 170
+        
+        c_bloom = QColor(165, 180, 252, bloom_a)
+        c_core = QColor(255, 255, 255, core_a)
+        
+        if self.edge == 'top':
+            pill_rect = QRectF(8.0, 9.5, 64.0, 5.0)
+            glow_rect = QRectF(6.0, 7.5, 68.0, 9.0)
             p.setPen(Qt.PenStyle.NoPen)
-            p.drawEllipse(QPointF(0.0, h / 2.0), w, h / 2.0)
-
-            v_grad = QLinearGradient(0, 0, 0, h)
-            v_grad.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 0))
-            v_grad.setColorAt(0.3, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), int(alpha_max * 0.8)))
-            v_grad.setColorAt(0.5, QColor(255, 255, 255, alpha_max))
-            v_grad.setColorAt(0.7, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), int(alpha_max * 0.8)))
-            v_grad.setColorAt(1.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 0))
-            pen = QPen(v_grad, 2.2)
-            pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-            p.setPen(pen)
-            p.drawArc(QRectF(-w * 0.8, 8.0, w * 1.6, h - 16.0), int(-75 * 16), int(150 * 16))
-
-        elif self.edge == 'right':
-            grad = QRadialGradient(QPointF(w, h / 2.0), h / 2.0)
-            grad.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), alpha_max))
-            grad.setColorAt(0.5, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), int(alpha_max * 0.4)))
-            grad.setColorAt(1.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 0))
-            p.setBrush(QBrush(grad))
+            p.setBrush(c_bloom)
+            p.drawRoundedRect(glow_rect, 4.5, 4.5)
+            p.setBrush(c_core)
+            p.drawRoundedRect(pill_rect, 2.5, 2.5)
+        else:
+            pill_rect = QRectF(9.5, 8.0, 5.0, 64.0)
+            glow_rect = QRectF(7.5, 6.0, 9.0, 68.0)
             p.setPen(Qt.PenStyle.NoPen)
-            p.drawEllipse(QPointF(w, h / 2.0), w, h / 2.0)
-
-            v_grad = QLinearGradient(0, 0, 0, h)
-            v_grad.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 0))
-            v_grad.setColorAt(0.3, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), int(alpha_max * 0.8)))
-            v_grad.setColorAt(0.5, QColor(255, 255, 255, alpha_max))
-            v_grad.setColorAt(0.7, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), int(alpha_max * 0.8)))
-            v_grad.setColorAt(1.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 0))
-            pen = QPen(v_grad, 2.2)
-            pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-            p.setPen(pen)
-            p.drawArc(QRectF(w - w * 0.8, 8.0, w * 1.6, h - 16.0), int(105 * 16), int(150 * 16))
-
-        elif self.edge == 'top':
-            grad = QRadialGradient(QPointF(w / 2.0, 0.0), w / 2.0)
-            grad.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), alpha_max))
-            grad.setColorAt(0.5, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), int(alpha_max * 0.4)))
-            grad.setColorAt(1.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 0))
-            p.setBrush(QBrush(grad))
-            p.setPen(Qt.PenStyle.NoPen)
-            p.drawEllipse(QPointF(w / 2.0, 0.0), w / 2.0, h)
-
-            h_grad = QLinearGradient(0, 0, w, 0)
-            h_grad.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 0))
-            h_grad.setColorAt(0.3, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), int(alpha_max * 0.8)))
-            h_grad.setColorAt(0.5, QColor(255, 255, 255, alpha_max))
-            h_grad.setColorAt(0.7, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), int(alpha_max * 0.8)))
-            h_grad.setColorAt(1.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 0))
-            pen = QPen(h_grad, 2.2)
-            pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-            p.setPen(pen)
-            p.drawArc(QRectF(8.0, -h * 0.8, w - 16.0, h * 1.6), int(195 * 16), int(150 * 16))
-
+            p.setBrush(c_bloom)
+            p.drawRoundedRect(glow_rect, 4.5, 4.5)
+            p.setBrush(c_core)
+            p.drawRoundedRect(pill_rect, 2.5, 2.5)
+            
         p.end()
 
 
 class StudioDrawer(QFrame):
     """
     Floating Studio Obsidian Glass Drawer:
-    Ultra-clean translucent obsidian-slate QSS running at locked 165Hz with zero CPU blur lag.
     Hosts the REAL, working Settings cards from SettingsDialog.
+    Renders with a solid, deep obsidian-slate rounded background (QColor(18, 22, 32, 248))
+    and a subtle 1.2px periwinkle rim border so text is 100% crisp and screensaver never bleeds through.
     """
     def __init__(self, studio, win_accent, check_icon_path, fixed_w, fixed_h):
         super().__init__(studio)
@@ -2649,9 +2572,8 @@ class StudioDrawer(QFrame):
         
         self.setStyleSheet(f"""
             QFrame#studioDrawer {{
-                background-color: rgba(19, 22, 31, 0.86);
-                border: 1px solid rgba(165, 180, 252, 0.22);
-                border-radius: 18px;
+                background: transparent;
+                border: none;
             }}
             QFrame#bentoCard {{
                 background: transparent;
@@ -2708,12 +2630,19 @@ class StudioDrawer(QFrame):
                 border-radius: 7px;
             }}
             QComboBox {{
-                background: rgba(255, 255, 255, 0.06);
+                background: rgba(255, 255, 255, 0.08);
                 border: 1px solid rgba(255, 255, 255, 0.14);
                 border-radius: 7px;
                 color: #FFFFFF;
                 padding: 2px 8px;
                 font-size: 11px;
+            }}
+            QComboBox QAbstractItemView {{
+                background-color: #1a1e2b;
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 6px;
+                color: #FFFFFF;
+                selection-background-color: {win_accent};
             }}
         """)
         
@@ -2721,6 +2650,16 @@ class StudioDrawer(QFrame):
         self.drawer_layout.setContentsMargins(10, 8, 10, 8)
         self.drawer_layout.setSpacing(0)
         self.card = None
+
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        w, h = float(self.width()), float(self.height())
+        p.setBrush(QColor(18, 22, 32, 248))
+        p.setPen(QPen(QColor(165, 180, 252, 55), 1.2))
+        p.drawRoundedRect(QRectF(1.0, 1.0, w - 2.0, h - 2.0), 18.0, 18.0)
+        p.end()
+        super().paintEvent(event)
 
     def set_card(self, card):
         self.card = card
@@ -2740,19 +2679,19 @@ class StudioInfoButton(QPushButton):
         self.setIconSize(QSize(22, 22))
         self.setToolTip("About, version & updates")
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
-        self.setStyleSheet("""
-            QPushButton#studioInfoBtn {
-                background-color: rgba(19, 22, 31, 0.86);
-                border: 1px solid rgba(165, 180, 252, 0.22);
-                border-radius: 20px;
-                outline: none;
-            }
-            QPushButton#studioInfoBtn:hover {
-                background-color: rgba(28, 33, 48, 0.95);
-                border-color: rgba(165, 180, 252, 0.45);
-            }
-        """)
         self.clicked.connect(self.studio.open_about)
+
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        w, h = float(self.width()), float(self.height())
+        bg_col = QColor(28, 33, 48, 248) if self.underMouse() else QColor(18, 22, 32, 248)
+        border_col = QColor(165, 180, 252, 110) if self.underMouse() else QColor(165, 180, 252, 55)
+        p.setBrush(bg_col)
+        p.setPen(QPen(border_col, 1.2))
+        p.drawEllipse(QRectF(1.0, 1.0, w - 2.0, h - 2.0))
+        p.end()
+        super().paintEvent(event)
 
 
 class StudioActionDock(QFrame):
@@ -2765,9 +2704,8 @@ class StudioActionDock(QFrame):
         
         self.setStyleSheet("""
             QFrame#studioDock {
-                background-color: rgba(19, 22, 31, 0.86);
-                border: 1px solid rgba(165, 180, 252, 0.22);
-                border-radius: 18px;
+                background: transparent;
+                border: none;
             }
             QPushButton {
                 font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
@@ -2840,12 +2778,22 @@ class StudioActionDock(QFrame):
         self.btn_exit.clicked.connect(self.studio.close_studio)
         layout.addWidget(self.btn_exit)
 
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        w, h = float(self.width()), float(self.height())
+        p.setBrush(QColor(18, 22, 32, 248))
+        p.setPen(QPen(QColor(165, 180, 252, 55), 1.2))
+        p.drawRoundedRect(QRectF(1.0, 1.0, w - 2.0, h - 2.0), 18.0, 18.0)
+        p.end()
+        super().paintEvent(event)
+
 
 class FullscreenStudioMode(QWidget):
     """
     Interactive Fullscreen Studio Mode:
     Live-edit all screensaver settings in fullscreen with the REAL Settings cards,
-    minimalist crescent edge glows, and locked 165Hz zero-lag obsidian glass QSS.
+    minimalist Apple visionOS spatial luminous grabber bars, and 165Hz zero-lag obsidian glass cards.
     """
     def __init__(self, settings_dialog):
         super().__init__()
@@ -2903,7 +2851,7 @@ class FullscreenStudioMode(QWidget):
         self.mode_capsule = CollapsibleModeCapsule(win_accent=self.win_accent, parent=self)
         self.mode_capsule.set_current_mode(self.clock.clock_style)
         self.mode_capsule.on_mode_changed = self.on_studio_mode_changed
-        self.mode_capsule.installEventFilter(self)
+        self.mode_capsule.on_width_changed = self._recenter_mode_capsule
         
         # 3. Real Working Drawers: Hosting the ACTUAL Settings cards
         self.left_drawer = StudioDrawer(self, self.win_accent, check_icon_path, 300, 260)
@@ -2914,17 +2862,17 @@ class FullscreenStudioMode(QWidget):
         self.top_drawer.set_card(self.settings.card_disp)
         self.right_drawer.set_card(self.settings.card_sys)
         
-        # 4. Ultra-minimal Crescent Edge Glows (flat, frameless light bleed)
-        self.left_glow = CrescentEdgeGlow(self, edge='left')
-        self.top_glow = CrescentEdgeGlow(self, edge='top')
-        self.right_glow = CrescentEdgeGlow(self, edge='right')
+        # 4. Apple visionOS Spatial Luminous Grabber Bars
+        self.left_grabber = SpatialGrabberBar(self, edge='left')
+        self.top_grabber = SpatialGrabberBar(self, edge='top')
+        self.right_grabber = SpatialGrabberBar(self, edge='right')
         
         # State tracking
         self.left_open = False
         self.top_open = False
         self.right_open = False
         
-        # Fixed natural position animations (No layout reflow, only pos!)
+        # Position animations
         self.anim_left = QPropertyAnimation(self.left_drawer, b"pos", self)
         self.anim_left.setDuration(180)
         self.anim_left.setEasingCurve(QEasingCurve.Type.OutCubic)
@@ -2937,8 +2885,17 @@ class FullscreenStudioMode(QWidget):
         self.anim_right.setDuration(180)
         self.anim_right.setEasingCurve(QEasingCurve.Type.OutCubic)
 
+    def _recenter_mode_capsule(self, w=None):
+        if w is None:
+            w = self.mode_capsule.width()
+        sw = self.width()
+        sh = self.height()
+        self.mode_capsule.move((sw - w) // 2, sh - self.mode_capsule.height() - 32)
+
     def on_studio_mode_changed(self, idx):
         self.settings.set_mode(idx)
+        self.clock.clock_style = idx
+        self.clock.update()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -2958,12 +2915,12 @@ class FullscreenStudioMode(QWidget):
         self.mode_capsule.move((sw - cw) // 2, sh - self.mode_capsule.height() - 32)
         self.mode_capsule.raise_()
         
-        self.left_glow.move(0, (sh - self.left_glow.height()) // 2)
-        self.top_glow.move((sw - self.top_glow.width()) // 2, 0)
-        self.right_glow.move(sw - self.right_glow.width(), (sh - self.right_glow.height()) // 2)
-        self.left_glow.raise_()
-        self.top_glow.raise_()
-        self.right_glow.raise_()
+        self.left_grabber.move(14, (sh - self.left_grabber.height()) // 2)
+        self.top_grabber.move((sw - self.top_grabber.width()) // 2, 14)
+        self.right_grabber.move(sw - self.right_grabber.width() - 14, (sh - self.right_grabber.height()) // 2)
+        self.left_grabber.raise_()
+        self.top_grabber.raise_()
+        self.right_grabber.raise_()
         
         if self.left_open:
             self.left_drawer.move(24, (sh - self.left_drawer.height()) // 2)
@@ -2983,6 +2940,10 @@ class FullscreenStudioMode(QWidget):
     def set_left_drawer_open(self, open_state):
         if self.left_open == open_state:
             return
+        if open_state:
+            self.set_top_drawer_open(False)
+            self.set_right_drawer_open(False)
+            
         self.left_open = open_state
         sh = self.height()
         target_pos = QPoint(24, (sh - self.left_drawer.height()) // 2) if open_state else QPoint(-self.left_drawer.width() - 20, (sh - self.left_drawer.height()) // 2)
@@ -2993,14 +2954,14 @@ class FullscreenStudioMode(QWidget):
         self.anim_left.start()
         
         if open_state:
-            self.left_glow.setVisible(False)
+            self.left_grabber.setVisible(False)
             self.left_drawer.raise_()
         else:
             self.anim_left.finished.connect(self._on_left_anim_done)
 
     def _on_left_anim_done(self):
         if not self.left_open:
-            self.left_glow.setVisible(True)
+            self.left_grabber.setVisible(True)
         try:
             self.anim_left.finished.disconnect(self._on_left_anim_done)
         except Exception:
@@ -3009,6 +2970,10 @@ class FullscreenStudioMode(QWidget):
     def set_top_drawer_open(self, open_state):
         if self.top_open == open_state:
             return
+        if open_state:
+            self.set_left_drawer_open(False)
+            self.set_right_drawer_open(False)
+            
         self.top_open = open_state
         sw = self.width()
         target_pos = QPoint((sw - self.top_drawer.width()) // 2, 24) if open_state else QPoint((sw - self.top_drawer.width()) // 2, -self.top_drawer.height() - 20)
@@ -3019,14 +2984,14 @@ class FullscreenStudioMode(QWidget):
         self.anim_top.start()
         
         if open_state:
-            self.top_glow.setVisible(False)
+            self.top_grabber.setVisible(False)
             self.top_drawer.raise_()
         else:
             self.anim_top.finished.connect(self._on_top_anim_done)
 
     def _on_top_anim_done(self):
         if not self.top_open:
-            self.top_glow.setVisible(True)
+            self.top_grabber.setVisible(True)
         try:
             self.anim_top.finished.disconnect(self._on_top_anim_done)
         except Exception:
@@ -3035,6 +3000,10 @@ class FullscreenStudioMode(QWidget):
     def set_right_drawer_open(self, open_state):
         if self.right_open == open_state:
             return
+        if open_state:
+            self.set_left_drawer_open(False)
+            self.set_top_drawer_open(False)
+            
         self.right_open = open_state
         sw, sh = self.width(), self.height()
         target_pos = QPoint(sw - self.right_drawer.width() - 24, (sh - self.right_drawer.height()) // 2) if open_state else QPoint(sw + 20, (sh - self.right_drawer.height()) // 2)
@@ -3045,14 +3014,14 @@ class FullscreenStudioMode(QWidget):
         self.anim_right.start()
         
         if open_state:
-            self.right_glow.setVisible(False)
+            self.right_grabber.setVisible(False)
             self.right_drawer.raise_()
         else:
             self.anim_right.finished.connect(self._on_right_anim_done)
 
     def _on_right_anim_done(self):
         if not self.right_open:
-            self.right_glow.setVisible(True)
+            self.right_grabber.setVisible(True)
         try:
             self.anim_right.finished.disconnect(self._on_right_anim_done)
         except Exception:
@@ -3066,6 +3035,14 @@ class FullscreenStudioMode(QWidget):
             if self.top_open and pos.y() > self.top_drawer.geometry().bottom() + 80:
                 self.set_top_drawer_open(False)
             if self.right_open and pos.x() < self.right_drawer.geometry().left() - 80:
+                self.set_right_drawer_open(False)
+        elif event.type() == QEvent.Type.MouseButtonPress:
+            pos = self.mapFromGlobal(event.globalPosition().toPoint())
+            if self.left_open and not self.left_drawer.geometry().contains(pos):
+                self.set_left_drawer_open(False)
+            if self.top_open and not self.top_drawer.geometry().contains(pos):
+                self.set_top_drawer_open(False)
+            if self.right_open and not self.right_drawer.geometry().contains(pos):
                 self.set_right_drawer_open(False)
         return super().eventFilter(obj, event)
 
@@ -3158,7 +3135,6 @@ class FullscreenStudioMode(QWidget):
             event.accept()
             return
         super().keyPressEvent(event)
-
 
 class SettingsDialog(QDialog):
     def __init__(self, config_path):
@@ -3502,6 +3478,18 @@ class SettingsDialog(QDialog):
             self.card_disp.show()
             self.card_sys.show()
 
+    def update_strict_exit(self, state=None):
+        self.preview.strict_exit = self.strict_cb.isChecked()
+        self.sync_studio_clock()
+
+    def update_ignore_media(self, state=None):
+        self.preview.ignore_media_keys = self.ignore_media_cb.isChecked()
+        self.sync_studio_clock()
+
+    def update_enable_win_key(self, state=None):
+        self.preview.enable_win_key = self.win_cb.isChecked()
+        self.sync_studio_clock()
+
     def sync_studio_clock(self):
         if hasattr(self, 'studio') and self.studio and hasattr(self.studio, 'clock') and self.studio.clock:
             c = self.studio.clock
@@ -3509,7 +3497,7 @@ class SettingsDialog(QDialog):
             c.clock_style = p.clock_style
             c.clock_scales = dict(p.clock_scales)
             c.leading_zeros = dict(p.leading_zeros)
-            c.accent_color = p.accent_color
+            c.rotary_accent = p.rotary_accent
             c.show_bg = p.show_bg
             c.brightness = p.brightness
             c.use_24hr = p.use_24hr
@@ -4113,19 +4101,19 @@ class SettingsDialog(QDialog):
         self.strict_cb = QCheckBox("Lock on Exit (Ctrl+Z)")
         self.strict_cb.setChecked(self.config.get("strict_exit", False))
         self.strict_cb.setToolTip("Requires pressing Ctrl+Z to dismiss the screensaver")
-        self.strict_cb.stateChanged.connect(lambda s: setattr(self.preview, 'strict_exit', self.strict_cb.isChecked()))
+        self.strict_cb.stateChanged.connect(self.update_strict_exit)
         card_sys_layout.addWidget(self.strict_cb)
         
         self.ignore_media_cb = QCheckBox("Ignore Media Keys")
         self.ignore_media_cb.setChecked(self.config.get("ignore_media_keys", False))
         self.ignore_media_cb.setToolTip("Volume and track keys won't close screensaver")
-        self.ignore_media_cb.stateChanged.connect(lambda s: setattr(self.preview, 'ignore_media_keys', self.ignore_media_cb.isChecked()))
+        self.ignore_media_cb.stateChanged.connect(self.update_ignore_media)
         card_sys_layout.addWidget(self.ignore_media_cb)
         
         self.win_cb = QCheckBox("Enable Windows Key")
         self.win_cb.setChecked(self.config.get("enable_win_key", False))
         self.win_cb.setToolTip("Use Windows key without waking screensaver")
-        self.win_cb.stateChanged.connect(lambda s: setattr(self.preview, 'enable_win_key', self.win_cb.isChecked()))
+        self.win_cb.stateChanged.connect(self.update_enable_win_key)
         card_sys_layout.addWidget(self.win_cb)
         card_sys_layout.addStretch()
         cards_row.addWidget(card_sys, stretch=1)
@@ -4227,6 +4215,13 @@ class SettingsDialog(QDialog):
             self.leading_zero_cb.blockSignals(True)
             self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(idx), False))
             self.leading_zero_cb.blockSignals(False)
+        self.sync_studio_clock()
+        if hasattr(self, 'studio') and self.studio:
+            if hasattr(self.studio, 'mode_capsule') and self.studio.mode_capsule:
+                self.studio.mode_capsule.set_current_mode(idx)
+            if hasattr(self.studio, 'clock') and self.studio.clock:
+                self.studio.clock.clock_style = idx
+                self.studio.clock.update()
         self.repaint()
 
     def update_swatch_highlights(self):
