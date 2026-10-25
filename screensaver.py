@@ -36,7 +36,7 @@ APP_GITHUB_URL = "https://github.com/kushalarvindo/dinoscreener"
 
 SPRITE_B64 = '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'
 class CrispAestheticFlipClock(QWidget):
-    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zeros=None, config_path=None, full_config=None, ignore_media_keys=False, dino_font="Bungee", live_weather=False, pixel_shift=False, primary_font="", character_type="dino", custom_character_image="", show_weather=True, show_battery=True, use_fahrenheit=False, ambient_mode=False, hourly_chime=False):
+    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zeros=None, config_path=None, full_config=None, ignore_media_keys=False, dino_font="Bungee", live_weather=False, pixel_shift=False, primary_font="", character_type="dino", custom_character_image="", show_weather=True, show_battery=True, use_fahrenheit=False, ambient_mode=False, hourly_chime=False, chime_preset="acoustic_bell", chime_volume=45, custom_chime_path=""):
         super().__init__()
         self.last_pos = None
         self.clock_scales = clock_scales if clock_scales else {"0": 0.45, "1": 0.45, "2": 0.45}
@@ -51,6 +51,9 @@ class CrispAestheticFlipClock(QWidget):
         self.time_elapsed = 0.0 
         self.scale_callback = None
         self.hourly_chime = hourly_chime
+        self.chime_preset = chime_preset
+        self.chime_volume = chime_volume
+        self.custom_chime_path = custom_chime_path
         self.last_chime_hour = -1
         self.dino_frame_step = 0.0
         
@@ -217,7 +220,11 @@ class CrispAestheticFlipClock(QWidget):
         if self.hourly_chime and self.clock_style == 0 and not self.preview_mode:
             if now.minute() == 0 and now.hour() != self.last_chime_hour:
                 self.last_chime_hour = now.hour()
-                play_chime()
+                play_chime(
+                    preset=getattr(self, 'chime_preset', 'acoustic_bell'),
+                    volume=getattr(self, 'chime_volume', 45),
+                    custom_path=getattr(self, 'custom_chime_path', '')
+                )
 
     def updateAnimation(self):
         now_time = time.perf_counter()
@@ -998,7 +1005,8 @@ class CrispAestheticFlipClock(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.setRenderHint(QPainter.RenderHint.TextAntialiasing) 
+        painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         
         w = self.width()
         h = self.height()
@@ -1598,35 +1606,88 @@ class CollapsibleModeCapsule(QFrame):
 
 
 # ==========================================
-# HOURLY CHIME ACOUSTIC SYNTHESIZER
+# SOUND LIBRARY & CHIME SYNTHESIZER
 # ==========================================
-def generate_chime_wav(filename):
+CHIME_PRESETS = [
+    ("acoustic_bell", "Acoustic Bell (Gentle)"),
+    ("windows_chime", "Windows Modern Chime"),
+    ("zen_bowl", "Zen Singing Bowl"),
+    ("minimal_ping", "Minimal Watch Ping")
+]
+
+def synthesize_preset_wav(preset_key, filename, volume=50):
     sample_rate = 44100
-    duration = 1.8 # seconds
-    num_samples = int(sample_rate * duration)
+    # Audio perceptual volume taper
+    gain = max(0.0, min(1.0, (volume / 100.0) ** 1.3))
     
-    # Dual-harmonic acoustic bell chime (D5 587.33Hz + A5 880.00Hz + subtle D6 1174.66Hz)
-    f1, f2, f3 = 587.33, 880.00, 1174.66
-    
-    frames = bytearray()
-    for i in range(num_samples):
-        t = i / sample_rate
-        # Quick soft attack (8ms), exponential decay tau = 0.55s
-        attack = min(1.0, t / 0.008)
-        decay = math.exp(-t / 0.55)
-        env = attack * decay
-        
-        # Pure harmonic superposition
-        sample = (
-            0.55 * math.sin(2.0 * math.pi * f1 * t) +
-            0.30 * math.sin(2.0 * math.pi * f2 * t) +
-            0.15 * math.sin(2.0 * math.pi * f3 * t)
-        ) * env
-        
-        sample = max(-0.95, min(0.95, sample))
-        int_sample = int(sample * 32767.0)
-        frames.extend(struct.pack('<h', int_sample))
-        
+    if preset_key == "windows_chime":
+        duration = 1.3
+        num_samples = int(sample_rate * duration)
+        frames = bytearray()
+        for i in range(num_samples):
+            t = i / sample_rate
+            s1 = 0.0
+            if t < 0.45:
+                env1 = min(1.0, t / 0.006) * math.exp(-t / 0.16)
+                s1 = 0.45 * math.sin(2 * math.pi * 739.99 * t) * env1
+            s2 = 0.0
+            if t >= 0.08:
+                t2 = t - 0.08
+                env2 = min(1.0, t2 / 0.006) * math.exp(-t2 / 0.42)
+                s2 = (0.55 * math.sin(2 * math.pi * 1108.73 * t2) + 0.15 * math.sin(2 * math.pi * 2217.46 * t2)) * env2
+            sample = (s1 + s2) * gain
+            sample = max(-0.95, min(0.95, sample))
+            frames.extend(struct.pack('<h', int(sample * 32767.0)))
+            
+    elif preset_key == "zen_bowl":
+        duration = 2.0
+        num_samples = int(sample_rate * duration)
+        frames = bytearray()
+        f1, f2, f3 = 329.63, 332.0, 659.25
+        for i in range(num_samples):
+            t = i / sample_rate
+            env = min(1.0, t / 0.015) * math.exp(-t / 0.75)
+            sample = (0.45 * math.sin(2 * math.pi * f1 * t) + 0.35 * math.sin(2 * math.pi * f2 * t) + 0.20 * math.sin(2 * math.pi * f3 * t)) * env * gain
+            sample = max(-0.95, min(0.95, sample))
+            frames.extend(struct.pack('<h', int(sample * 32767.0)))
+            
+    elif preset_key == "minimal_ping":
+        duration = 0.9
+        num_samples = int(sample_rate * duration)
+        frames = bytearray()
+        for i in range(num_samples):
+            t = i / sample_rate
+            s1 = 0.0
+            if t < 0.22:
+                env1 = min(1.0, t / 0.004) * math.exp(-t / 0.07)
+                s1 = 0.5 * math.sin(2 * math.pi * 880.0 * t) * env1
+            s2 = 0.0
+            if t >= 0.09:
+                t2 = t - 0.09
+                env2 = min(1.0, t2 / 0.004) * math.exp(-t2 / 0.12)
+                s2 = 0.5 * math.sin(2 * math.pi * 1174.66 * t2) * env2
+            sample = (s1 + s2) * gain
+            sample = max(-0.95, min(0.95, sample))
+            frames.extend(struct.pack('<h', int(sample * 32767.0)))
+            
+    else: # "acoustic_bell" default
+        duration = 1.8
+        num_samples = int(sample_rate * duration)
+        frames = bytearray()
+        f1, f2, f3 = 587.33, 880.00, 1174.66
+        for i in range(num_samples):
+            t = i / sample_rate
+            attack = min(1.0, t / 0.008)
+            decay = math.exp(-t / 0.55)
+            env = attack * decay
+            sample = (
+                0.55 * math.sin(2.0 * math.pi * f1 * t) +
+                0.30 * math.sin(2.0 * math.pi * f2 * t) +
+                0.15 * math.sin(2.0 * math.pi * f3 * t)
+            ) * env * gain
+            sample = max(-0.95, min(0.95, sample))
+            frames.extend(struct.pack('<h', int(sample * 32767.0)))
+
     os.makedirs(os.path.dirname(os.path.abspath(filename)), exist_ok=True)
     with wave.open(filename, 'wb') as wav_file:
         wav_file.setnchannels(1)
@@ -1634,29 +1695,51 @@ def generate_chime_wav(filename):
         wav_file.setframerate(sample_rate)
         wav_file.writeframes(frames)
 
-def get_chime_sound_path():
-    # 1. Bundled PyInstaller asset
-    if getattr(sys, 'frozen', False):
-        bundled = os.path.join(sys._MEIPASS, "hourly_chime.wav")
-        if os.path.exists(bundled):
-            return bundled
-    # 2. Local repository directory
-    local_chime = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hourly_chime.wav")
-    if os.path.exists(local_chime):
-        return local_chime
-    # 3. User cache directory
+def scale_custom_wav(src_path, dst_path, volume=50):
+    gain = max(0.0, min(1.0, (volume / 100.0) ** 1.3))
+    try:
+        with wave.open(src_path, 'rb') as src:
+            nchannels = src.getnchannels()
+            sampwidth = src.getsampwidth()
+            framerate = src.getframerate()
+            nframes = src.getnframes()
+            raw = src.readframes(nframes)
+        if sampwidth == 2:
+            count = len(raw) // 2
+            samples = struct.unpack(f'<{count}h', raw)
+            scaled = bytearray()
+            for s in samples:
+                val = int(s * gain)
+                val = max(-32767, min(32767, val))
+                scaled.extend(struct.pack('<h', val))
+            os.makedirs(os.path.dirname(os.path.abspath(dst_path)), exist_ok=True)
+            with wave.open(dst_path, 'wb') as dst:
+                dst.setnchannels(nchannels)
+                dst.setsampwidth(sampwidth)
+                dst.setframerate(framerate)
+                dst.writeframes(scaled)
+            return dst_path
+    except Exception as e:
+        print("Could not scale custom wav:", e)
+    return src_path
+
+def get_chime_sound_path(preset="acoustic_bell", volume=50, custom_path=""):
     cache_dir = os.path.join(os.path.expanduser("~"), ".dinoscreener")
     os.makedirs(cache_dir, exist_ok=True)
-    chime_path = os.path.join(cache_dir, "hourly_chime.wav")
-    if not os.path.exists(chime_path) or os.path.getsize(chime_path) < 1000:
-        try:
-            generate_chime_wav(chime_path)
-        except Exception as e:
-            print("Failed to generate chime wav:", e)
-    return chime_path
+    
+    if custom_path and os.path.exists(custom_path):
+        scaled_dst = os.path.join(cache_dir, f"custom_vol{volume}.wav")
+        if custom_path.lower().endswith(".wav"):
+            return scale_custom_wav(custom_path, scaled_dst, volume)
+        return custom_path
+        
+    target_filename = os.path.join(cache_dir, f"chime_{preset}_vol{volume}.wav")
+    if not os.path.exists(target_filename) or os.path.getsize(target_filename) < 500:
+        synthesize_preset_wav(preset, target_filename, volume)
+    return target_filename
 
-def play_chime():
-    sound_path = get_chime_sound_path()
+def play_chime(preset="acoustic_bell", volume=50, custom_path=""):
+    sound_path = get_chime_sound_path(preset=preset, volume=volume, custom_path=custom_path)
     if not os.path.exists(sound_path):
         return
     if sys.platform == "win32":
@@ -1666,7 +1749,7 @@ def play_chime():
             return
         except Exception:
             pass
-    # Linux / Cross-platform fallback
+    # Linux fallback
     def _play_linux():
         for player in ["paplay", "pw-play", "aplay", "ffplay -nodisp -autoexit"]:
             cmd = player.split() + [sound_path]
@@ -1769,16 +1852,22 @@ class DownloadWorker(QThread):
 
 
 # ==========================================
-# ABOUT & SYSTEM INFORMATION DIALOG
+# GOLDEN RATIO SYMMETRICAL ABOUT DIALOG
 # ==========================================
 class AboutDialog(QDialog):
     def __init__(self, parent=None, win_accent="#8F96BF", auto_check=False):
         super().__init__(parent)
         self.setWindowTitle("About Dinoscreener")
-        self.setFixedSize(520, 530)
+        self.setFixedSize(540, 560)
         self.win_accent = win_accent
         self.contrast_text, self.hover_accent, self.press_accent = get_color_variants(self.win_accent)
         
+        # Subpixel ClearType Antialiased Font Hierarchy
+        ui_font = QFont(["Segoe UI Variable Text", "Segoe UI", "Arial", "sans-serif"], 9)
+        ui_font.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.PreferQuality)
+        ui_font.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
+        self.setFont(ui_font)
+
         # Windows 11 Dark Mode Titlebar
         try:
             hwnd = int(self.winId())
@@ -1814,22 +1903,22 @@ class AboutDialog(QDialog):
                 border-radius: 9px;
                 font-weight: 600;
                 font-size: 12px;
-                padding: 7px 16px;
+                padding: 8px 18px;
             }}
             QPushButton#accentBtn:hover {{
                 background-color: {self.hover_accent};
             }}
             QPushButton#glassBtn {{
-                background-color: rgba(255, 255, 255, 0.07);
+                background-color: rgba(255, 255, 255, 0.06);
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 9px;
                 color: #FFFFFF;
                 font-size: 12px;
                 font-weight: 500;
-                padding: 7px 16px;
+                padding: 8px 18px;
             }}
             QPushButton#glassBtn:hover {{
-                background-color: rgba(255, 255, 255, 0.14);
+                background-color: rgba(255, 255, 255, 0.12);
                 border-color: rgba(255, 255, 255, 0.25);
             }}
             QProgressBar {{
@@ -1849,136 +1938,150 @@ class AboutDialog(QDialog):
         """)
         
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(22, 20, 22, 20)
-        layout.setSpacing(14)
+        layout.setContentsMargins(26, 24, 26, 20)
+        layout.setSpacing(16)
         
-        # Header Row
-        header_row = QHBoxLayout()
-        header_row.setSpacing(14)
+        # 1. Centered Symmetrical Header (Golden Ratio Balance)
+        header_box = QVBoxLayout()
+        header_box.setSpacing(6)
+        header_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
+        logo_row = QHBoxLayout()
+        logo_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_logo = QLabel()
-        lbl_logo.setFixedSize(54, 54)
+        lbl_logo.setFixedSize(58, 58)
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_logo.setStyleSheet("""
             background: #171B26;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 14px;
         """)
         if hasattr(self, 'logo_path') and os.path.exists(self.logo_path):
-            lbl_logo.setPixmap(get_rounded_pixmap(self.logo_path, size=54, radius=12, dpr=3.0))
-        header_row.addWidget(lbl_logo)
-        
-        header_info = QVBoxLayout()
-        header_info.setSpacing(2)
+            lbl_logo.setPixmap(get_rounded_pixmap(self.logo_path, size=58, radius=14, dpr=3.0))
+        logo_row.addWidget(lbl_logo)
+        header_box.addLayout(logo_row)
         
         title_row = QHBoxLayout()
+        title_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_row.setSpacing(8)
         lbl_title = QLabel(APP_NAME)
-        lbl_title.setStyleSheet("font-size: 20px; font-weight: bold; color: #FFFFFF;")
+        lbl_title.setStyleSheet("font-size: 21px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.3px;")
         title_row.addWidget(lbl_title)
         
         lbl_ver = QLabel(APP_VERSION)
         lbl_ver.setStyleSheet(f"""
-            background: rgba({QColor(self.win_accent).red()}, {QColor(self.win_accent).green()}, {QColor(self.win_accent).blue()}, 0.2);
+            background: rgba({QColor(self.win_accent).red()}, {QColor(self.win_accent).green()}, {QColor(self.win_accent).blue()}, 0.18);
             color: {self.win_accent};
-            border: 1px solid rgba({QColor(self.win_accent).red()}, {QColor(self.win_accent).green()}, {QColor(self.win_accent).blue()}, 0.4);
+            border: 1px solid rgba({QColor(self.win_accent).red()}, {QColor(self.win_accent).green()}, {QColor(self.win_accent).blue()}, 0.38);
             border-radius: 6px;
             font-size: 11px;
-            font-weight: bold;
+            font-weight: 700;
             padding: 2px 7px;
         """)
         title_row.addWidget(lbl_ver)
-        title_row.addStretch()
-        header_info.addLayout(title_row)
+        header_box.addLayout(title_row)
         
-        lbl_author = QLabel(f"Designed & Built by <b>{APP_AUTHOR}</b> (@kushalarvindo)")
+        lbl_author = QLabel(f"Crafted with passion by <b>{APP_AUTHOR}</b> (@kushalarvindo)")
         lbl_author.setTextFormat(Qt.TextFormat.RichText)
-        lbl_author.setStyleSheet("font-size: 12px; color: #94A3B8; font-weight: 500;")
-        header_info.addWidget(lbl_author)
+        lbl_author.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lbl_author.setStyleSheet("font-size: 12px; color: #94A3B8;")
+        header_box.addWidget(lbl_author)
         
-        lbl_desc = QLabel("Minimalist aesthetic screensaver for OLED & high-refresh displays.")
-        lbl_desc.setStyleSheet("font-size: 11.5px; color: #64748B;")
-        header_info.addWidget(lbl_desc)
+        layout.addLayout(header_box)
         
-        header_row.addLayout(header_info)
-        layout.addLayout(header_row)
+        # 2. Card 1: Authentic Creator Story & Modes
+        card_story = QFrame()
+        card_story.setObjectName("aboutCard")
+        story_layout = QVBoxLayout(card_story)
+        story_layout.setContentsMargins(18, 16, 18, 16)
+        story_layout.setSpacing(12)
         
-        # Card 1: Features & Specs
-        spec_card = QFrame()
-        spec_card.setObjectName("aboutCard")
-        spec_layout = QVBoxLayout(spec_card)
-        spec_layout.setContentsMargins(14, 12, 14, 12)
-        spec_layout.setSpacing(6)
+        lbl_story_title = QLabel("KEY FEATURES")
+        lbl_story_title.setStyleSheet("font-size: 10px; font-weight: 700; color: #64748B; letter-spacing: 0.6px;")
+        story_layout.addWidget(lbl_story_title)
         
-        lbl_spec_title = QLabel("KEY FEATURES")
-        lbl_spec_title.setStyleSheet("font-size: 10.5px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;")
-        spec_layout.addWidget(lbl_spec_title)
-        
-        features_text = (
-            "• <b>3 Aesthetic Clock Modes</b>: 3D Flip Clock, Rotary Modern, Chrome Dino<br>"
-            "• <b>Hardware OLED Protection</b>: Lissajous pixel orbit prevents panel burn-in<br>"
-            "• <b>High-Refresh Smoothness</b>: Native 165Hz/144Hz delta-time frame pacing<br>"
-            "• <b>Dynamic Frame Throttle</b>: Slashing idle CPU usage to &lt; 0.5%<br>"
-            "• <b>Hourly Chime</b>: Acoustic dual-harmonic synthesized bell chime"
+        story_text = (
+            f"A clean, minimal screensaver built by Kushal using Python & PyQt6.<br><br>"
+            f"Featuring <b>3 custom modes</b>: an authentic <b>Chrome Dino</b> runner, "
+            f"a retro mechanical <b>3D Flip Clock</b>, and a modern <b>Rotary Dial</b> with live weather and battery info.<br><br>"
+            f"Packed with native <b>OLED burn-in protection</b>, responsive <b>165Hz frame pacing</b>, and customizable <b>hourly bell chimes</b>."
         )
-        lbl_features = QLabel(features_text)
-        lbl_features.setTextFormat(Qt.TextFormat.RichText)
-        lbl_features.setStyleSheet("font-size: 11.5px; color: #CBD5E1; line-height: 1.4;")
-        spec_layout.addWidget(lbl_features)
-        layout.addWidget(spec_card)
+        lbl_story = QLabel(story_text)
+        lbl_story.setTextFormat(Qt.TextFormat.RichText)
+        lbl_story.setWordWrap(True)
+        lbl_story.setStyleSheet("font-size: 11.5px; color: #CBD5E1; line-height: 1.45;")
+        story_layout.addWidget(lbl_story)
         
-        # Card 2: Update Checker
-        update_card = QFrame()
-        update_card.setObjectName("aboutCard")
-        self.update_card_layout = QVBoxLayout(update_card)
-        self.update_card_layout.setContentsMargins(14, 12, 14, 12)
-        self.update_card_layout.setSpacing(8)
+        # Mode Pills Row
+        pills_row = QHBoxLayout()
+        pills_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        pills_row.setSpacing(8)
+        for icon_text in ["🦕 Chrome Dino", "⏱️ 3D Flip Clock", "⭕ Rotary Dial"]:
+            lbl_pill = QLabel(icon_text)
+            lbl_pill.setStyleSheet("""
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 7px;
+                color: #94A3B8;
+                font-size: 11px;
+                font-weight: 500;
+                padding: 4px 10px;
+            """)
+            pills_row.addWidget(lbl_pill)
+        story_layout.addLayout(pills_row)
+        layout.addWidget(card_story)
         
-        lbl_upd_title = QLabel("AUTOMATED UPDATES")
-        lbl_upd_title.setStyleSheet("font-size: 10.5px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;")
-        self.update_card_layout.addWidget(lbl_upd_title)
+        # 3. Card 2: Updates & Community (Symmetrical Layout)
+        card_upd = QFrame()
+        card_upd.setObjectName("aboutCard")
+        upd_layout = QVBoxLayout(card_upd)
+        upd_layout.setContentsMargins(18, 14, 18, 14)
+        upd_layout.setSpacing(10)
         
-        self.lbl_update_status = QLabel(f"Current version: {APP_VERSION}. Ready to check for updates.")
-        self.lbl_update_status.setStyleSheet("font-size: 12px; color: #E2E8F0;")
-        self.lbl_update_status.setWordWrap(True)
-        self.update_card_layout.addWidget(self.lbl_update_status)
+        lbl_upd_head = QLabel("UPDATES & COMMUNITY")
+        lbl_upd_head.setStyleSheet("font-size: 10px; font-weight: 700; color: #64748B; letter-spacing: 0.6px;")
+        upd_layout.addWidget(lbl_upd_head)
+        
+        self.lbl_status = QLabel(f"✓ You are running the newest release (<b>{APP_VERSION}</b>).")
+        self.lbl_status.setTextFormat(Qt.TextFormat.RichText)
+        self.lbl_status.setStyleSheet("font-size: 11.5px; color: #E2E8F0;")
+        upd_layout.addWidget(self.lbl_status)
         
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
-        self.update_card_layout.addWidget(self.progress_bar)
+        upd_layout.addWidget(self.progress_bar)
         
-        btn_row = QHBoxLayout()
-        btn_row.setSpacing(8)
+        upd_btn_row = QHBoxLayout()
+        upd_btn_row.setSpacing(10)
         
-        self.btn_check_updates = QPushButton("🔍 Check for Updates")
-        self.btn_check_updates.setObjectName("glassBtn")
-        self.btn_check_updates.clicked.connect(self.check_updates_clicked)
-        btn_row.addWidget(self.btn_check_updates)
+        self.btn_check = QPushButton("Check for Updates")
+        self.btn_check.setObjectName("glassBtn")
+        self.btn_check.clicked.connect(self.check_updates_clicked)
+        upd_btn_row.addWidget(self.btn_check, stretch=1)
         
-        self.btn_install_update = QPushButton("⚡ Download & Install")
-        self.btn_install_update.setObjectName("accentBtn")
-        self.btn_install_update.setVisible(False)
-        self.btn_install_update.clicked.connect(self.install_update_clicked)
-        btn_row.addWidget(self.btn_install_update)
+        self.btn_install = QPushButton("Download & Install")
+        self.btn_install.setObjectName("accentBtn")
+        self.btn_install.setVisible(False)
+        self.btn_install.clicked.connect(self.install_update_clicked)
+        upd_btn_row.addWidget(self.btn_install, stretch=1)
         
-        btn_row.addStretch()
-        self.update_card_layout.addLayout(btn_row)
-        layout.addWidget(update_card)
+        self.btn_github = QPushButton("GitHub Repository")
+        self.btn_github.setObjectName("glassBtn")
+        self.btn_github.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(APP_GITHUB_URL)))
+        upd_btn_row.addWidget(self.btn_github, stretch=1)
         
-        # Bottom Buttons
-        bottom_row = QHBoxLayout()
-        btn_github = QPushButton("🌐 View on GitHub")
-        btn_github.setObjectName("glassBtn")
-        btn_github.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(APP_GITHUB_URL)))
-        bottom_row.addWidget(btn_github)
+        upd_layout.addLayout(upd_btn_row)
+        layout.addWidget(card_upd)
         
-        bottom_row.addStretch()
-        
+        # 4. Footer Row
+        footer_row = QHBoxLayout()
+        footer_row.addStretch()
         btn_close = QPushButton("Close")
         btn_close.setObjectName("glassBtn")
+        btn_close.setFixedWidth(90)
         btn_close.clicked.connect(self.close)
-        bottom_row.addWidget(btn_close)
-        layout.addLayout(bottom_row)
+        footer_row.addWidget(btn_close)
+        layout.addLayout(footer_row)
         
         self.latest_download_url = ""
         self.latest_tag = ""
@@ -1987,37 +2090,38 @@ class AboutDialog(QDialog):
             self.check_updates_clicked()
 
     def check_updates_clicked(self):
-        self.lbl_update_status.setText("Checking GitHub for the latest release...")
-        self.btn_check_updates.setEnabled(False)
+        self.lbl_status.setText("Checking GitHub for the latest release...")
+        self.btn_check.setEnabled(False)
         self.worker = UpdateCheckerWorker()
         self.worker.update_result.connect(self.on_update_result)
         self.worker.check_failed.connect(self.on_check_failed)
         self.worker.start()
 
     def on_update_result(self, has_update, latest_tag, body, download_url):
-        self.btn_check_updates.setEnabled(True)
+        self.btn_check.setEnabled(True)
         self.latest_download_url = download_url
         self.latest_tag = latest_tag
         if has_update:
-            self.lbl_update_status.setText(f"🎉 <b>Update {latest_tag} available!</b><br>You are currently running {APP_VERSION}.")
-            self.btn_install_update.setVisible(True)
+            self.lbl_status.setText(f"🎉 <b>Update {latest_tag} available!</b> Current version is {APP_VERSION}.")
+            self.btn_install.setVisible(True)
+            self.btn_install.setText(f"Download & Install {latest_tag}")
         else:
-            self.lbl_update_status.setText(f"✓ <b>You're up to date!</b><br>{APP_VERSION} is currently the newest version released on GitHub.")
-            self.btn_install_update.setVisible(False)
+            self.lbl_status.setText(f"✓ You are running the newest release (<b>{APP_VERSION}</b>).")
+            self.btn_install.setVisible(False)
 
     def on_check_failed(self, err_msg):
-        self.btn_check_updates.setEnabled(True)
-        self.lbl_update_status.setText(f"Could not connect to GitHub API: {err_msg}")
+        self.btn_check.setEnabled(True)
+        self.lbl_status.setText(f"Could not connect to GitHub API: {err_msg}")
 
     def install_update_clicked(self):
         if not self.latest_download_url:
             QDesktopServices.openUrl(QUrl(f"{APP_GITHUB_URL}/releases/latest"))
             return
-        self.btn_install_update.setEnabled(False)
-        self.btn_check_updates.setEnabled(False)
+        self.btn_install.setEnabled(False)
+        self.btn_check.setEnabled(False)
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)
-        self.lbl_update_status.setText(f"Downloading {self.latest_tag} from GitHub...")
+        self.lbl_status.setText(f"Downloading {self.latest_tag} from GitHub...")
         
         self.down_worker = DownloadWorker(self.latest_download_url)
         self.down_worker.progress.connect(self.on_download_progress)
@@ -2031,21 +2135,21 @@ class AboutDialog(QDialog):
             self.progress_bar.setValue(pct)
             mb_down = downloaded / (1024 * 1024)
             mb_tot = total / (1024 * 1024)
-            self.lbl_update_status.setText(f"Downloading {self.latest_tag}: {mb_down:.1f} MB / {mb_tot:.1f} MB ({pct}%)")
+            self.lbl_status.setText(f"Downloading {self.latest_tag}: {mb_down:.1f} MB / {mb_tot:.1f} MB ({pct}%)")
         else:
             mb_down = downloaded / (1024 * 1024)
-            self.lbl_update_status.setText(f"Downloading {self.latest_tag}: {mb_down:.1f} MB...")
+            self.lbl_status.setText(f"Downloading {self.latest_tag}: {mb_down:.1f} MB...")
 
     def on_download_finished(self, downloaded_file):
         self.progress_bar.setValue(100)
-        self.lbl_update_status.setText("Download complete! Applying update...")
+        self.lbl_status.setText("Download complete! Applying update...")
         self.apply_update(downloaded_file)
 
     def on_download_failed(self, err_msg):
-        self.btn_install_update.setEnabled(True)
-        self.btn_check_updates.setEnabled(True)
+        self.btn_install.setEnabled(True)
+        self.btn_check.setEnabled(True)
         self.progress_bar.setVisible(False)
-        self.lbl_update_status.setText(f"Download failed: {err_msg}. Opening browser release page...")
+        self.lbl_status.setText(f"Download failed: {err_msg}. Opening GitHub release...")
         QDesktopServices.openUrl(QUrl(f"{APP_GITHUB_URL}/releases/latest"))
 
     def apply_update(self, downloaded_file):
@@ -2063,9 +2167,9 @@ class AboutDialog(QDialog):
                 print("Zip extract error:", e)
 
         if not getattr(sys, 'frozen', False):
-            self.lbl_update_status.setText(
+            self.lbl_status.setText(
                 f"Update downloaded to:<br><code>{new_bin_path}</code><br>"
-                f"Since you are in development mode, update using <code>git pull</code> or test the binary above."
+                f"Since you are running from Python source, run <code>git pull</code> or execute the binary above."
             )
             return
 
@@ -2094,6 +2198,7 @@ rm -- "$0"
             os.chmod(sh_path, 0o755)
             subprocess.Popen(["/bin/sh", sh_path])
             QApplication.quit()
+            QApplication.quit()
 
 
 class SettingsDialog(QDialog):
@@ -2102,6 +2207,12 @@ class SettingsDialog(QDialog):
         self.setWindowTitle("Dinoscreener Settings")
         self.setFixedSize(680, 715)
         self.setAcceptDrops(True)
+        
+        # Subpixel ClearType Antialiased Font Hierarchy
+        ui_font = QFont(["Segoe UI Variable Text", "Segoe UI", "Arial", "sans-serif"])
+        ui_font.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.PreferQuality)
+        ui_font.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
+        self.setFont(ui_font)
         
         # Load Application Icon
         logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_icon.png")
@@ -2240,6 +2351,7 @@ class SettingsDialog(QDialog):
         
         self.config_path = config_path
         self.config = self.load_config()
+        self.custom_chime_path = self.config.get("custom_chime_path", "")
         
         saved_prim = self.config.get("primary_font", "")
         self.saved_primary_font = saved_prim if (saved_prim and os.path.exists(saved_prim)) else ""
@@ -2274,7 +2386,7 @@ class SettingsDialog(QDialog):
         if event.mimeData().hasUrls():
             for u in event.mimeData().urls():
                 ext = os.path.splitext(u.toLocalFile())[1].lower()
-                if ext in ['.ttf', '.otf', '.png', '.jpg', '.jpeg', '.bmp', '.webp']:
+                if ext in ['.ttf', '.otf', '.png', '.jpg', '.jpeg', '.bmp', '.webp', '.wav', '.mp3', '.ogg', '.flac']:
                     event.acceptProposedAction()
                     return
         event.ignore()
@@ -2292,6 +2404,11 @@ class SettingsDialog(QDialog):
                 elif ext in ['.png', '.jpg', '.jpeg', '.bmp', '.webp']:
                     self.handle_character_import(path)
                     self.set_mode(2)
+                    event.acceptProposedAction()
+                    return
+                elif ext in ['.wav', '.mp3', '.ogg', '.flac']:
+                    self.handle_sound_import(path)
+                    self.set_mode(0)
                     event.acceptProposedAction()
                     return
 
@@ -2332,6 +2449,9 @@ class SettingsDialog(QDialog):
             "live_weather": False,
             "pixel_shift": False,
             "hourly_chime": False,
+            "chime_preset": "acoustic_bell",
+            "chime_volume": 45,
+            "custom_chime_path": "",
             "primary_font": "",
             "ignore_media_keys": False,
             "dino_font": "Bungee",
@@ -2370,6 +2490,9 @@ class SettingsDialog(QDialog):
         self.config["leading_zeros"] = self.preview.leading_zeros
         self.config["pixel_shift"] = self.pixel_shift_cb.isChecked()
         self.config["hourly_chime"] = self.hourly_chime_cb.isChecked()
+        self.config["chime_preset"] = self.chime_sound_cb.currentData() if hasattr(self, 'chime_sound_cb') else "acoustic_bell"
+        self.config["chime_volume"] = self.chime_vol_slider.value() if hasattr(self, 'chime_vol_slider') else 45
+        self.config["custom_chime_path"] = getattr(self, "custom_chime_path", "")
         self.config["primary_font"] = getattr(self, 'primary_font', "")
         self.config["ignore_media_keys"] = self.ignore_media_cb.isChecked()
         self.config["dino_font"] = getattr(self.preview, 'dino_font', "Bungee")
@@ -2405,7 +2528,10 @@ class SettingsDialog(QDialog):
                 custom_character_image=getattr(self, 'custom_character_image', ""),
                 live_weather=False,
                 pixel_shift=self.pixel_shift_cb.isChecked(),
-                hourly_chime=self.hourly_chime_cb.isChecked()
+                hourly_chime=self.hourly_chime_cb.isChecked(),
+                chime_preset=self.chime_sound_cb.currentData() if hasattr(self, 'chime_sound_cb') else self.config.get("chime_preset", "acoustic_bell"),
+                chime_volume=self.chime_vol_slider.value() if hasattr(self, 'chime_vol_slider') else self.config.get("chime_volume", 45),
+                custom_chime_path=getattr(self, "custom_chime_path", self.config.get("custom_chime_path", ""))
             )
             self.test_clock.showFullScreen()
         except Exception as e:
@@ -2429,6 +2555,9 @@ class SettingsDialog(QDialog):
         self.win_cb.setChecked(False)
         self.pixel_shift_cb.setChecked(False)
         self.hourly_chime_cb.setChecked(False)
+        self.custom_chime_path = ""
+        if hasattr(self, 'chime_vol_slider'): self.chime_vol_slider.setValue(45)
+        self.refresh_chime_combobox()
         self.show_weather_cb.setChecked(True)
         self.show_battery_cb.setChecked(True)
         self.fahrenheit_cb.setChecked(False)
@@ -2617,6 +2746,21 @@ class SettingsDialog(QDialog):
         scale_box = QHBoxLayout()
         scale_box.setSpacing(6)
         
+        undo_style = """
+            QPushButton {
+                background: rgba(255, 255, 255, 0.06);
+                color: #94A3B8;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 11px;
+                font-size: 11px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background: rgba(255, 255, 255, 0.14);
+                color: #FFFFFF;
+                border-color: rgba(255, 255, 255, 0.25);
+            }
+        """
         btn_step_style = """
             QPushButton {
                 background: rgba(255, 255, 255, 0.06);
@@ -2658,17 +2802,18 @@ class SettingsDialog(QDialog):
         self.ambient_cb.stateChanged.connect(self.on_ambient_cb_changed)
         flip_layout.addWidget(self.ambient_cb)
 
+        # --- Hourly Bell Chime & Audio Customization ---
         chime_row = QHBoxLayout()
         chime_row.setContentsMargins(0, 0, 0, 0)
         chime_row.setSpacing(6)
         self.hourly_chime_cb = QCheckBox("Hourly Chime")
         self.hourly_chime_cb.setChecked(self.config.get("hourly_chime", False))
-        self.hourly_chime_cb.setToolTip("Plays a gentle acoustic bell chime at the top of every hour (Flip Clock)")
+        self.hourly_chime_cb.setToolTip("Plays a gentle bell chime at the top of every hour (Flip Clock)")
         self.hourly_chime_cb.stateChanged.connect(self.on_hourly_chime_changed)
         chime_row.addWidget(self.hourly_chime_cb)
         
         self.btn_test_chime = QPushButton("🔔 Test")
-        self.btn_test_chime.setToolTip("Preview the acoustic hourly chime sound")
+        self.btn_test_chime.setToolTip("Preview chime at current volume")
         self.btn_test_chime.setFixedWidth(56)
         self.btn_test_chime.setFixedHeight(22)
         self.btn_test_chime.setStyleSheet("""
@@ -2686,10 +2831,55 @@ class SettingsDialog(QDialog):
                 border-color: rgba(255, 255, 255, 0.30);
             }
         """)
-        self.btn_test_chime.clicked.connect(play_chime)
+        self.btn_test_chime.clicked.connect(self.test_chime_sound)
         chime_row.addWidget(self.btn_test_chime)
         chime_row.addStretch()
         flip_layout.addLayout(chime_row)
+
+        sound_box = QHBoxLayout()
+        sound_box.setSpacing(5)
+        lbl_sound = QLabel("Sound:")
+        lbl_sound.setFixedWidth(38)
+        lbl_sound.setStyleSheet("color: #E2E8F0; font-size: 11px; font-weight: 500;")
+        sound_box.addWidget(lbl_sound)
+
+        self.chime_sound_cb = QComboBox()
+        self.chime_sound_cb.setToolTip("Select chime tone or drop custom audio file")
+        self.refresh_chime_combobox()
+        self.chime_sound_cb.currentIndexChanged.connect(self.on_chime_preset_changed)
+        sound_box.addWidget(self.chime_sound_cb, stretch=1)
+
+        self.btn_browse_sound = QPushButton("📂")
+        self.btn_browse_sound.setFixedSize(22, 22)
+        self.btn_browse_sound.setStyleSheet(undo_style)
+        self.btn_browse_sound.setToolTip("Browse or drop custom audio (.wav, .mp3, .ogg)")
+        self.btn_browse_sound.clicked.connect(self.browse_custom_sound)
+        sound_box.addWidget(self.btn_browse_sound)
+        flip_layout.addLayout(sound_box)
+
+        vol_box = QHBoxLayout()
+        vol_box.setSpacing(6)
+        lbl_vol = QLabel("Vol:")
+        lbl_vol.setFixedWidth(38)
+        lbl_vol.setStyleSheet("color: #E2E8F0; font-size: 11px; font-weight: 500;")
+        vol_box.addWidget(lbl_vol)
+
+        init_vol = self.config.get("chime_volume", 45)
+        self.chime_vol_slider = QSlider(Qt.Orientation.Horizontal)
+        self.chime_vol_slider.setRange(5, 100)
+        self.chime_vol_slider.setValue(init_vol)
+        self.chime_vol_slider.setToolTip("Adjust chime playback volume")
+        self.chime_vol_slider.valueChanged.connect(self.on_chime_volume_changed)
+        vol_box.addWidget(self.chime_vol_slider, stretch=1)
+
+        self.lbl_chime_vol = QLabel(f"{init_vol}%")
+        self.lbl_chime_vol.setStyleSheet(f"color: {self.win_accent}; font-size: 11px; font-weight: 600; min-width: 28px;")
+        vol_box.addWidget(self.lbl_chime_vol)
+        flip_layout.addLayout(vol_box)
+
+        lbl_chime_tip = QLabel("Drop audio file to import custom chime")
+        lbl_chime_tip.setStyleSheet("color: #64748B; font-size: 9.5px;")
+        flip_layout.addWidget(lbl_chime_tip)
 
         flip_layout.addStretch()
         self.pages.addWidget(page_flip)
@@ -3079,6 +3269,62 @@ class SettingsDialog(QDialog):
         self.preview.hourly_chime = val
         self.config["hourly_chime"] = val
 
+    def refresh_chime_combobox(self):
+        if not hasattr(self, 'chime_sound_cb'):
+            return
+        self.chime_sound_cb.blockSignals(True)
+        self.chime_sound_cb.clear()
+        current_preset = self.config.get("chime_preset", "acoustic_bell")
+        selected_idx = 0
+        for idx, (key, label) in enumerate(CHIME_PRESETS):
+            self.chime_sound_cb.addItem(label, key)
+            if key == current_preset and not getattr(self, 'custom_chime_path', ''):
+                selected_idx = idx
+        if getattr(self, 'custom_chime_path', '') and os.path.exists(self.custom_chime_path):
+            base_name = os.path.splitext(os.path.basename(self.custom_chime_path))[0]
+            display_name = f"Custom ({base_name[:12]})"
+            self.chime_sound_cb.addItem(display_name, "custom")
+            if current_preset == "custom":
+                selected_idx = self.chime_sound_cb.count() - 1
+        self.chime_sound_cb.setCurrentIndex(selected_idx)
+        self.chime_sound_cb.blockSignals(False)
+
+    def on_chime_preset_changed(self, idx):
+        key = self.chime_sound_cb.currentData()
+        if key == "custom":
+            self.config["chime_preset"] = "custom"
+            self.preview.chime_preset = "custom"
+        else:
+            self.config["chime_preset"] = key
+            self.preview.chime_preset = key
+
+    def on_chime_volume_changed(self, val):
+        self.lbl_chime_vol.setText(f"{val}%")
+        self.config["chime_volume"] = val
+        self.preview.chime_volume = val
+
+    def test_chime_sound(self):
+        preset = self.chime_sound_cb.currentData() if hasattr(self, 'chime_sound_cb') else "acoustic_bell"
+        vol = self.chime_vol_slider.value() if hasattr(self, 'chime_vol_slider') else 45
+        c_path = getattr(self, 'custom_chime_path', '')
+        play_chime(preset=preset, volume=vol, custom_path=c_path if preset == "custom" else "")
+
+    def browse_custom_sound(self):
+        file, _ = QFileDialog.getOpenFileName(self, "Select Audio File", "", "Audio Files (*.wav *.mp3 *.ogg *.flac)")
+        if file:
+            self.handle_sound_import(file)
+
+    def handle_sound_import(self, path):
+        if not path or not os.path.exists(path):
+            return
+        self.custom_chime_path = path
+        self.config["custom_chime_path"] = path
+        self.config["chime_preset"] = "custom"
+        self.preview.custom_chime_path = path
+        self.preview.chime_preset = "custom"
+        self.refresh_chime_combobox()
+        self.test_chime_sound()
+
     def on_bg_update_checked(self, has_update, latest_tag, body, download_url):
         if has_update and hasattr(self, 'btn_update_badge'):
             self.btn_update_badge.setText(f"✨ Update {latest_tag}")
@@ -3325,7 +3571,22 @@ class SettingsDialog(QDialog):
         super().keyPressEvent(event)
 
 if __name__ == '__main__':
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            ctypes.windll.shcore.SetProcessDpiAwareness(2)
+        except Exception:
+            try:
+                ctypes.windll.user32.SetProcessDPIAware()
+            except Exception:
+                pass
+    QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     app = QApplication(sys.argv)
+    
+    ui_font = QFont(["Segoe UI Variable Text", "Segoe UI", "Arial", "sans-serif"])
+    ui_font.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.PreferQuality)
+    ui_font.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
+    app.setFont(ui_font)
     
     logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_icon.png")
     if getattr(sys, 'frozen', False):
@@ -3389,6 +3650,9 @@ if __name__ == '__main__':
         "live_weather": False,
         "pixel_shift": False,
         "hourly_chime": False,
+        "chime_preset": "acoustic_bell",
+        "chime_volume": 45,
+        "custom_chime_path": "",
         "primary_font": "",
         "dino_font": "Bungee",
         "character_type": "dino",
@@ -3423,6 +3687,9 @@ if __name__ == '__main__':
         live_weather=False,
         pixel_shift=default_config.get("pixel_shift", False),
         hourly_chime=default_config.get("hourly_chime", False),
+        chime_preset=default_config.get("chime_preset", "acoustic_bell"),
+        chime_volume=default_config.get("chime_volume", 45),
+        custom_chime_path=default_config.get("custom_chime_path", ""),
         primary_font=default_config.get("primary_font", ""),
         character_type=default_config.get("character_type", "dino"),
         custom_character_image=default_config.get("custom_character_image", "")
