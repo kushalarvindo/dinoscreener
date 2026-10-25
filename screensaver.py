@@ -1315,6 +1315,34 @@ def get_or_create_fullscreen_duotone_icon(accent_hex):
     return QIcon(QPixmap.fromImage(img))
 
 
+def get_or_create_info_duotone_icon(accent_hex):
+    img = QImage(64, 64, QImage.Format.Format_ARGB32)
+    img.fill(Qt.GlobalColor.transparent)
+    p = QPainter(img)
+    p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+    
+    accent_q = QColor(accent_hex)
+    accent_glow = QColor(accent_q.red(), accent_q.green(), accent_q.blue(), 45)
+    white_q = QColor(255, 255, 255, 235)
+    
+    # Outer subtle filled duotone disk
+    p.setPen(QPen(accent_q, 3.2))
+    p.setBrush(QBrush(accent_glow))
+    p.drawEllipse(QRectF(8, 8, 48, 48))
+    
+    # Top Dot (Crisp White)
+    p.setPen(Qt.PenStyle.NoPen)
+    p.setBrush(QBrush(white_q))
+    p.drawEllipse(QRectF(29, 18, 6, 6))
+    
+    # Lower Stem (Crisp White with rounded cap)
+    pen_stem = QPen(white_q, 4.2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
+    p.setPen(pen_stem)
+    p.drawLine(32, 30, 32, 44)
+    p.end()
+    return QIcon(QPixmap.fromImage(img))
+
+
 def get_rounded_pixmap(src_path, size=38, radius=9, dpr=3.0):
     pix = QPixmap(src_path)
     if pix.isNull():
@@ -2206,7 +2234,7 @@ class SettingsDialog(QDialog):
     def __init__(self, config_path):
         super().__init__()
         self.setWindowTitle("Dinoscreener Settings")
-        self.setFixedSize(680, 715)
+        self.setFixedSize(680, 760)
         self.setAcceptDrops(True)
         
         # Subpixel ClearType Antialiased Font Hierarchy
@@ -2628,26 +2656,26 @@ class SettingsDialog(QDialog):
         self.btn_update_badge.clicked.connect(lambda: self.open_about_dialog(auto_check=False))
         header_row.addWidget(self.btn_update_badge, alignment=Qt.AlignmentFlag.AlignVCenter)
 
-        self.btn_info = QPushButton("ⓘ")
+        self.btn_info = QPushButton()
         self.btn_info.setObjectName("btnInfo")
-        self.btn_info.setFixedSize(28, 28)
-        self.btn_info.setToolTip("About Dinoscreener, Version, and Updates")
+        self.btn_info.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_info.setIcon(get_or_create_info_duotone_icon(self.win_accent))
+        self.btn_info.setIconSize(QSize(20, 20))
+        self.btn_info.setFixedSize(30, 30)
+        self.btn_info.setToolTip("About, version & updates")
         self.btn_info.setStyleSheet("""
             QPushButton#btnInfo {
-                background: rgba(255, 255, 255, 0.07);
-                border: 1px solid rgba(255, 255, 255, 0.14);
-                border-radius: 14px;
-                color: #CBD5E1;
-                font-size: 13.5px;
-                font-weight: bold;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 15px;
+                outline: none;
             }
             QPushButton#btnInfo:hover {
-                background: rgba(255, 255, 255, 0.16);
-                border-color: rgba(255, 255, 255, 0.30);
-                color: #FFFFFF;
+                background: rgba(255, 255, 255, 0.14);
+                border-color: rgba(255, 255, 255, 0.28);
             }
             QPushButton#btnInfo:pressed {
-                background: rgba(255, 255, 255, 0.24);
+                background: rgba(255, 255, 255, 0.06);
             }
         """)
         self.btn_info.clicked.connect(lambda: self.open_about_dialog(auto_check=False))
@@ -2698,7 +2726,7 @@ class SettingsDialog(QDialog):
         
         # 3. FLOATING COLLAPSIBLE CAPSULE (Minimized Pill that Expands on Hover)
         capsule_row = QHBoxLayout()
-        capsule_row.setContentsMargins(0, 4, 0, 4)
+        capsule_row.setContentsMargins(0, 6, 0, 6)
         capsule_row.addStretch()
         
         self.mode_capsule = CollapsibleModeCapsule(win_accent=self.win_accent)
@@ -3239,6 +3267,8 @@ class SettingsDialog(QDialog):
             self.mode_capsule.update_accent(hex_code)
         if hasattr(self, 'btn_fullscreen'):
             self.btn_fullscreen.setIcon(get_or_create_fullscreen_duotone_icon(hex_code))
+        if hasattr(self, 'btn_info'):
+            self.btn_info.setIcon(get_or_create_info_duotone_icon(hex_code))
         self.update_swatch_highlights()
 
 
