@@ -16,7 +16,7 @@ from PyQt6.QtWidgets import (
     QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
     QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider, 
     QFileDialog, QStackedWidget, QFrame, QGridLayout, QComboBox, QFontComboBox, 
-    QStackedLayout, QGraphicsOpacityEffect, QProgressBar, QMessageBox, QSizePolicy,
+    QStackedLayout, QGraphicsOpacityEffect, QGraphicsDropShadowEffect, QProgressBar, QMessageBox, QSizePolicy,
     QStyle, QStyleOption
 )
 from PyQt6.QtCore import (
@@ -37,8 +37,9 @@ APP_GITHUB_URL = "https://github.com/kushalarvindo/dinoscreener"
 
 SPRITE_B64 = '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'
 class CrispAestheticFlipClock(QWidget):
-    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zeros=None, config_path=None, full_config=None, ignore_media_keys=False, dino_font="Bungee", live_weather=False, pixel_shift=False, primary_font="", character_type="dino", custom_character_image="", show_weather=True, show_battery=True, use_fahrenheit=False, ambient_mode=False, hourly_chime=False, chime_preset="acoustic_bell", chime_volume=45, custom_chime_path="", parent=None):
+    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zeros=None, config_path=None, full_config=None, ignore_media_keys=False, dino_font="Bungee", live_weather=False, pixel_shift=False, primary_font="", character_type="dino", custom_character_image="", show_weather=True, show_battery=True, use_fahrenheit=False, ambient_mode=False, hourly_chime=False, chime_preset="acoustic_bell", chime_volume=45, custom_chime_path="", parent=None, studio_mode=False):
         super().__init__(parent)
+        self.studio_mode = studio_mode
         self.last_pos = None
         self.enable_frame_caching = False
         self.cached_frame = None
@@ -172,10 +173,12 @@ class CrispAestheticFlipClock(QWidget):
         self.update()
 
     def initUI(self):
-        if not self.preview_mode:
+        if not self.preview_mode and not getattr(self, 'studio_mode', False):
             self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
             self.showFullScreen()
             self.setCursor(Qt.CursorShape.BlankCursor)
+            self.setMouseTracking(True)
+        elif getattr(self, 'studio_mode', False):
             self.setMouseTracking(True)
         
         self.sync_timer = QTimer(self)
@@ -1132,7 +1135,7 @@ class CrispAestheticFlipClock(QWidget):
                 self.close()
 
     def mouseMoveEvent(self, event):
-        if self.preview_mode: return
+        if self.preview_mode or getattr(self, 'studio_mode', False): return
         if self.strict_exit: return
         if self.last_pos is None:
             self.last_pos = event.pos()
@@ -1142,7 +1145,7 @@ class CrispAestheticFlipClock(QWidget):
             self.close()
 
     def mousePressEvent(self, event):
-        if self.preview_mode: return
+        if self.preview_mode or getattr(self, 'studio_mode', False): return
         if self.strict_exit: return
         self.close()
 
@@ -2524,22 +2527,139 @@ rm -- "$0"
 
 
 # ==============================================================================
-# INTERACTIVE FULLSCREEN STUDIO MODE & NATIVE FROSTED GLASS ENGINE
+# APPLE VISIONOS SPATIAL GLASS ENGINE & INTERACTIVE FULLSCREEN STUDIO MODE
 # ==============================================================================
+
+class SpatialGrabberBar(QWidget):
+    """
+    Apple visionOS Spatial Grabber Bar:
+    Thin futuristic luminous pill floating 14px from edge.
+    Smoothly expands and brightens when hovered, then slides out drawer.
+    """
+    def __init__(self, studio, orientation='horizontal'):
+        super().__init__(studio)
+        self.studio = studio
+        self.orientation = orientation  # 'horizontal' or 'vertical'
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.hovered = False
+        
+        if self.orientation == 'horizontal':
+            self.setFixedSize(80, 20)
+        else:
+            self.setFixedSize(20, 80)
+            
+    def enterEvent(self, event):
+        super().enterEvent(event)
+        self.hovered = True
+        self.update()
+        if self.orientation == 'horizontal':
+            self.studio.set_top_drawer_open(True)
+        else:
+            if self.x() < self.studio.width() // 2:
+                self.studio.set_left_drawer_open(True)
+            else:
+                self.studio.set_right_drawer_open(True)
+                
+    def leaveEvent(self, event):
+        super().leaveEvent(event)
+        self.hovered = False
+        self.update()
+
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+        if self.orientation == 'horizontal':
+            self.studio.set_top_drawer_open(True)
+        else:
+            if self.x() < self.studio.width() // 2:
+                self.studio.set_left_drawer_open(True)
+            else:
+                self.studio.set_right_drawer_open(True)
+
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        w, h = float(self.width()), float(self.height())
+        t = getattr(self.studio.clock, 'time_elapsed', 0.0)
+        pulse = 0.88 + 0.12 * math.sin(t * 3.0)
+        c_peri = QColor("#a5b4fc")
+        
+        if self.orientation == 'horizontal':
+            gw = 72.0 if self.hovered else 64.0
+            gh = 6.0 if self.hovered else 5.0
+            gx = (w - gw) / 2.0
+            gy = (h - gh) / 2.0
+            core_a = int((255 if self.hovered else 180) * pulse)
+            bloom_a = int((140 if self.hovered else 75) * pulse)
+            
+            # Ambient bloom
+            grad_bloom = QRadialGradient(QPointF(w / 2.0, h / 2.0), gw / 2.0)
+            grad_bloom.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), bloom_a))
+            grad_bloom.setColorAt(0.6, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), int(bloom_a * 0.4)))
+            grad_bloom.setColorAt(1.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 0))
+            p.setBrush(QBrush(grad_bloom))
+            p.setPen(Qt.PenStyle.NoPen)
+            p.drawEllipse(QRectF(gx - 8, gy - 6, gw + 16, gh + 12))
+            
+            # Luminous pill body
+            pill_path = QPainterPath()
+            pill_path.addRoundedRect(QRectF(gx, gy, gw, gh), 3.0, 3.0)
+            pill_grad = QLinearGradient(gx, gy, gx + gw, gy)
+            pill_grad.setColorAt(0.0, QColor(255, 255, 255, int(core_a * 0.5)))
+            pill_grad.setColorAt(0.2, QColor(255, 255, 255, core_a))
+            pill_grad.setColorAt(0.8, QColor(255, 255, 255, core_a))
+            pill_grad.setColorAt(1.0, QColor(255, 255, 255, int(core_a * 0.5)))
+            p.fillPath(pill_path, QBrush(pill_grad))
+        else:
+            gw = 6.0 if self.hovered else 5.0
+            gh = 72.0 if self.hovered else 64.0
+            gx = (w - gw) / 2.0
+            gy = (h - gh) / 2.0
+            core_a = int((255 if self.hovered else 180) * pulse)
+            bloom_a = int((140 if self.hovered else 75) * pulse)
+            
+            # Ambient bloom
+            grad_bloom = QRadialGradient(QPointF(w / 2.0, h / 2.0), gh / 2.0)
+            grad_bloom.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), bloom_a))
+            grad_bloom.setColorAt(0.6, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), int(bloom_a * 0.4)))
+            grad_bloom.setColorAt(1.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 0))
+            p.setBrush(QBrush(grad_bloom))
+            p.setPen(Qt.PenStyle.NoPen)
+            p.drawEllipse(QRectF(gx - 6, gy - 8, gw + 12, gh + 16))
+            
+            # Luminous pill body
+            pill_path = QPainterPath()
+            pill_path.addRoundedRect(QRectF(gx, gy, gw, gh), 3.0, 3.0)
+            pill_grad = QLinearGradient(gx, gy, gx, gy + gh)
+            pill_grad.setColorAt(0.0, QColor(255, 255, 255, int(core_a * 0.5)))
+            pill_grad.setColorAt(0.2, QColor(255, 255, 255, core_a))
+            pill_grad.setColorAt(0.8, QColor(255, 255, 255, core_a))
+            pill_grad.setColorAt(1.0, QColor(255, 255, 255, int(core_a * 0.5)))
+            p.fillPath(pill_path, QBrush(pill_grad))
+
 
 class FrostedGlassWidget(QFrame):
     """
-    Native, app-rendered dark grey/black frosted glass container without DWM dependency.
-    Samples live screensaver canvas region directly behind the widget rect,
-    applies smooth downsampled/upscaled Gaussian-like diffusion blur,
-    and composites a rich dark slate translucent fill with 1px inner highlight border.
+    Apple visionOS Spatial Glass Widget:
+    Multi-layered translucent frosted finish: rgba(28, 32, 46, 0.65)
+    Real-time blurred screensaver backdrop,
+    Crisp 1.5px specular top-left rim highlight fading to bottom-right,
+    Deep spatial shadow (32px blur), and 24px squircle corners.
     """
-    def __init__(self, studio, radius=16, parent=None):
+    def __init__(self, studio, radius=24, parent=None):
         super().__init__(parent if parent else studio)
         self.studio = studio
         self.radius = radius
         self.drop_highlight = False
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        
+        # Spatial drop shadow effect (deep 32px soft blur)
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(32)
+        shadow.setColor(QColor(0, 0, 0, 150))
+        shadow.setOffset(0, 14)
+        self.setGraphicsEffect(shadow)
         
     def set_drop_highlight(self, active=True):
         if self.drop_highlight != active:
@@ -2561,7 +2681,7 @@ class FrostedGlassWidget(QFrame):
         clip.addRoundedRect(QRectF(0, 0, w, h), self.radius, self.radius)
         p.setClipPath(clip)
         
-        # 1. Native Real-time Frosted Glass Blur
+        # 1. Real-time Blurred Screensaver Canvas
         if canvas_pix and not canvas_pix.isNull() and canvas_pix.rect().contains(sample_rect):
             sub = canvas_pix.copy(sample_rect)
             dw = max(4, w // 10)
@@ -2571,10 +2691,22 @@ class FrostedGlassWidget(QFrame):
         else:
             p.fillRect(QRectF(0, 0, w, h), QColor(10, 14, 23))
             
-        # 2. Rich dark slate translucent fill: rgba(18, 21, 31, 0.75) (alpha ~192)
-        p.fillRect(QRectF(0, 0, w, h), QColor(18, 21, 31, 192))
+        # 2. Multi-layered Spatial Glass Fill: rgba(28, 32, 46, 0.65)
+        grad_fill = QLinearGradient(0, 0, 0, h)
+        grad_fill.setColorAt(0.0, QColor(36, 42, 60, 175))
+        grad_fill.setColorAt(1.0, QColor(22, 26, 38, 160))
+        p.fillRect(QRectF(0, 0, w, h), grad_fill)
         
-        # 3. 1px Inner highlight border / Drop highlight
+        # 3. Inner Specular Horizon (Top Sheen)
+        sheen_grad = QLinearGradient(0, 1, w, 1)
+        sheen_grad.setColorAt(0.0, QColor(255, 255, 255, 0))
+        sheen_grad.setColorAt(0.2, QColor(255, 255, 255, 45))
+        sheen_grad.setColorAt(0.8, QColor(255, 255, 255, 45))
+        sheen_grad.setColorAt(1.0, QColor(255, 255, 255, 0))
+        p.setPen(QPen(QBrush(sheen_grad), 1.0))
+        p.drawLine(QPointF(self.radius, 1.0), QPointF(w - self.radius, 1.0))
+        
+        # 4. Specular Top-Left Rim Highlight (1.5px)
         if self.drop_highlight:
             accent_col = QColor(self.studio.win_accent)
             pen = QPen(accent_col, 2.0)
@@ -2582,17 +2714,21 @@ class FrostedGlassWidget(QFrame):
             p.setBrush(Qt.BrushStyle.NoBrush)
             p.drawRoundedRect(QRectF(1.0, 1.0, w - 2.0, h - 2.0), self.radius - 1, self.radius - 1)
         else:
-            border_pen = QPen(QColor(255, 255, 255, 31), 1.0)
+            rim_grad = QLinearGradient(0, 0, w, h)
+            rim_grad.setColorAt(0.0, QColor(255, 255, 255, 56))   # 0.22 alpha
+            rim_grad.setColorAt(0.5, QColor(255, 255, 255, 28))   # 0.11 alpha
+            rim_grad.setColorAt(1.0, QColor(255, 255, 255, 15))   # 0.06 alpha
+            border_pen = QPen(QBrush(rim_grad), 1.5)
             p.setPen(border_pen)
             p.setBrush(Qt.BrushStyle.NoBrush)
-            p.drawRoundedRect(QRectF(0.5, 0.5, w - 1.0, h - 1.0), self.radius, self.radius)
+            p.drawRoundedRect(QRectF(0.75, 0.75, w - 1.5, h - 1.5), self.radius, self.radius)
             
         p.end()
         super().paintEvent(event)
 
 
 # Stylesheet for controls inside Fullscreen Studio frosted panels
-STUDIO_CONTROL_STYLESHEET = """
+SPATIAL_CONTROL_STYLESHEET = """
     QLabel {
         color: #FFFFFF;
         font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, sans-serif;
@@ -2653,15 +2789,10 @@ STUDIO_CONTROL_STYLESHEET = """
 """
 
 
-
-# ==============================================================================
-# STUDIO FLOATING PANELS & DRAWERS
-# ==============================================================================
-
 class StudioInfoButton(FrostedGlassWidget):
     def __init__(self, studio):
-        super().__init__(studio, radius=19)
-        self.setFixedSize(38, 38)
+        super().__init__(studio, radius=20)
+        self.setFixedSize(40, 40)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setToolTip("About, version & updates (ⓘ)")
         
@@ -2670,7 +2801,7 @@ class StudioInfoButton(FrostedGlassWidget):
         self.btn = QPushButton()
         self.btn.setIcon(get_or_create_info_duotone_icon(self.studio.win_accent))
         self.btn.setIconSize(QSize(20, 20))
-        self.btn.setFixedSize(38, 38)
+        self.btn.setFixedSize(40, 40)
         self.btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn.setStyleSheet("background: transparent; border: none; outline: none;")
         self.btn.clicked.connect(self.studio.open_about)
@@ -2679,12 +2810,12 @@ class StudioInfoButton(FrostedGlassWidget):
 
 class StudioActionDock(FrostedGlassWidget):
     def __init__(self, studio):
-        super().__init__(studio, radius=19)
-        self.setFixedHeight(38)
+        super().__init__(studio, radius=21)
+        self.setFixedSize(330, 42)
         
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(8, 3, 8, 3)
-        layout.setSpacing(6)
+        layout.setContentsMargins(12, 4, 12, 4)
+        layout.setSpacing(8)
         
         # 1. Reset Defaults Button
         self.btn_reset = QPushButton("Reset Defaults")
@@ -2695,13 +2826,14 @@ class StudioActionDock(FrostedGlassWidget):
                 color: #94A3B8;
                 border: none;
                 border-radius: 12px;
-                padding: 4px 10px;
+                padding: 4px 8px;
                 font-size: 11px;
                 font-weight: 500;
                 font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
             }
             QPushButton:hover {
                 color: #F87171;
+                background: rgba(239, 68, 68, 0.12);
             }
         """)
         self.btn_reset.clicked.connect(self.studio.reset_defaults_clicked)
@@ -2714,11 +2846,11 @@ class StudioActionDock(FrostedGlassWidget):
             QPushButton {{
                 background-color: {self.studio.win_accent};
                 color: {self.studio.contrast_text};
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 14px;
+                border: 1px solid rgba(255, 255, 255, 0.20);
+                border-radius: 15px;
                 font-weight: 600;
                 font-size: 11.5px;
-                padding: 5px 16px;
+                padding: 5px 18px;
                 font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
             }}
             QPushButton:hover {{
@@ -2728,9 +2860,8 @@ class StudioActionDock(FrostedGlassWidget):
         self.btn_apply.clicked.connect(self.studio.apply_clicked)
         layout.addWidget(self.btn_apply)
         
-        # 3. Exit Badge Button
-        self.btn_exit = QPushButton("✕")
-        self.btn_exit.setFixedSize(26, 26)
+        # 3. Exit Fullscreen Button (clear text & icon, never clipped!)
+        self.btn_exit = QPushButton("✕ Exit")
         self.btn_exit.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_exit.setToolTip("Exit Fullscreen Studio (Esc)")
         self.btn_exit.setStyleSheet("""
@@ -2738,15 +2869,17 @@ class StudioActionDock(FrostedGlassWidget):
                 background: rgba(255, 255, 255, 0.08);
                 color: #E2E8F0;
                 border: 1px solid rgba(255, 255, 255, 0.14);
-                border-radius: 13px;
+                border-radius: 15px;
                 font-size: 11px;
-                font-weight: bold;
+                font-weight: 600;
+                padding: 5px 14px;
+                font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
                 outline: none;
             }
             QPushButton:hover {
                 background: rgba(239, 68, 68, 0.25);
-                border-color: rgba(239, 68, 68, 0.45);
-                color: #EF4444;
+                border-color: rgba(239, 68, 68, 0.50);
+                color: #FF6B6B;
             }
         """)
         self.btn_exit.clicked.connect(self.studio.close_studio)
@@ -2754,16 +2887,13 @@ class StudioActionDock(FrostedGlassWidget):
 
 
 class StudioTopDrawer(FrostedGlassWidget):
-    """
-    Top-center Display & Atmosphere drawer: slides down from top edge.
-    """
     def __init__(self, studio):
-        super().__init__(studio, radius=16)
-        self.setFixedSize(470, 145)
-        self.setStyleSheet(STUDIO_CONTROL_STYLESHEET)
+        super().__init__(studio, radius=24)
+        self.setFixedSize(500, 155)
+        self.setStyleSheet(SPATIAL_CONTROL_STYLESHEET)
         
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 12, 16, 12)
+        layout.setContentsMargins(18, 14, 18, 14)
         layout.setSpacing(8)
         
         # Header Row
@@ -2796,8 +2926,8 @@ class StudioTopDrawer(FrostedGlassWidget):
         
         # Checkboxes Grid
         cb_grid = QGridLayout()
-        cb_grid.setHorizontalSpacing(14)
-        cb_grid.setVerticalSpacing(5)
+        cb_grid.setHorizontalSpacing(16)
+        cb_grid.setVerticalSpacing(6)
         
         self.cb_ambient = QCheckBox("Ambient Mode (Space)")
         self.cb_ambient.setChecked(self.studio.settings.ambient_cb.isChecked())
@@ -2839,23 +2969,20 @@ class StudioTopDrawer(FrostedGlassWidget):
 
 
 class StudioRightDrawer(FrostedGlassWidget):
-    """
-    Right-center System & Controls drawer: slides in from right edge.
-    """
     def __init__(self, studio):
-        super().__init__(studio, radius=16)
-        self.setFixedSize(250, 155)
-        self.setStyleSheet(STUDIO_CONTROL_STYLESHEET)
+        super().__init__(studio, radius=24)
+        self.setFixedSize(270, 165)
+        self.setStyleSheet(SPATIAL_CONTROL_STYLESHEET)
         
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 12, 16, 12)
+        layout.setContentsMargins(18, 14, 18, 14)
         layout.setSpacing(8)
         
         lbl_title = QLabel("System & Controls")
         lbl_title.setStyleSheet("font-size: 12.5px; font-weight: 700; color: #FFFFFF;")
         layout.addWidget(lbl_title)
         
-        self.cb_strict = QCheckBox("Lock on Exit (Win+L)")
+        self.cb_strict = QCheckBox("Lock on Exit (Ctrl+Z)")
         self.cb_strict.setChecked(self.studio.settings.strict_cb.isChecked())
         self.cb_strict.toggled.connect(self.on_strict_toggled)
         layout.addWidget(self.cb_strict)
@@ -2884,17 +3011,13 @@ class StudioRightDrawer(FrostedGlassWidget):
 
 
 class StudioLeftDrawer(FrostedGlassWidget):
-    """
-    Left-center Mode-Specific Settings drawer: slides in from left edge.
-    Dynamically switches pages between Flip Clock, Rotary Modern, and Dino Runner.
-    """
     def __init__(self, studio):
-        super().__init__(studio, radius=16)
-        self.setFixedSize(310, 390)
-        self.setStyleSheet(STUDIO_CONTROL_STYLESHEET)
+        super().__init__(studio, radius=24)
+        self.setFixedSize(330, 420)
+        self.setStyleSheet(SPATIAL_CONTROL_STYLESHEET)
         
         root_layout = QVBoxLayout(self)
-        root_layout.setContentsMargins(16, 12, 16, 12)
+        root_layout.setContentsMargins(18, 14, 18, 14)
         root_layout.setSpacing(10)
         
         # Header Row with Mode Badge
@@ -2905,8 +3028,8 @@ class StudioLeftDrawer(FrostedGlassWidget):
         self.lbl_badge.setStyleSheet(f"""
             font-size: 11px; font-weight: 600; 
             color: {self.studio.win_accent}; 
-            background: rgba(255, 255, 255, 0.06); 
-            border: 1px solid rgba(255, 255, 255, 0.12); 
+            background: rgba(255, 255, 255, 0.08); 
+            border: 1px solid rgba(255, 255, 255, 0.14); 
             border-radius: 6px; padding: 2px 8px;
         """)
         header.addWidget(lbl_title)
@@ -2968,7 +3091,6 @@ class StudioLeftDrawer(FrostedGlassWidget):
         flip_layout.setContentsMargins(0, 4, 0, 0)
         flip_layout.setSpacing(8)
         
-        # Hourly Chime Row
         chime_row = QHBoxLayout()
         self.cb_chime = QCheckBox("Hourly Chime")
         self.cb_chime.setChecked(self.studio.settings.hourly_chime_cb.isChecked())
@@ -2995,7 +3117,6 @@ class StudioLeftDrawer(FrostedGlassWidget):
         chime_row.addStretch()
         flip_layout.addLayout(chime_row)
         
-        # Sound Presets Dropdown
         snd_row = QHBoxLayout()
         lbl_snd = QLabel("Sound:")
         lbl_snd.setStyleSheet("font-size: 11px; color: #E2E8F0;")
@@ -3014,7 +3135,6 @@ class StudioLeftDrawer(FrostedGlassWidget):
         snd_row.addWidget(self.btn_browse_sound)
         flip_layout.addLayout(snd_row)
         
-        # Volume Row
         vol_row = QHBoxLayout()
         lbl_vol = QLabel("Vol:")
         lbl_vol.setStyleSheet("font-size: 11px; color: #E2E8F0;")
@@ -3032,7 +3152,6 @@ class StudioLeftDrawer(FrostedGlassWidget):
         vol_row.addWidget(self.lbl_vol)
         flip_layout.addLayout(vol_row)
         
-        # Leading Zeros
         self.cb_lz_flip = QCheckBox("Leading Zeros (09 vs 9)")
         self.cb_lz_flip.setChecked(self.studio.clock.leading_zeros.get("0", False))
         self.cb_lz_flip.toggled.connect(lambda c: self.on_lz_toggled(0, c))
@@ -3046,7 +3165,6 @@ class StudioLeftDrawer(FrostedGlassWidget):
         rotary_layout.setContentsMargins(0, 4, 0, 0)
         rotary_layout.setSpacing(8)
         
-        # Weather & Fahrenheit
         w_row = QHBoxLayout()
         self.cb_weather = QCheckBox("Live Weather")
         self.cb_weather.setChecked(self.studio.settings.show_weather_cb.isChecked())
@@ -3060,13 +3178,11 @@ class StudioLeftDrawer(FrostedGlassWidget):
         w_row.addStretch()
         rotary_layout.addLayout(w_row)
         
-        # Battery Indicator
         self.cb_battery = QCheckBox("Battery Level")
         self.cb_battery.setChecked(self.studio.settings.show_battery_cb.isChecked())
         self.cb_battery.toggled.connect(self.on_battery_toggled)
         rotary_layout.addWidget(self.cb_battery)
         
-        # Leading Zeros
         self.cb_lz_rotary = QCheckBox("Leading Zeros (09 vs 9)")
         self.cb_lz_rotary.setChecked(self.studio.clock.leading_zeros.get("1", False))
         self.cb_lz_rotary.toggled.connect(lambda c: self.on_lz_toggled(1, c))
@@ -3080,7 +3196,6 @@ class StudioLeftDrawer(FrostedGlassWidget):
         dino_layout.setContentsMargins(0, 4, 0, 0)
         dino_layout.setSpacing(8)
         
-        # Dino Font
         f_row = QHBoxLayout()
         lbl_df = QLabel("Font:")
         lbl_df.setStyleSheet("font-size: 11px; color: #E2E8F0;")
@@ -3099,7 +3214,6 @@ class StudioLeftDrawer(FrostedGlassWidget):
         f_row.addWidget(self.btn_undo_font)
         dino_layout.addLayout(f_row)
         
-        # Dino Sprite
         s_row = QHBoxLayout()
         lbl_ds = QLabel("Sprite:")
         lbl_ds.setStyleSheet("font-size: 11px; color: #E2E8F0;")
@@ -3118,12 +3232,11 @@ class StudioLeftDrawer(FrostedGlassWidget):
         s_row.addWidget(self.btn_undo_char)
         dino_layout.addLayout(s_row)
         
-        # Drop Zone Indicator
         self.drop_box = QFrame()
         self.drop_box.setStyleSheet("""
             QFrame {
                 border: 1px dashed rgba(255, 255, 255, 0.20);
-                border-radius: 8px;
+                border-radius: 10px;
                 background: rgba(255, 255, 255, 0.03);
             }
         """)
@@ -3278,16 +3391,15 @@ class StudioLeftDrawer(FrostedGlassWidget):
         self.studio.clock.update()
 
 
-
 # ==============================================================================
-# FULLSCREEN STUDIO WINDOW
+# SPATIAL FULLSCREEN STUDIO WINDOW
 # ==============================================================================
 
 class FullscreenStudioMode(QWidget):
     """
-    Interactive Fullscreen Studio Mode: Live-edit all screensaver settings in fullscreen
-    with native frosted glass floating HUD elements, hidden edge-glow drawers,
-    audio drag-and-drop, and real-time synchronization with the Settings window.
+    Interactive Fullscreen Studio Mode:
+    Live-edit all screensaver settings in fullscreen with Apple visionOS spatial glass UI,
+    luminous capsule grabber bars, real-time backdrop blur, and full SettingsDialog sync.
     """
     def __init__(self, settings_dialog):
         super().__init__()
@@ -3298,10 +3410,11 @@ class FullscreenStudioMode(QWidget):
         self.setWindowTitle("Dinoscreener Fullscreen Studio")
         self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
+        self.setStyleSheet("background-color: #000000;")
         self.setMouseTracking(True)
         self.setAcceptDrops(True)
         
-        # 1. Embedded Screensaver Canvas with Frame Caching
+        # 1. Embedded Screensaver Canvas: TRUE FULLSCREEN MODE, Parented, Edge-to-Edge
         self.clock = CrispAestheticFlipClock(
             accent_color=self.settings.config.get("accent_color", self.win_accent),
             enable_win_key=self.settings.win_cb.isChecked(),
@@ -3311,7 +3424,7 @@ class FullscreenStudioMode(QWidget):
             show_battery=self.settings.show_battery_cb.isChecked(),
             use_fahrenheit=self.settings.fahrenheit_cb.isChecked(),
             ambient_mode=self.settings.ambient_cb.isChecked(),
-            preview_mode=True,
+            preview_mode=False, # Fullscreen scale!
             brightness=self.settings.bright_slider.value(),
             clock_style=self.settings.preview.clock_style,
             clock_scales=dict(self.settings.preview.clock_scales),
@@ -3328,12 +3441,14 @@ class FullscreenStudioMode(QWidget):
             chime_preset=self.settings.chime_sound_cb.currentData() if hasattr(self.settings, 'chime_sound_cb') else "acoustic_bell",
             chime_volume=self.settings.chime_vol_slider.value() if hasattr(self.settings, 'chime_vol_slider') else 45,
             custom_chime_path=getattr(self.settings, "custom_chime_path", ""),
-            )
-        self.clock.enable_frame_caching = True
+            parent=self,
+            studio_mode=True
+        )
         self.clock.setMouseTracking(True)
         self.clock.installEventFilter(self)
+        self.clock.lower()
         
-        # 2. Always-Visible Floating HUD Elements
+        # 2. Floating Spatial HUD Elements
         self.btn_info = StudioInfoButton(self)
         self.action_dock = StudioActionDock(self)
         
@@ -3343,12 +3458,17 @@ class FullscreenStudioMode(QWidget):
         self.mode_capsule.on_mode_changed = self.on_mode_switched
         self.mode_capsule.installEventFilter(self)
         
-        # 3. Hidden Edge-Triggered Floating Drawers
+        # 3. Spatial Drawers
         self.left_drawer = StudioLeftDrawer(self)
         self.top_drawer = StudioTopDrawer(self)
         self.right_drawer = StudioRightDrawer(self)
         
-        # Drawer State Tracking
+        # 4. Apple visionOS Luminous Pill Grabbers (floating 14px from edges)
+        self.top_grabber = SpatialGrabberBar(self, orientation='horizontal')
+        self.left_grabber = SpatialGrabberBar(self, orientation='vertical')
+        self.right_grabber = SpatialGrabberBar(self, orientation='vertical')
+        
+        # State tracking
         self.left_open = False
         self.top_open = False
         self.right_open = False
@@ -3356,10 +3476,6 @@ class FullscreenStudioMode(QWidget):
         self.left_open_ratio = 0.0
         self.top_open_ratio = 0.0
         self.right_open_ratio = 0.0
-        
-        self.left_pos = -320
-        self.top_pos = -160
-        self.right_pos = 9999
         
         # Animations
         self.anim_left = QVariantAnimation(self)
@@ -3377,12 +3493,14 @@ class FullscreenStudioMode(QWidget):
         self.anim_right.setEasingCurve(QEasingCurve.Type.OutCubic)
         self.anim_right.valueChanged.connect(self.on_anim_right)
         
-        # Install Event Filters for stable mouse tracking
         self.install_child_event_filters(self.left_drawer)
         self.install_child_event_filters(self.top_drawer)
         self.install_child_event_filters(self.right_drawer)
         self.install_child_event_filters(self.action_dock)
         self.install_child_event_filters(self.btn_info)
+        
+        # Enable frame caching safely once all widgets are initialized
+        self.clock.enable_frame_caching = True
 
     def install_child_event_filters(self, widget):
         widget.installEventFilter(self)
@@ -3393,85 +3511,105 @@ class FullscreenStudioMode(QWidget):
         if obj == self.mode_capsule and event.type() == QEvent.Type.Resize:
             sw, sh = self.width(), self.height()
             cw = self.mode_capsule.width()
-            self.mode_capsule.move((sw - cw) // 2, sh - self.mode_capsule.height() - 36)
+            self.mode_capsule.move((sw - cw) // 2, sh - self.mode_capsule.height() - 32)
         elif event.type() == QEvent.Type.MouseMove:
-            # Map mouse position to studio window coordinate space
             global_pos = event.globalPosition().toPoint()
             local_pos = self.mapFromGlobal(global_pos)
             self.check_drawer_hover(local_pos)
         return super().eventFilter(obj, event)
 
     def on_clock_frame_rendered(self):
-        # Repaint open drawers to refresh live blurred reflections
-        if self.left_open_ratio > 0.05:
+        if getattr(self, 'left_open_ratio', 0) > 0.05 and hasattr(self, 'left_drawer'):
             self.left_drawer.update()
-        if self.top_open_ratio > 0.05:
+        if getattr(self, 'top_open_ratio', 0) > 0.05 and hasattr(self, 'top_drawer'):
             self.top_drawer.update()
-        if self.right_open_ratio > 0.05:
+        if getattr(self, 'right_open_ratio', 0) > 0.05 and hasattr(self, 'right_drawer'):
             self.right_drawer.update()
-        self.btn_info.update()
-        self.action_dock.update()
-        self.mode_capsule.update()
-        self.update() # For edge glow breathing
+        if hasattr(self, 'btn_info'):
+            self.btn_info.update()
+        if hasattr(self, 'action_dock'):
+            self.action_dock.update()
+        if hasattr(self, 'mode_capsule'):
+            self.mode_capsule.update()
+        if hasattr(self, 'top_grabber'):
+            self.top_grabber.update()
+        if hasattr(self, 'left_grabber'):
+            self.left_grabber.update()
+        if hasattr(self, 'right_grabber'):
+            self.right_grabber.update()
+        self.update()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         sw, sh = self.width(), self.height()
+        
+        # Live canvas: full screen
         self.clock.setGeometry(0, 0, sw, sh)
         
-        # Top-Right Info Button: 24px margin
-        self.btn_info.move(sw - self.btn_info.width() - 24, 24)
+        # Top-Right Info Button: 32px margin from top and right
+        self.btn_info.move(sw - self.btn_info.width() - 32, 32)
         self.btn_info.raise_()
         
-        # Bottom-Right Action Dock: 24px margin
-        self.action_dock.move(sw - self.action_dock.width() - 24, sh - self.action_dock.height() - 24)
+        # Bottom-Right Action Dock: anchored 32px inside right edge and 32px above bottom edge
+        dock_w = self.action_dock.width()
+        dock_h = self.action_dock.height()
+        self.action_dock.move(sw - dock_w - 32, sh - dock_h - 32)
         self.action_dock.raise_()
         
-        # Bottom-Center Mode Switcher: 36px from bottom
+        # Bottom-Center Mode Switcher: 32px from bottom, centered
         cw = self.mode_capsule.width()
-        self.mode_capsule.move((sw - cw) // 2, sh - self.mode_capsule.height() - 36)
+        self.mode_capsule.move((sw - cw) // 2, sh - self.mode_capsule.height() - 32)
         self.mode_capsule.raise_()
+        
+        # visionOS Luminous Pill Grabbers (14px from edge)
+        self.top_grabber.move((sw - self.top_grabber.width()) // 2, 14)
+        self.top_grabber.raise_()
+        
+        self.left_grabber.move(14, (sh - self.left_grabber.height()) // 2)
+        self.left_grabber.raise_()
+        
+        self.right_grabber.move(sw - 14 - self.right_grabber.width(), (sh - self.right_grabber.height()) // 2)
+        self.right_grabber.raise_()
         
         # Left Drawer: Centered vertically
         dh_l = self.left_drawer.height()
         target_y_l = (sh - dh_l) // 2
-        self.left_pos = 24 if self.left_open else -self.left_drawer.width() - 10
-        self.left_drawer.move(self.left_pos, target_y_l)
+        left_x = 32 if self.left_open else -self.left_drawer.width() - 35
+        self.left_drawer.move(left_x, target_y_l)
         self.left_drawer.raise_()
         
         # Top Drawer: Centered horizontally
         dw_t = self.top_drawer.width()
         target_x_t = (sw - dw_t) // 2
-        self.top_pos = 24 if self.top_open else -self.top_drawer.height() - 10
-        self.top_drawer.move(target_x_t, self.top_pos)
+        top_y = 32 if self.top_open else -self.top_drawer.height() - 35
+        self.top_drawer.move(target_x_t, top_y)
         self.top_drawer.raise_()
         
         # Right Drawer: Centered vertically
         dh_r = self.right_drawer.height()
         target_y_r = (sh - dh_r) // 2
-        self.right_pos = sw - self.right_drawer.width() - 24 if self.right_open else sw + 10
-        self.right_drawer.move(self.right_pos, target_y_r)
+        right_x = sw - self.right_drawer.width() - 32 if self.right_open else sw + 35
+        self.right_drawer.move(right_x, target_y_r)
         self.right_drawer.raise_()
 
-    # --- Drawer Animation Handlers ---
+    # --- Drawer Animations ---
     def set_left_drawer_open(self, open_state):
         if self.left_open == open_state: return
         self.left_open = open_state
         self.anim_left.stop()
         start_x = self.left_drawer.x()
-        end_x = 24 if open_state else -self.left_drawer.width() - 10
+        end_x = 32 if open_state else -self.left_drawer.width() - 35
         self.anim_left.setStartValue(start_x)
         self.anim_left.setEndValue(end_x)
         self.anim_left.start()
 
     def on_anim_left(self, val):
-        self.left_pos = val
         sh = self.height()
         target_y = (sh - self.left_drawer.height()) // 2
         self.left_drawer.move(val, target_y)
         w = self.left_drawer.width()
-        # open_ratio from 0.0 (closed) to 1.0 (open)
-        self.left_open_ratio = max(0.0, min(1.0, (val + w + 10) / (24 + w + 10)))
+        self.left_open_ratio = max(0.0, min(1.0, (val + w + 35) / (32 + w + 35)))
+        self.left_grabber.setVisible(self.left_open_ratio < 0.25)
         self.left_drawer.update()
         self.update()
 
@@ -3480,18 +3618,18 @@ class FullscreenStudioMode(QWidget):
         self.top_open = open_state
         self.anim_top.stop()
         start_y = self.top_drawer.y()
-        end_y = 24 if open_state else -self.top_drawer.height() - 10
+        end_y = 32 if open_state else -self.top_drawer.height() - 35
         self.anim_top.setStartValue(start_y)
         self.anim_top.setEndValue(end_y)
         self.anim_top.start()
 
     def on_anim_top(self, val):
-        self.top_pos = val
         sw = self.width()
         target_x = (sw - self.top_drawer.width()) // 2
         self.top_drawer.move(target_x, val)
         h = self.top_drawer.height()
-        self.top_open_ratio = max(0.0, min(1.0, (val + h + 10) / (24 + h + 10)))
+        self.top_open_ratio = max(0.0, min(1.0, (val + h + 35) / (32 + h + 35)))
+        self.top_grabber.setVisible(self.top_open_ratio < 0.25)
         self.top_drawer.update()
         self.update()
 
@@ -3501,20 +3639,20 @@ class FullscreenStudioMode(QWidget):
         self.anim_right.stop()
         sw = self.width()
         start_x = self.right_drawer.x()
-        end_x = sw - self.right_drawer.width() - 24 if open_state else sw + 10
+        end_x = sw - self.right_drawer.width() - 32 if open_state else sw + 35
         self.anim_right.setStartValue(start_x)
         self.anim_right.setEndValue(end_x)
         self.anim_right.start()
 
     def on_anim_right(self, val):
-        self.right_pos = val
         sh = self.height()
         target_y = (sh - self.right_drawer.height()) // 2
         self.right_drawer.move(val, target_y)
         sw = self.width()
-        target_open_x = sw - self.right_drawer.width() - 24
-        closed_x = sw + 10
+        target_open_x = sw - self.right_drawer.width() - 32
+        closed_x = sw + 35
         self.right_open_ratio = max(0.0, min(1.0, (closed_x - val) / (closed_x - target_open_x)))
+        self.right_grabber.setVisible(self.right_open_ratio < 0.25)
         self.right_drawer.update()
         self.update()
 
@@ -3527,88 +3665,32 @@ class FullscreenStudioMode(QWidget):
         mx, my = pos.x(), pos.y()
         sw, sh = self.width(), self.height()
         
-        # 1. Left Drawer (Trigger <= 28px; Stay open in drawer rect + 25px)
+        # 1. Left Grabber & Drawer
         if not self.left_open:
-            if mx <= 28 and (sh * 0.15 <= my <= sh * 0.85):
+            if mx <= 36 and abs(my - sh / 2.0) <= 60:
                 self.set_left_drawer_open(True)
         else:
-            safety_rect = self.left_drawer.geometry().adjusted(-28, -25, 25, 25)
+            safety_rect = self.left_drawer.geometry().adjusted(-35, -35, 35, 35)
             if not safety_rect.contains(pos):
                 self.set_left_drawer_open(False)
                 
-        # 2. Top Drawer (Trigger <= 28px; Stay open in drawer rect + 25px)
+        # 2. Top Grabber & Drawer
         if not self.top_open:
-            if my <= 28 and (sw * 0.20 <= mx <= sw * 0.80):
+            if my <= 36 and abs(mx - sw / 2.0) <= 60:
                 self.set_top_drawer_open(True)
         else:
-            safety_rect = self.top_drawer.geometry().adjusted(-25, -28, 25, 25)
+            safety_rect = self.top_drawer.geometry().adjusted(-35, -35, 35, 35)
             if not safety_rect.contains(pos):
                 self.set_top_drawer_open(False)
                 
-        # 3. Right Drawer (Trigger >= sw - 28px; Avoid top-right and bottom-right buttons)
+        # 3. Right Grabber & Drawer
         if not self.right_open:
-            if mx >= sw - 28 and (75 <= my <= sh - 75):
+            if mx >= sw - 36 and abs(my - sh / 2.0) <= 60:
                 self.set_right_drawer_open(True)
         else:
-            safety_rect = self.right_drawer.geometry().adjusted(-25, -25, 28, 25)
+            safety_rect = self.right_drawer.geometry().adjusted(-35, -35, 35, 35)
             if not safety_rect.contains(pos):
                 self.set_right_drawer_open(False)
-
-    # --- Ambient Edge Glows with Breathing Pulse ---
-    def paintEvent(self, event):
-        super().paintEvent(event)
-        p = QPainter(self)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        
-        sw = float(self.width())
-        sh = float(self.height())
-        if sw <= 0 or sh <= 0: return
-        
-        t = getattr(self.clock, 'time_elapsed', 0.0)
-        pulse = 0.80 + 0.20 * math.sin(t * 2.8)
-        c_peri = QColor("#a5b4fc")
-        
-        # 1. Left Edge Ambient Glow
-        left_alpha = int(60 * pulse * (1.0 - self.left_open_ratio))
-        if left_alpha > 2:
-            glow_h = 130.0
-            glow_w = 16.0
-            cy = sh / 2.0
-            grad_l = QRadialGradient(QPointF(0, cy), glow_h / 2.0)
-            grad_l.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), left_alpha))
-            grad_l.setColorAt(0.5, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), int(left_alpha * 0.4)))
-            grad_l.setColorAt(1.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 0))
-            p.setBrush(QBrush(grad_l))
-            p.setPen(Qt.PenStyle.NoPen)
-            p.drawEllipse(QPointF(0, cy), glow_w * 2.0, glow_h / 2.0)
-            
-        # 2. Top Edge Ambient Glow
-        top_alpha = int(60 * pulse * (1.0 - self.top_open_ratio))
-        if top_alpha > 2:
-            glow_w = 150.0
-            glow_h = 16.0
-            cx = sw / 2.0
-            grad_t = QRadialGradient(QPointF(cx, 0), glow_w / 2.0)
-            grad_t.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), top_alpha))
-            grad_t.setColorAt(0.5, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), int(top_alpha * 0.4)))
-            grad_t.setColorAt(1.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 0))
-            p.setBrush(QBrush(grad_t))
-            p.setPen(Qt.PenStyle.NoPen)
-            p.drawEllipse(QPointF(cx, 0), glow_w / 2.0, glow_h * 2.0)
-            
-        # 3. Right Edge Ambient Glow
-        right_alpha = int(60 * pulse * (1.0 - self.right_open_ratio))
-        if right_alpha > 2:
-            glow_h = 130.0
-            glow_w = 16.0
-            cy = sh / 2.0
-            grad_r = QRadialGradient(QPointF(sw, cy), glow_h / 2.0)
-            grad_r.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), right_alpha))
-            grad_r.setColorAt(0.5, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), int(right_alpha * 0.4)))
-            grad_r.setColorAt(1.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 0))
-            p.setBrush(QBrush(grad_r))
-            p.setPen(Qt.PenStyle.NoPen)
-            p.drawEllipse(QPointF(sw, cy), glow_w * 2.0, glow_h / 2.0)
 
     # --- Audio Drag and Drop ---
     def dragEnterEvent(self, event):
@@ -3661,19 +3743,18 @@ class FullscreenStudioMode(QWidget):
 
     # --- Action Dock Callbacks ---
     def apply_clicked(self):
-        # Save in-memory configurations to disk
         self.settings.save_config()
         self.action_dock.btn_apply.setText("✓ Saved")
-        self.action_dock.btn_apply.setStyleSheet(f"""
-            QPushButton {{
+        self.action_dock.btn_apply.setStyleSheet("""
+            QPushButton {
                 background-color: #10B981;
                 color: #FFFFFF;
-                border: 1px solid rgba(255, 255, 255, 0.20);
-                border-radius: 14px;
+                border: 1px solid rgba(255, 255, 255, 0.25);
+                border-radius: 15px;
                 font-weight: 600;
                 font-size: 11.5px;
-                padding: 5px 16px;
-            }}
+                padding: 5px 18px;
+            }
         """)
         QTimer.singleShot(1500, self.restore_apply_button)
 
@@ -3684,11 +3765,11 @@ class FullscreenStudioMode(QWidget):
                 QPushButton {{
                     background-color: {self.win_accent};
                     color: {self.contrast_text};
-                    border: 1px solid rgba(255, 255, 255, 0.15);
-                    border-radius: 14px;
+                    border: 1px solid rgba(255, 255, 255, 0.20);
+                    border-radius: 15px;
                     font-weight: 600;
                     font-size: 11.5px;
-                    padding: 5px 16px;
+                    padding: 5px 18px;
                 }}
                 QPushButton:hover {{
                     background-color: {self.hover_accent};
@@ -3697,7 +3778,6 @@ class FullscreenStudioMode(QWidget):
 
     def reset_defaults_clicked(self):
         self.settings.reset_defaults()
-        # Re-sync in-memory state
         self.clock.clock_scales = dict(self.settings.preview.clock_scales)
         self.clock.leading_zeros = dict(self.settings.preview.leading_zeros)
         self.clock.brightness = 100
@@ -3708,7 +3788,6 @@ class FullscreenStudioMode(QWidget):
         self.clock.clock_style = 0
         self.clock.update()
         
-        # Re-sync controls
         self.mode_capsule.set_current_mode(0)
         self.left_drawer.set_mode(0)
         self.top_drawer.bright_slider.setValue(100)
@@ -3725,14 +3804,17 @@ class FullscreenStudioMode(QWidget):
 
     def close_studio(self):
         self.close()
+
+    def closeEvent(self, event):
         if hasattr(self, 'settings') and self.settings:
+            self.settings.show()
             self.settings.raise_()
             self.settings.activateWindow()
+        super().closeEvent(event)
 
     # --- Keyboard Controls ---
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Space:
-            # Space toggles ambient mode live
             new_val = not self.clock.show_bg
             self.clock.show_bg = new_val
             self.clock.update()
@@ -3749,11 +3831,11 @@ class FullscreenStudioMode(QWidget):
             event.accept()
             return
         elif Qt.Key.Key_A <= event.key() <= Qt.Key.Key_Z or Qt.Key.Key_0 <= event.key() <= Qt.Key.Key_9:
-            # Standard exit on keyboard press
             self.close_studio()
             event.accept()
             return
         super().keyPressEvent(event)
+
 
 
 class SettingsDialog(QDialog):
@@ -4065,9 +4147,11 @@ class SettingsDialog(QDialog):
 
     def test_fullscreen(self):
         try:
+            self.hide()
             self.studio = FullscreenStudioMode(self)
             self.studio.showFullScreen()
         except Exception as e:
+            self.show()
             print("Error launching fullscreen studio mode:", e)
 
     def reset_defaults(self):
