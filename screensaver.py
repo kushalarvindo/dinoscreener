@@ -1954,7 +1954,7 @@ class AboutDialog(QDialog):
     def __init__(self, parent=None, win_accent="#8F96BF", auto_check=False):
         super().__init__(parent)
         self.setWindowTitle("About Dinoscreener")
-        self.setFixedSize(540, 615)
+        self.setFixedSize(560, 680)
         self.win_accent = win_accent
         self.contrast_text, self.hover_accent, self.press_accent = get_color_variants(self.win_accent)
         
@@ -1991,6 +1991,11 @@ class AboutDialog(QDialog):
                 background: #171B26;
                 border: 1px solid rgba(255, 255, 255, 0.08);
                 border-radius: 14px;
+            }}
+            QFrame#storyInnerBox {{
+                background: rgba(0, 0, 0, 0.25);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 10px;
             }}
             QPushButton#accentBtn {{
                 background-color: {self.win_accent};
@@ -2034,18 +2039,18 @@ class AboutDialog(QDialog):
         """)
         
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(26, 24, 26, 20)
-        layout.setSpacing(16)
+        layout.setContentsMargins(26, 22, 26, 20)
+        layout.setSpacing(14)
         
         # 1. Centered Symmetrical Header (Golden Ratio Balance)
         header_box = QVBoxLayout()
-        header_box.setSpacing(6)
+        header_box.setSpacing(5)
         header_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         logo_row = QHBoxLayout()
         logo_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_logo = QLabel()
-        lbl_logo.setFixedSize(58, 58)
+        lbl_logo.setFixedSize(54, 54)
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_logo.setStyleSheet("""
             background: #171B26;
@@ -2053,7 +2058,7 @@ class AboutDialog(QDialog):
             border-radius: 14px;
         """)
         if hasattr(self, 'logo_path') and os.path.exists(self.logo_path):
-            lbl_logo.setPixmap(get_rounded_pixmap(self.logo_path, size=58, radius=14, dpr=3.0))
+            lbl_logo.setPixmap(get_rounded_pixmap(self.logo_path, size=54, radius=14, dpr=3.0))
         logo_row.addWidget(lbl_logo)
         header_box.addLayout(logo_row)
         
@@ -2061,7 +2066,7 @@ class AboutDialog(QDialog):
         title_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_row.setSpacing(8)
         lbl_title = QLabel(APP_NAME)
-        lbl_title.setStyleSheet("font-size: 21px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.3px;")
+        lbl_title.setStyleSheet("font-size: 20px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.3px;")
         title_row.addWidget(lbl_title)
         
         lbl_ver = QLabel(APP_VERSION)
@@ -2077,7 +2082,7 @@ class AboutDialog(QDialog):
         title_row.addWidget(lbl_ver)
         header_box.addLayout(title_row)
         
-        lbl_author = QLabel("Built by <b>Kushal</b> (@kushalarvindo)")
+        lbl_author = QLabel("Built by <b>Kushal :)</b> 👋 (@kushalarvindo)")
         lbl_author.setTextFormat(Qt.TextFormat.RichText)
         lbl_author.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_author.setStyleSheet("font-size: 12px; color: #94A3B8;")
@@ -2085,32 +2090,42 @@ class AboutDialog(QDialog):
         
         layout.addLayout(header_box)
         
-        # 2. Card 1: Authentic Creator Story & Modes (User Option 2)
+        # 2. Card 1: Authentic Creator Story & Modes with Inset Inner Box
         card_story = QFrame()
         card_story.setObjectName("aboutCard")
         story_layout = QVBoxLayout(card_story)
-        story_layout.setContentsMargins(18, 16, 18, 16)
-        story_layout.setSpacing(12)
+        story_layout.setContentsMargins(16, 14, 16, 14)
+        story_layout.setSpacing(10)
         
         lbl_story_title = QLabel("ABOUT")
         lbl_story_title.setStyleSheet("font-size: 10px; font-weight: 700; color: #64748B; letter-spacing: 0.6px;")
         story_layout.addWidget(lbl_story_title)
         
+        inner_box = QFrame()
+        inner_box.setObjectName("storyInnerBox")
+        inner_layout = QVBoxLayout(inner_box)
+        inner_layout.setContentsMargins(16, 12, 16, 12)
+        inner_layout.setSpacing(0)
+        
         story_text = (
-            '<p style="text-indent: 22px; margin: 0 0 10px 0; line-height: 1.45;">'
-            "Hey, I'm Kushal. I built this screensaver for my desk setup because I wanted "
-            "something clean that looks good and protects my monitor.</p>"
-            '<p style="text-indent: 22px; margin: 0 0 10px 0; line-height: 1.45;">'
-            "It gives you <b>3 distinct modes</b>: an offline <b>Chrome Dino</b> game, a retro mechanical <b>Flip Clock</b>, "
-            "and a modern glowing <b>Rotary Dial</b>.</p>"
-            '<p style="text-indent: 22px; margin: 0 0 4px 0; line-height: 1.45;">'
-            "Engineered with zero-lag <b>165Hz frame pacing</b>, automatic <b>OLED burn-in prevention</b>, and peaceful <b>hourly bell chimes</b>.</p>"
+            '<p style="text-indent: 18px; margin: 0 0 8px 0; line-height: 1.48;">'
+            "Hey, I'm Kushal! Honestly, I got super tired of exploring countless screensavers online and "
+            "never finding one that had everything I wanted &mdash; so I decided to build my own with all the good stuff packed in! 😄</p>"
+            '<p style="text-indent: 18px; margin: 0 0 8px 0; line-height: 1.48;">'
+            "You get <b>3 distinct modes</b> to fit your setup: an authentic offline <b>Chrome Dino</b> runner, "
+            "a retro mechanical <b>Flip Clock</b>, and a modern glowing <b>Rotary Dial</b> with live weather & battery.</p>"
+            '<p style="text-indent: 18px; margin: 0 0 8px 0; line-height: 1.48;">'
+            "Engineered with buttery-smooth <b>165Hz frame pacing</b>, automatic <b>OLED burn-in protection</b>, "
+            "and chill <b>hourly bell chimes</b>.</p>"
+            '<p style="text-indent: 18px; margin: 0 0 0px 0; line-height: 1.48; color: #94A3B8;">'
+            "Any suggestions or ideas are always welcomed! 😉</p>"
         )
         lbl_story = QLabel(story_text)
         lbl_story.setTextFormat(Qt.TextFormat.RichText)
         lbl_story.setWordWrap(True)
-        lbl_story.setStyleSheet("font-size: 11.5px; color: #CBD5E1; line-height: 1.45;")
-        story_layout.addWidget(lbl_story)
+        lbl_story.setStyleSheet("font-size: 11.5px; color: #CBD5E1;")
+        inner_layout.addWidget(lbl_story)
+        story_layout.addWidget(inner_box)
         
         # Mode Pills Row
         pills_row = QHBoxLayout()
