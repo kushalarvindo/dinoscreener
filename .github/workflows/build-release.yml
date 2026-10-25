@@ -86,6 +86,7 @@ jobs:
             --windowed \
             --add-data "Bungee-Regular.ttf:." \
             --add-data "app_icon.png:." \
+            --add-data "hourly_chime.wav:." \
             --name dinoscreener \
             screensaver.py
 

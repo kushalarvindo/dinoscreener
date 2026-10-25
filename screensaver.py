@@ -4,13 +4,39 @@ import ctypes
 import json
 import os
 import random
-from PyQt6.QtWidgets import QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider, QFileDialog, QStackedWidget, QFrame, QGridLayout, QComboBox, QFontComboBox, QStackedLayout, QGraphicsOpacityEffect
-from PyQt6.QtCore import Qt, QTimer, QTime, QRectF, QDate, QPointF, QByteArray, QThread, pyqtSignal, QPropertyAnimation, QEasingCurve, pyqtProperty, QParallelAnimationGroup, QSize
-from PyQt6.QtGui import QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath, QFontDatabase, QPixmap, QImage, QIcon, QBrush
+import time
+import wave
+import struct
+import subprocess
+import tempfile
+import zipfile
+import shutil
+import re
+from PyQt6.QtWidgets import (
+    QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
+    QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider, 
+    QFileDialog, QStackedWidget, QFrame, QGridLayout, QComboBox, QFontComboBox, 
+    QStackedLayout, QGraphicsOpacityEffect, QProgressBar, QMessageBox
+)
+from PyQt6.QtCore import (
+    Qt, QTimer, QTime, QRectF, QDate, QPointF, QByteArray, QThread, 
+    pyqtSignal, QPropertyAnimation, QEasingCurve, pyqtProperty, 
+    QParallelAnimationGroup, QSize, QUrl
+)
+from PyQt6.QtGui import (
+    QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath, 
+    QFontDatabase, QPixmap, QImage, QIcon, QBrush, QDesktopServices
+)
+
+APP_VERSION = "v5.5"
+APP_NAME = "Dinoscreener"
+APP_AUTHOR = "Kushal Arvind"
+APP_GITHUB_REPO = "kushalarvindo/dinoscreener"
+APP_GITHUB_URL = "https://github.com/kushalarvindo/dinoscreener"
 
 SPRITE_B64 = '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'
 class CrispAestheticFlipClock(QWidget):
-    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zeros=None, config_path=None, full_config=None, ignore_media_keys=False, dino_font="Bungee", live_weather=False, pixel_shift=False, primary_font="", character_type="dino", custom_character_image="", show_weather=True, show_battery=True, use_fahrenheit=False, ambient_mode=False):
+    def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zeros=None, config_path=None, full_config=None, ignore_media_keys=False, dino_font="Bungee", live_weather=False, pixel_shift=False, primary_font="", character_type="dino", custom_character_image="", show_weather=True, show_battery=True, use_fahrenheit=False, ambient_mode=False, hourly_chime=False):
         super().__init__()
         self.last_pos = None
         self.clock_scales = clock_scales if clock_scales else {"0": 0.45, "1": 0.45, "2": 0.45}
@@ -24,6 +50,9 @@ class CrispAestheticFlipClock(QWidget):
         self.anim_progress = 0.0
         self.time_elapsed = 0.0 
         self.scale_callback = None
+        self.hourly_chime = hourly_chime
+        self.last_chime_hour = -1
+        self.dino_frame_step = 0.0
         
         # States
         self.show_bg = ambient_mode
@@ -147,9 +176,18 @@ class CrispAestheticFlipClock(QWidget):
         self.sync_timer.timeout.connect(self.checkTime)
         self.sync_timer.start(200)
 
+        # High-Refresh Rate & Delta Frame Pacing (Smooth on 165Hz, 144Hz, 120Hz, 60Hz)
+        screen = QApplication.primaryScreen()
+        hz = screen.refreshRate() if screen else 60.0
+        if not hz or hz <= 30.0:
+            hz = 60.0
+        self.display_hz = hz
+        self.target_frame_interval = max(5, int(round(1000.0 / hz)))
+        self.last_frame_time = time.perf_counter()
+
         self.anim_timer = QTimer(self)
         self.anim_timer.timeout.connect(self.updateAnimation)
-        self.anim_timer.start(16)
+        self.anim_timer.start(self.target_frame_interval)
 
 
     def save_live_config(self):
@@ -163,6 +201,7 @@ class CrispAestheticFlipClock(QWidget):
                     json.dump(self.full_config, f)
             except Exception:
                 pass
+
     def checkTime(self):
         now = QTime.currentTime()
         if now.minute() != self.target_time.minute():
@@ -170,40 +209,55 @@ class CrispAestheticFlipClock(QWidget):
             self.target_time = QTime(now.hour(), now.minute())
             self.animating = True
             self.anim_progress = 0.0
+            # Restore native high-refresh rate for flip card animation
+            if hasattr(self, 'anim_timer') and hasattr(self, 'target_frame_interval'):
+                self.anim_timer.setInterval(self.target_frame_interval)
+
+        # Hourly chime (Flip Clock mode, top of the hour :00, non-preview)
+        if self.hourly_chime and self.clock_style == 0 and not self.preview_mode:
+            if now.minute() == 0 and now.hour() != self.last_chime_hour:
+                self.last_chime_hour = now.hour()
+                play_chime()
 
     def updateAnimation(self):
+        now_time = time.perf_counter()
+        if not hasattr(self, 'last_frame_time'):
+            self.last_frame_time = now_time
+        dt = max(0.001, min(0.05, now_time - self.last_frame_time))
+        self.last_frame_time = now_time
+        time_factor = dt / 0.0166667
+
         if self.show_bg and self.bg_opacity < 1.0:
-            self.bg_opacity = min(1.0, self.bg_opacity + 0.04)
+            self.bg_opacity = min(1.0, self.bg_opacity + (0.04 * time_factor))
         elif not self.show_bg and self.bg_opacity > 0.0:
-            self.bg_opacity = max(0.0, self.bg_opacity - 0.04)
+            self.bg_opacity = max(0.0, self.bg_opacity - (0.04 * time_factor))
             
-        self.time_elapsed += 0.016 
+        self.time_elapsed += dt
         
-        # Dino Game Loop
+        # Dino Game Loop with Delta-Time Physics (Buttery smooth on 165Hz)
         if self.clock_style == 2:
-            self.dino_timer_msec += 16
+            self.dino_timer_msec += int(dt * 1000)
             
             if not self.dino_dead:
-                # Physics
-                self.dino_y += self.dino_vy
+                # Physics scaled by time factor
+                self.dino_y += self.dino_vy * time_factor
                 if self.dino_y > 0:
-                    self.dino_vy -= 0.6 # gravity
+                    self.dino_vy -= 0.6 * time_factor # gravity
                 else:
                     self.dino_y = 0
                     self.dino_vy = 0
                 
-                # Obstacle Generation
-                # Ground scroll
-                self.ground_x -= self.dino_speed
+                # Ground scroll scaled by time factor
+                self.ground_x -= self.dino_speed * time_factor
                 if self.ground_x <= -1200:
                     self.ground_x += 1200
 
                 # Clouds
                 if len(self.dino_clouds) < 3:
-                    if random.random() < 0.01:
+                    if random.random() < (0.01 * time_factor):
                         self.dino_clouds.append({'x': self.width() + 100, 'y': random.randint(int(self.height()*0.5), int(self.height()*0.75)), 'speed': self.dino_speed * 0.2})
                 for c in self.dino_clouds:
-                    c['x'] -= c['speed']
+                    c['x'] -= c['speed'] * time_factor
                 self.dino_clouds = [c for c in self.dino_clouds if c['x'] > -100]
 
                 if len(self.dino_obstacles) == 0:
@@ -232,7 +286,7 @@ class CrispAestheticFlipClock(QWidget):
                             self.dino_obstacles.append({'x': self.width() + 50, 'w': 46, 'h': 40, 'type': 'crow', 'y_off': 80})
                 
                 for obs in self.dino_obstacles:
-                    obs['x'] -= self.dino_speed
+                    obs['x'] -= self.dino_speed * time_factor
                 
                 self.dino_obstacles = [o for o in self.dino_obstacles if o['x'] > -100]
                 
@@ -254,14 +308,30 @@ class CrispAestheticFlipClock(QWidget):
                         else:
                             self.dino_vy = 12.0
                                 
-            self.dino_frame = (self.dino_frame + 1) % 20
+            self.dino_frame_step += time_factor
+            if self.dino_frame_step >= 1.0:
+                steps = int(self.dino_frame_step)
+                self.dino_frame = (self.dino_frame + steps) % 20
+                self.dino_frame_step -= steps
         
         if self.animating:
-            self.anim_progress += 0.035 
+            self.anim_progress += 0.035 * time_factor
             if self.anim_progress >= 1.0:
                 self.anim_progress = 1.0
                 self.animating = False
                 self.old_time = self.target_time
+
+        # Dynamic Frame Throttle (Power Optimization):
+        # When Flip Clock is static (not animating, no ambient glow, and not preview mode),
+        # throttle frame timer from 165Hz/60Hz down to 1000ms (1 FPS), dropping CPU usage to < 0.5%
+        if not self.preview_mode and self.clock_style == 0 and not self.animating and not self.show_bg and self.bg_opacity <= 0.0:
+            if self.anim_timer.interval() != 1000:
+                self.anim_timer.setInterval(1000)
+        else:
+            if hasattr(self, 'target_frame_interval') and self.anim_timer.interval() != self.target_frame_interval:
+                self.anim_timer.setInterval(self.target_frame_interval)
+                
+        self.update()
         self.update() 
 
     def get_time_strings(self, time_obj):
@@ -959,12 +1029,27 @@ class CrispAestheticFlipClock(QWidget):
             color=QColor(65, 56, 210, 127) 
         )
         
-        if self.clock_style == 0:
-            self.draw_flipclock_style(painter, w, h)
-        elif self.clock_style == 1:
-            self.draw_rotary_style(painter, w, h)
+        if self.pixel_shift:
+            # Orbital Lissajous shift: ±8px horizontal, ±6px vertical over smooth 2.6-4.2 min period
+            mult = 0.4 if self.preview_mode else 1.0
+            shift_x = int(round(math.sin(self.time_elapsed * 0.04) * (8.0 * mult)))
+            shift_y = int(round(math.cos(self.time_elapsed * 0.025) * (6.0 * mult)))
+            painter.save()
+            painter.translate(shift_x, shift_y)
+            if self.clock_style == 0:
+                self.draw_flipclock_style(painter, w, h)
+            elif self.clock_style == 1:
+                self.draw_rotary_style(painter, w, h)
+            else:
+                self.draw_dino_style(painter, w, h)
+            painter.restore()
         else:
-            self.draw_dino_style(painter, w, h)
+            if self.clock_style == 0:
+                self.draw_flipclock_style(painter, w, h)
+            elif self.clock_style == 1:
+                self.draw_rotary_style(painter, w, h)
+            else:
+                self.draw_dino_style(painter, w, h)
             
         # Apply brightness overlay
         if self.brightness < 100:
@@ -972,6 +1057,9 @@ class CrispAestheticFlipClock(QWidget):
             painter.fillRect(self.rect(), QColor(0, 0, 0, overlay_alpha))
 
     def keyPressEvent(self, event):
+        if hasattr(self, 'anim_timer') and hasattr(self, 'target_frame_interval'):
+            self.anim_timer.setInterval(self.target_frame_interval)
+
         media_keys = [Qt.Key.Key_MediaPlay, Qt.Key.Key_MediaStop, Qt.Key.Key_MediaPrevious, Qt.Key.Key_MediaNext, Qt.Key.Key_VolumeUp, Qt.Key.Key_VolumeDown, Qt.Key.Key_VolumeMute, Qt.Key.Key_MediaPause, Qt.Key.Key_MediaTogglePlayPause]
         if self.ignore_media_keys and event.key() in media_keys:
             return
@@ -1509,6 +1597,505 @@ class CollapsibleModeCapsule(QFrame):
             self.opacity_effect.setOpacity(1.0)
 
 
+# ==========================================
+# HOURLY CHIME ACOUSTIC SYNTHESIZER
+# ==========================================
+def generate_chime_wav(filename):
+    sample_rate = 44100
+    duration = 1.8 # seconds
+    num_samples = int(sample_rate * duration)
+    
+    # Dual-harmonic acoustic bell chime (D5 587.33Hz + A5 880.00Hz + subtle D6 1174.66Hz)
+    f1, f2, f3 = 587.33, 880.00, 1174.66
+    
+    frames = bytearray()
+    for i in range(num_samples):
+        t = i / sample_rate
+        # Quick soft attack (8ms), exponential decay tau = 0.55s
+        attack = min(1.0, t / 0.008)
+        decay = math.exp(-t / 0.55)
+        env = attack * decay
+        
+        # Pure harmonic superposition
+        sample = (
+            0.55 * math.sin(2.0 * math.pi * f1 * t) +
+            0.30 * math.sin(2.0 * math.pi * f2 * t) +
+            0.15 * math.sin(2.0 * math.pi * f3 * t)
+        ) * env
+        
+        sample = max(-0.95, min(0.95, sample))
+        int_sample = int(sample * 32767.0)
+        frames.extend(struct.pack('<h', int_sample))
+        
+    os.makedirs(os.path.dirname(os.path.abspath(filename)), exist_ok=True)
+    with wave.open(filename, 'wb') as wav_file:
+        wav_file.setnchannels(1)
+        wav_file.setsampwidth(2)
+        wav_file.setframerate(sample_rate)
+        wav_file.writeframes(frames)
+
+def get_chime_sound_path():
+    # 1. Bundled PyInstaller asset
+    if getattr(sys, 'frozen', False):
+        bundled = os.path.join(sys._MEIPASS, "hourly_chime.wav")
+        if os.path.exists(bundled):
+            return bundled
+    # 2. Local repository directory
+    local_chime = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hourly_chime.wav")
+    if os.path.exists(local_chime):
+        return local_chime
+    # 3. User cache directory
+    cache_dir = os.path.join(os.path.expanduser("~"), ".dinoscreener")
+    os.makedirs(cache_dir, exist_ok=True)
+    chime_path = os.path.join(cache_dir, "hourly_chime.wav")
+    if not os.path.exists(chime_path) or os.path.getsize(chime_path) < 1000:
+        try:
+            generate_chime_wav(chime_path)
+        except Exception as e:
+            print("Failed to generate chime wav:", e)
+    return chime_path
+
+def play_chime():
+    sound_path = get_chime_sound_path()
+    if not os.path.exists(sound_path):
+        return
+    if sys.platform == "win32":
+        try:
+            import winsound
+            winsound.PlaySound(sound_path, winsound.SND_ASYNC | winsound.SND_FILENAME)
+            return
+        except Exception:
+            pass
+    # Linux / Cross-platform fallback
+    def _play_linux():
+        for player in ["paplay", "pw-play", "aplay", "ffplay -nodisp -autoexit"]:
+            cmd = player.split() + [sound_path]
+            try:
+                subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                return
+            except FileNotFoundError:
+                continue
+    threading.Thread(target=_play_linux, daemon=True).start()
+
+
+# ==========================================
+# IN-APP UPDATE CHECKER & DOWNLOAD WORKERS
+# ==========================================
+def parse_version_tuple(v_str):
+    nums = re.findall(r'\d+', str(v_str))
+    return tuple(int(n) for n in nums) if nums else (0,)
+
+def is_newer_version(latest, current):
+    return parse_version_tuple(latest) > parse_version_tuple(current)
+
+class UpdateCheckerWorker(QThread):
+    update_result = pyqtSignal(bool, str, str, str) # has_update, latest_tag, body, download_url
+    check_failed = pyqtSignal(str)
+    
+    def run(self):
+        try:
+            req = urllib.request.Request(
+                f"https://api.github.com/repos/{APP_GITHUB_REPO}/releases/latest",
+                headers={"User-Agent": "Dinoscreener-Screensaver"}
+            )
+            with urllib.request.urlopen(req, timeout=6) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                
+            latest_tag = data.get("tag_name", "")
+            body = data.get("body", "")
+            assets = data.get("assets", [])
+            
+            download_url = ""
+            if sys.platform == "win32":
+                for asset in assets:
+                    name = asset.get("name", "").lower()
+                    if name.endswith("windows.zip") or name.endswith(".zip"):
+                        download_url = asset.get("browser_download_url")
+                        break
+                if not download_url:
+                    for asset in assets:
+                        name = asset.get("name", "").lower()
+                        if name.endswith(".scr") or name.endswith(".exe"):
+                            download_url = asset.get("browser_download_url")
+                            break
+            else:
+                for asset in assets:
+                    name = asset.get("name", "").lower()
+                    if "linux" in name:
+                        download_url = asset.get("browser_download_url")
+                        break
+            if not download_url and data.get("html_url"):
+                download_url = data.get("html_url")
+                
+            has_update = is_newer_version(latest_tag, APP_VERSION)
+            self.update_result.emit(has_update, latest_tag, body, download_url)
+        except Exception as e:
+            self.check_failed.emit(str(e))
+
+class DownloadWorker(QThread):
+    progress = pyqtSignal(int, int) # downloaded, total
+    finished = pyqtSignal(str) # downloaded file path
+    failed = pyqtSignal(str)
+    
+    def __init__(self, url):
+        super().__init__()
+        self.url = url
+        
+    def run(self):
+        try:
+            temp_dir = os.path.join(tempfile.gettempdir(), "dinoscreener_update")
+            os.makedirs(temp_dir, exist_ok=True)
+            filename = self.url.split("/")[-1].split("?")[0]
+            if not filename:
+                filename = "dinoscreener_update.bin"
+            target_path = os.path.join(temp_dir, filename)
+            
+            req = urllib.request.Request(self.url, headers={"User-Agent": "Dinoscreener-Screensaver"})
+            with urllib.request.urlopen(req, timeout=45) as resp:
+                total_size = int(resp.headers.get("Content-Length", 0))
+                downloaded = 0
+                chunk_size = 65536
+                with open(target_path, "wb") as f:
+                    while True:
+                        chunk = resp.read(chunk_size)
+                        if not chunk:
+                            break
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        self.progress.emit(downloaded, total_size)
+            self.finished.emit(target_path)
+        except Exception as e:
+            self.failed.emit(str(e))
+
+
+# ==========================================
+# ABOUT & SYSTEM INFORMATION DIALOG
+# ==========================================
+class AboutDialog(QDialog):
+    def __init__(self, parent=None, win_accent="#8F96BF", auto_check=False):
+        super().__init__(parent)
+        self.setWindowTitle("About Dinoscreener")
+        self.setFixedSize(520, 530)
+        self.win_accent = win_accent
+        self.contrast_text, self.hover_accent, self.press_accent = get_color_variants(self.win_accent)
+        
+        # Windows 11 Dark Mode Titlebar
+        try:
+            hwnd = int(self.winId())
+            dark_mode = ctypes.c_int(1)
+            ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 20, ctypes.byref(dark_mode), ctypes.sizeof(dark_mode))
+        except Exception:
+            pass
+            
+        logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_icon.png")
+        if getattr(sys, 'frozen', False):
+            logo_path = os.path.join(sys._MEIPASS, "app_icon.png")
+        if os.path.exists(logo_path):
+            self.setWindowIcon(QIcon(logo_path))
+        self.logo_path = logo_path
+        
+        self.setStyleSheet(f"""
+            QDialog {{
+                background-color: #10141D;
+            }}
+            QLabel {{
+                color: #FFFFFF;
+                font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, sans-serif;
+            }}
+            QFrame#aboutCard {{
+                background: #171B26;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 14px;
+            }}
+            QPushButton#accentBtn {{
+                background-color: {self.win_accent};
+                color: {self.contrast_text};
+                border: none;
+                border-radius: 9px;
+                font-weight: 600;
+                font-size: 12px;
+                padding: 7px 16px;
+            }}
+            QPushButton#accentBtn:hover {{
+                background-color: {self.hover_accent};
+            }}
+            QPushButton#glassBtn {{
+                background-color: rgba(255, 255, 255, 0.07);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 9px;
+                color: #FFFFFF;
+                font-size: 12px;
+                font-weight: 500;
+                padding: 7px 16px;
+            }}
+            QPushButton#glassBtn:hover {{
+                background-color: rgba(255, 255, 255, 0.14);
+                border-color: rgba(255, 255, 255, 0.25);
+            }}
+            QProgressBar {{
+                background-color: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 6px;
+                text-align: center;
+                color: #FFFFFF;
+                font-size: 11px;
+                font-weight: 600;
+                height: 14px;
+            }}
+            QProgressBar::chunk {{
+                background-color: {self.win_accent};
+                border-radius: 5px;
+            }}
+        """)
+        
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(22, 20, 22, 20)
+        layout.setSpacing(14)
+        
+        # Header Row
+        header_row = QHBoxLayout()
+        header_row.setSpacing(14)
+        
+        lbl_logo = QLabel()
+        lbl_logo.setFixedSize(54, 54)
+        lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lbl_logo.setStyleSheet("""
+            background: #171B26;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+        """)
+        if hasattr(self, 'logo_path') and os.path.exists(self.logo_path):
+            lbl_logo.setPixmap(get_rounded_pixmap(self.logo_path, size=54, radius=12, dpr=3.0))
+        header_row.addWidget(lbl_logo)
+        
+        header_info = QVBoxLayout()
+        header_info.setSpacing(2)
+        
+        title_row = QHBoxLayout()
+        title_row.setSpacing(8)
+        lbl_title = QLabel(APP_NAME)
+        lbl_title.setStyleSheet("font-size: 20px; font-weight: bold; color: #FFFFFF;")
+        title_row.addWidget(lbl_title)
+        
+        lbl_ver = QLabel(APP_VERSION)
+        lbl_ver.setStyleSheet(f"""
+            background: rgba({QColor(self.win_accent).red()}, {QColor(self.win_accent).green()}, {QColor(self.win_accent).blue()}, 0.2);
+            color: {self.win_accent};
+            border: 1px solid rgba({QColor(self.win_accent).red()}, {QColor(self.win_accent).green()}, {QColor(self.win_accent).blue()}, 0.4);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 7px;
+        """)
+        title_row.addWidget(lbl_ver)
+        title_row.addStretch()
+        header_info.addLayout(title_row)
+        
+        lbl_author = QLabel(f"Designed & Built by <b>{APP_AUTHOR}</b> (@kushalarvindo)")
+        lbl_author.setTextFormat(Qt.TextFormat.RichText)
+        lbl_author.setStyleSheet("font-size: 12px; color: #94A3B8; font-weight: 500;")
+        header_info.addWidget(lbl_author)
+        
+        lbl_desc = QLabel("Minimalist aesthetic screensaver for OLED & high-refresh displays.")
+        lbl_desc.setStyleSheet("font-size: 11.5px; color: #64748B;")
+        header_info.addWidget(lbl_desc)
+        
+        header_row.addLayout(header_info)
+        layout.addLayout(header_row)
+        
+        # Card 1: Features & Specs
+        spec_card = QFrame()
+        spec_card.setObjectName("aboutCard")
+        spec_layout = QVBoxLayout(spec_card)
+        spec_layout.setContentsMargins(14, 12, 14, 12)
+        spec_layout.setSpacing(6)
+        
+        lbl_spec_title = QLabel("KEY FEATURES")
+        lbl_spec_title.setStyleSheet("font-size: 10.5px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;")
+        spec_layout.addWidget(lbl_spec_title)
+        
+        features_text = (
+            "• <b>3 Aesthetic Clock Modes</b>: 3D Flip Clock, Rotary Modern, Chrome Dino<br>"
+            "• <b>Hardware OLED Protection</b>: Lissajous pixel orbit prevents panel burn-in<br>"
+            "• <b>High-Refresh Smoothness</b>: Native 165Hz/144Hz delta-time frame pacing<br>"
+            "• <b>Dynamic Frame Throttle</b>: Slashing idle CPU usage to &lt; 0.5%<br>"
+            "• <b>Hourly Chime</b>: Acoustic dual-harmonic synthesized bell chime"
+        )
+        lbl_features = QLabel(features_text)
+        lbl_features.setTextFormat(Qt.TextFormat.RichText)
+        lbl_features.setStyleSheet("font-size: 11.5px; color: #CBD5E1; line-height: 1.4;")
+        spec_layout.addWidget(lbl_features)
+        layout.addWidget(spec_card)
+        
+        # Card 2: Update Checker
+        update_card = QFrame()
+        update_card.setObjectName("aboutCard")
+        self.update_card_layout = QVBoxLayout(update_card)
+        self.update_card_layout.setContentsMargins(14, 12, 14, 12)
+        self.update_card_layout.setSpacing(8)
+        
+        lbl_upd_title = QLabel("AUTOMATED UPDATES")
+        lbl_upd_title.setStyleSheet("font-size: 10.5px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;")
+        self.update_card_layout.addWidget(lbl_upd_title)
+        
+        self.lbl_update_status = QLabel(f"Current version: {APP_VERSION}. Ready to check for updates.")
+        self.lbl_update_status.setStyleSheet("font-size: 12px; color: #E2E8F0;")
+        self.lbl_update_status.setWordWrap(True)
+        self.update_card_layout.addWidget(self.lbl_update_status)
+        
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        self.update_card_layout.addWidget(self.progress_bar)
+        
+        btn_row = QHBoxLayout()
+        btn_row.setSpacing(8)
+        
+        self.btn_check_updates = QPushButton("🔍 Check for Updates")
+        self.btn_check_updates.setObjectName("glassBtn")
+        self.btn_check_updates.clicked.connect(self.check_updates_clicked)
+        btn_row.addWidget(self.btn_check_updates)
+        
+        self.btn_install_update = QPushButton("⚡ Download & Install")
+        self.btn_install_update.setObjectName("accentBtn")
+        self.btn_install_update.setVisible(False)
+        self.btn_install_update.clicked.connect(self.install_update_clicked)
+        btn_row.addWidget(self.btn_install_update)
+        
+        btn_row.addStretch()
+        self.update_card_layout.addLayout(btn_row)
+        layout.addWidget(update_card)
+        
+        # Bottom Buttons
+        bottom_row = QHBoxLayout()
+        btn_github = QPushButton("🌐 View on GitHub")
+        btn_github.setObjectName("glassBtn")
+        btn_github.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(APP_GITHUB_URL)))
+        bottom_row.addWidget(btn_github)
+        
+        bottom_row.addStretch()
+        
+        btn_close = QPushButton("Close")
+        btn_close.setObjectName("glassBtn")
+        btn_close.clicked.connect(self.close)
+        bottom_row.addWidget(btn_close)
+        layout.addLayout(bottom_row)
+        
+        self.latest_download_url = ""
+        self.latest_tag = ""
+        
+        if auto_check:
+            self.check_updates_clicked()
+
+    def check_updates_clicked(self):
+        self.lbl_update_status.setText("Checking GitHub for the latest release...")
+        self.btn_check_updates.setEnabled(False)
+        self.worker = UpdateCheckerWorker()
+        self.worker.update_result.connect(self.on_update_result)
+        self.worker.check_failed.connect(self.on_check_failed)
+        self.worker.start()
+
+    def on_update_result(self, has_update, latest_tag, body, download_url):
+        self.btn_check_updates.setEnabled(True)
+        self.latest_download_url = download_url
+        self.latest_tag = latest_tag
+        if has_update:
+            self.lbl_update_status.setText(f"🎉 <b>Update {latest_tag} available!</b><br>You are currently running {APP_VERSION}.")
+            self.btn_install_update.setVisible(True)
+        else:
+            self.lbl_update_status.setText(f"✓ <b>You're up to date!</b><br>{APP_VERSION} is currently the newest version released on GitHub.")
+            self.btn_install_update.setVisible(False)
+
+    def on_check_failed(self, err_msg):
+        self.btn_check_updates.setEnabled(True)
+        self.lbl_update_status.setText(f"Could not connect to GitHub API: {err_msg}")
+
+    def install_update_clicked(self):
+        if not self.latest_download_url:
+            QDesktopServices.openUrl(QUrl(f"{APP_GITHUB_URL}/releases/latest"))
+            return
+        self.btn_install_update.setEnabled(False)
+        self.btn_check_updates.setEnabled(False)
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setValue(0)
+        self.lbl_update_status.setText(f"Downloading {self.latest_tag} from GitHub...")
+        
+        self.down_worker = DownloadWorker(self.latest_download_url)
+        self.down_worker.progress.connect(self.on_download_progress)
+        self.down_worker.finished.connect(self.on_download_finished)
+        self.down_worker.failed.connect(self.on_download_failed)
+        self.down_worker.start()
+
+    def on_download_progress(self, downloaded, total):
+        if total > 0:
+            pct = int((downloaded / total) * 100)
+            self.progress_bar.setValue(pct)
+            mb_down = downloaded / (1024 * 1024)
+            mb_tot = total / (1024 * 1024)
+            self.lbl_update_status.setText(f"Downloading {self.latest_tag}: {mb_down:.1f} MB / {mb_tot:.1f} MB ({pct}%)")
+        else:
+            mb_down = downloaded / (1024 * 1024)
+            self.lbl_update_status.setText(f"Downloading {self.latest_tag}: {mb_down:.1f} MB...")
+
+    def on_download_finished(self, downloaded_file):
+        self.progress_bar.setValue(100)
+        self.lbl_update_status.setText("Download complete! Applying update...")
+        self.apply_update(downloaded_file)
+
+    def on_download_failed(self, err_msg):
+        self.btn_install_update.setEnabled(True)
+        self.btn_check_updates.setEnabled(True)
+        self.progress_bar.setVisible(False)
+        self.lbl_update_status.setText(f"Download failed: {err_msg}. Opening browser release page...")
+        QDesktopServices.openUrl(QUrl(f"{APP_GITHUB_URL}/releases/latest"))
+
+    def apply_update(self, downloaded_file):
+        target_dir = os.path.dirname(downloaded_file)
+        new_bin_path = downloaded_file
+        if downloaded_file.endswith(".zip"):
+            try:
+                with zipfile.ZipFile(downloaded_file, 'r') as zip_ref:
+                    zip_ref.extractall(target_dir)
+                for f in os.listdir(target_dir):
+                    if f.lower().endswith((".exe", ".scr")):
+                        new_bin_path = os.path.join(target_dir, f)
+                        break
+            except Exception as e:
+                print("Zip extract error:", e)
+
+        if not getattr(sys, 'frozen', False):
+            self.lbl_update_status.setText(
+                f"Update downloaded to:<br><code>{new_bin_path}</code><br>"
+                f"Since you are in development mode, update using <code>git pull</code> or test the binary above."
+            )
+            return
+
+        current_exe = sys.executable
+        if sys.platform == "win32":
+            bat_path = os.path.join(tempfile.gettempdir(), "dinoscreener_apply.bat")
+            with open(bat_path, "w", encoding="utf-8") as bat:
+                bat.write(f"""@echo off
+timeout /t 1 /nobreak >nul
+copy /y "{new_bin_path}" "{current_exe}"
+start "" "{current_exe}" /c
+del "%~f0"
+""")
+            subprocess.Popen(["cmd.exe", "/c", bat_path], creationflags=0x08000000)
+            QApplication.quit()
+        else:
+            sh_path = os.path.join(tempfile.gettempdir(), "dinoscreener_apply.sh")
+            with open(sh_path, "w", encoding="utf-8") as sh:
+                sh.write(f"""#!/bin/sh
+sleep 1
+chmod +x "{new_bin_path}"
+cp -f "{new_bin_path}" "{current_exe}"
+"{current_exe}" --settings &
+rm -- "$0"
+""")
+            os.chmod(sh_path, 0o755)
+            subprocess.Popen(["/bin/sh", sh_path])
+            QApplication.quit()
+
+
 class SettingsDialog(QDialog):
     def __init__(self, config_path):
         super().__init__()
@@ -1672,10 +2259,16 @@ class SettingsDialog(QDialog):
         if os.path.exists(bungee_path):
             QFontDatabase.addApplicationFont(bungee_path)
             
+        self.latest_update_info = None
         self.initUI()
         self.installEventFilter(self)
         self.check_font_changed()
         self.check_char_changed()
+        
+        # Start background update check
+        self.bg_update_worker = UpdateCheckerWorker()
+        self.bg_update_worker.update_result.connect(self.on_bg_update_checked)
+        self.bg_update_worker.start()
         
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -1738,6 +2331,7 @@ class SettingsDialog(QDialog):
             "leading_zeros": {"0": False, "1": False, "2": False},
             "live_weather": False,
             "pixel_shift": False,
+            "hourly_chime": False,
             "primary_font": "",
             "ignore_media_keys": False,
             "dino_font": "Bungee",
@@ -1775,6 +2369,7 @@ class SettingsDialog(QDialog):
         self.config["use_24hr"] = self.use_24hr_cb.isChecked()
         self.config["leading_zeros"] = self.preview.leading_zeros
         self.config["pixel_shift"] = self.pixel_shift_cb.isChecked()
+        self.config["hourly_chime"] = self.hourly_chime_cb.isChecked()
         self.config["primary_font"] = getattr(self, 'primary_font', "")
         self.config["ignore_media_keys"] = self.ignore_media_cb.isChecked()
         self.config["dino_font"] = getattr(self.preview, 'dino_font', "Bungee")
@@ -1809,7 +2404,8 @@ class SettingsDialog(QDialog):
                 character_type=getattr(self.preview, 'character_type', "dino"),
                 custom_character_image=getattr(self, 'custom_character_image', ""),
                 live_weather=False,
-                pixel_shift=self.pixel_shift_cb.isChecked()
+                pixel_shift=self.pixel_shift_cb.isChecked(),
+                hourly_chime=self.hourly_chime_cb.isChecked()
             )
             self.test_clock.showFullScreen()
         except Exception as e:
@@ -1832,6 +2428,7 @@ class SettingsDialog(QDialog):
         self.ignore_media_cb.setChecked(False)
         self.win_cb.setChecked(False)
         self.pixel_shift_cb.setChecked(False)
+        self.hourly_chime_cb.setChecked(False)
         self.show_weather_cb.setChecked(True)
         self.show_battery_cb.setChecked(True)
         self.fahrenheit_cb.setChecked(False)
@@ -1881,6 +2478,51 @@ class SettingsDialog(QDialog):
         brand_box.addWidget(lbl_app_sub)
         header_row.addLayout(brand_box)
         header_row.addStretch()
+
+        self.btn_update_badge = QPushButton("✨ Update Available")
+        self.btn_update_badge.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {self.win_accent};
+                color: {self.contrast_text};
+                border: none;
+                border-radius: 12px;
+                font-weight: 600;
+                font-size: 11px;
+                padding: 4px 11px;
+            }}
+            QPushButton:hover {{
+                background-color: {self.hover_accent};
+            }}
+        """)
+        self.btn_update_badge.setVisible(False)
+        self.btn_update_badge.clicked.connect(lambda: self.open_about_dialog(auto_check=False))
+        header_row.addWidget(self.btn_update_badge, alignment=Qt.AlignmentFlag.AlignVCenter)
+
+        self.btn_info = QPushButton("ⓘ")
+        self.btn_info.setObjectName("btnInfo")
+        self.btn_info.setFixedSize(28, 28)
+        self.btn_info.setToolTip("About Dinoscreener, Version, and Updates")
+        self.btn_info.setStyleSheet("""
+            QPushButton#btnInfo {
+                background: rgba(255, 255, 255, 0.07);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                border-radius: 14px;
+                color: #CBD5E1;
+                font-size: 13.5px;
+                font-weight: bold;
+            }
+            QPushButton#btnInfo:hover {
+                background: rgba(255, 255, 255, 0.16);
+                border-color: rgba(255, 255, 255, 0.30);
+                color: #FFFFFF;
+            }
+            QPushButton#btnInfo:pressed {
+                background: rgba(255, 255, 255, 0.24);
+            }
+        """)
+        self.btn_info.clicked.connect(lambda: self.open_about_dialog(auto_check=False))
+        header_row.addWidget(self.btn_info, alignment=Qt.AlignmentFlag.AlignVCenter)
+
         root_layout.addLayout(header_row)
         
         # 2. 16:9 WIDESCREEN PREVIEW STAGE (Authentic Monitor Aspect Ratio)
@@ -1914,7 +2556,9 @@ class SettingsDialog(QDialog):
             dino_font=self.config.get("dino_font", "Bungee"),
             primary_font=self.config.get("primary_font", ""),
             character_type=self.config.get("character_type", "dino"),
-            custom_character_image=self.config.get("custom_character_image", "")
+            custom_character_image=self.config.get("custom_character_image", ""),
+            pixel_shift=self.config.get("pixel_shift", False),
+            hourly_chime=self.config.get("hourly_chime", False)
         )
         self.preview.setFixedSize(640, 360) # Exact 16:9 widescreen ratio
         self.preview.scale_callback = self.on_preview_scale_scrolled
@@ -2013,6 +2657,40 @@ class SettingsDialog(QDialog):
         self.ambient_cb.setToolTip("Subtle ambient glow orbs behind clock (press Spacebar to toggle)")
         self.ambient_cb.stateChanged.connect(self.on_ambient_cb_changed)
         flip_layout.addWidget(self.ambient_cb)
+
+        chime_row = QHBoxLayout()
+        chime_row.setContentsMargins(0, 0, 0, 0)
+        chime_row.setSpacing(6)
+        self.hourly_chime_cb = QCheckBox("Hourly Chime")
+        self.hourly_chime_cb.setChecked(self.config.get("hourly_chime", False))
+        self.hourly_chime_cb.setToolTip("Plays a gentle acoustic bell chime at the top of every hour (Flip Clock)")
+        self.hourly_chime_cb.stateChanged.connect(self.on_hourly_chime_changed)
+        chime_row.addWidget(self.hourly_chime_cb)
+        
+        self.btn_test_chime = QPushButton("🔔 Test")
+        self.btn_test_chime.setToolTip("Preview the acoustic hourly chime sound")
+        self.btn_test_chime.setFixedWidth(56)
+        self.btn_test_chime.setFixedHeight(22)
+        self.btn_test_chime.setStyleSheet("""
+            QPushButton {
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 6px;
+                color: #FFFFFF;
+                font-size: 11px;
+                font-weight: 600;
+                padding: 0px 4px;
+            }
+            QPushButton:hover {
+                background: rgba(255, 255, 255, 0.16);
+                border-color: rgba(255, 255, 255, 0.30);
+            }
+        """)
+        self.btn_test_chime.clicked.connect(play_chime)
+        chime_row.addWidget(self.btn_test_chime)
+        chime_row.addStretch()
+        flip_layout.addLayout(chime_row)
+
         flip_layout.addStretch()
         self.pages.addWidget(page_flip)
         
@@ -2213,9 +2891,9 @@ class SettingsDialog(QDialog):
         self.leading_zero_cb.stateChanged.connect(self.update_leading_zero)
         card_disp_layout.addWidget(self.leading_zero_cb)
         
-        self.pixel_shift_cb = QCheckBox("OLED Pixel Shift")
+        self.pixel_shift_cb = QCheckBox("OLED Burn-in Protection")
         self.pixel_shift_cb.setChecked(self.config.get("pixel_shift", False))
-        self.pixel_shift_cb.setToolTip("Subtly shifts display periodically to prevent OLED panel burn-in")
+        self.pixel_shift_cb.setToolTip("Hardware-grade orbital Lissajous drift to prevent burn-in on OLED displays")
         self.pixel_shift_cb.stateChanged.connect(self.update_pixel_shift)
         card_disp_layout.addWidget(self.pixel_shift_cb)
         card_disp_layout.addStretch()
@@ -2396,6 +3074,24 @@ class SettingsDialog(QDialog):
         self.config["ambient_mode"] = val
         self.preview.update()
 
+    def on_hourly_chime_changed(self, state=None):
+        val = self.hourly_chime_cb.isChecked()
+        self.preview.hourly_chime = val
+        self.config["hourly_chime"] = val
+
+    def on_bg_update_checked(self, has_update, latest_tag, body, download_url):
+        if has_update and hasattr(self, 'btn_update_badge'):
+            self.btn_update_badge.setText(f"✨ Update {latest_tag}")
+            self.btn_update_badge.setVisible(True)
+            self.latest_update_info = (latest_tag, body, download_url)
+
+    def open_about_dialog(self, auto_check=False):
+        dlg = AboutDialog(self, win_accent=self.win_accent, auto_check=auto_check)
+        if hasattr(self, 'latest_update_info') and self.latest_update_info:
+            latest_tag, body, download_url = self.latest_update_info
+            dlg.on_update_result(True, latest_tag, body, download_url)
+        dlg.exec()
+
     def update_leading_zero(self, state=None):
         val = self.leading_zero_cb.isChecked()
         self.preview.leading_zeros[str(self.preview.clock_style)] = val
@@ -2419,7 +3115,9 @@ class SettingsDialog(QDialog):
         self.preview.update()
 
     def update_pixel_shift(self, state=None):
-        self.preview.pixel_shift = self.pixel_shift_cb.isChecked()
+        val = self.pixel_shift_cb.isChecked()
+        self.preview.pixel_shift = val
+        self.config["pixel_shift"] = val
         self.preview.update()
 
     def refresh_font_combobox(self):
@@ -2690,6 +3388,7 @@ if __name__ == '__main__':
         "leading_zero": False,
         "live_weather": False,
         "pixel_shift": False,
+        "hourly_chime": False,
         "primary_font": "",
         "dino_font": "Bungee",
         "character_type": "dino",
@@ -2723,6 +3422,7 @@ if __name__ == '__main__':
         dino_font=default_config.get("dino_font", "Bungee"),
         live_weather=False,
         pixel_shift=default_config.get("pixel_shift", False),
+        hourly_chime=default_config.get("hourly_chime", False),
         primary_font=default_config.get("primary_font", ""),
         character_type=default_config.get("character_type", "dino"),
         custom_character_image=default_config.get("custom_character_image", "")

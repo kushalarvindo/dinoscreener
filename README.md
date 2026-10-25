@@ -50,7 +50,11 @@ Dinoscreener features three distinct, meticulously crafted clock styles. Switch 
 - **Ambient Lighting Mode**: Soft, silky background glow orbs that can be toggled via the settings menu or instantly with the **Spacebar**.
 - **Tactile Luminance & Scale Controls**: Full-width brightness slider (10% to 100%) and interactive scale slider with tactile `-` / `+` micro-adjusters.
 - **High-DPI Super-Sampling**: Crystal-sharp vector graphics and icon rendering with full multi-monitor DPI awareness (100%, 125%, 150%, 200%).
-- **OLED Burn-in Protection**: Automatic subtle pixel-shifting algorithm prevents burn-in on OLED and AMOLED panels.
+- **Hardware-Grade OLED Burn-in Protection**: Continuous Lissajous orbital subpixel shifting ($\pm 8\text{px} \times \pm 6\text{px}$ over a 2.6–4.2 min period) redistributes luminous diode wear across 2K and 4K OLED panels to prevent static element burn-in.
+- **High-Refresh Smoothness (165Hz/144Hz/120Hz)**: Dynamic delta-time physics and frame pacing eliminate micro-stutters and judder in the Chrome Dino runner across high-refresh gaming displays.
+- **Dynamic Frame Throttle (Power Optimization)**: Intelligently throttles frame rates down to 1 FPS when the clock is static, slashing idle CPU consumption from ~45% of a core to < 0.5% while instantly snapping to native refresh rates during card flips and game runs.
+- **Acoustic Hourly Bell Chime**: A soothing, dual-harmonic synthesized bell chime (D5 587.33Hz + A5 880.00Hz with exponential decay) at the top of every hour in Flip Clock mode, with an interactive test preview button.
+- **Automated In-App Update Checker & Info Dialog (`ⓘ`)**: Automatic background checks against GitHub Releases, notifying you of updates with one-click download, verification, and automatic installation handoff.
 - **Independent Telemetry & Weather Feeds**: Toggle Weather and Battery displays independently (centered alone or joined with a separator dot), and toggle between Celsius (`°C`) and Fahrenheit (`°F`).
 - **Cross-Platform Battery Telemetry**: Native battery reading via `kernel32` on Windows and `/sys/class/power_supply` on Linux laptops.
 - **Strict Exit & System Intercepts**:

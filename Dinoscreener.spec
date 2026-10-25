@@ -5,7 +5,7 @@ a = Analysis(
     ['screensaver.py'],
     pathex=[],
     binaries=[],
-    datas=[('Bungee-Regular.ttf', '.'), ('app_icon.png', '.'), ('app_icon.ico', '.')],
+    datas=[('Bungee-Regular.ttf', '.'), ('app_icon.png', '.'), ('app_icon.ico', '.'), ('hourly_chime.wav', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
