@@ -2097,11 +2097,14 @@ class AboutDialog(QDialog):
         story_layout.addWidget(lbl_story_title)
         
         story_text = (
+            '<p style="text-indent: 22px; margin: 0 0 10px 0; line-height: 1.45;">'
             "Hey, I'm Kushal. I built this screensaver for my desk setup because I wanted "
-            "something clean that looks good and protects my monitor.<br><br>"
+            "something clean that looks good and protects my monitor.</p>"
+            '<p style="text-indent: 22px; margin: 0 0 10px 0; line-height: 1.45;">'
             "It gives you <b>3 distinct modes</b>: an offline <b>Chrome Dino</b> game, a retro mechanical <b>Flip Clock</b>, "
-            "and a modern glowing <b>Rotary Dial</b>.<br><br>"
-            "Engineered with zero-lag <b>165Hz frame pacing</b>, automatic <b>OLED burn-in prevention</b>, and peaceful <b>hourly bell chimes</b>."
+            "and a modern glowing <b>Rotary Dial</b>.</p>"
+            '<p style="text-indent: 22px; margin: 0 0 4px 0; line-height: 1.45;">'
+            "Engineered with zero-lag <b>165Hz frame pacing</b>, automatic <b>OLED burn-in prevention</b>, and peaceful <b>hourly bell chimes</b>.</p>"
         )
         lbl_story = QLabel(story_text)
         lbl_story.setTextFormat(Qt.TextFormat.RichText)
@@ -2286,7 +2289,12 @@ class AboutDialog(QDialog):
             with open(bat_path, "w", encoding="utf-8") as bat:
                 bat.write(f"""@echo off
 timeout /t 1 /nobreak >nul
-copy /y "{new_bin_path}" "{current_exe}"
+:retry
+copy /y "{new_bin_path}" "{current_exe}" >nul 2>&1
+if errorlevel 1 (
+    timeout /t 1 /nobreak >nul
+    goto retry
+)
 start "" "{current_exe}" /c
 del "%~f0"
 """)
@@ -2304,7 +2312,6 @@ rm -- "$0"
 """)
             os.chmod(sh_path, 0o755)
             subprocess.Popen(["/bin/sh", sh_path])
-            QApplication.quit()
             QApplication.quit()
 
 
@@ -2537,8 +2544,8 @@ class SettingsDialog(QDialog):
                 return True
         return super().eventFilter(obj, event)
 
-    def load_config(self):
-        default_config = {
+    def get_default_config(self):
+        return {
             "accent_color": self.win_accent,
             "show_info": True,
             "show_weather": True,
@@ -2565,6 +2572,9 @@ class SettingsDialog(QDialog):
             "character_type": "dino",
             "custom_character_image": ""
         }
+
+    def load_config(self):
+        default_config = self.get_default_config()
         if os.path.exists(self.config_path):
             try:
                 with open(self.config_path, 'r') as f:
@@ -2645,13 +2655,11 @@ class SettingsDialog(QDialog):
             print("Error launching fullscreen test:", e)
 
     def reset_defaults(self):
-        if os.path.exists(self.config_path):
-            try:
-                os.remove(self.config_path)
-            except Exception:
-                pass
-        self.config = self.load_config()
-        self.preview.clock_scales = self.config["clock_scales"]
+        # Reset UI controls and in-memory stage preview to factory defaults.
+        # CRITICAL: self.config_path on disk is NOT modified until the user explicitly clicks 'Apply'!
+        self.config = self.get_default_config()
+        self.preview.clock_scales = dict(self.config["clock_scales"])
+        self.preview.leading_zeros = dict(self.config["leading_zeros"])
         self.scale_slider.setValue(int(self.preview.clock_scales.get("0", 0.45) * 100))
         self.bright_slider.setValue(100)
         self.use_24hr_cb.setChecked(False)
@@ -2663,7 +2671,8 @@ class SettingsDialog(QDialog):
         self.pixel_shift_cb.setChecked(False)
         self.hourly_chime_cb.setChecked(False)
         self.custom_chime_path = ""
-        if hasattr(self, 'chime_vol_slider'): self.chime_vol_slider.setValue(45)
+        if hasattr(self, 'chime_vol_slider'):
+            self.chime_vol_slider.setValue(45)
         self.refresh_chime_combobox()
         self.show_weather_cb.setChecked(True)
         self.show_battery_cb.setChecked(True)
