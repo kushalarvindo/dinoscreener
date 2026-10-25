@@ -3830,10 +3830,6 @@ class FullscreenStudioMode(QWidget):
             self.close_studio()
             event.accept()
             return
-        elif Qt.Key.Key_A <= event.key() <= Qt.Key.Key_Z or Qt.Key.Key_0 <= event.key() <= Qt.Key.Key_9:
-            self.close_studio()
-            event.accept()
-            return
         super().keyPressEvent(event)
 
 
@@ -4144,14 +4140,35 @@ class SettingsDialog(QDialog):
     def save_settings(self):
         self.save_config()
         self.accept()
+        QApplication.quit()
+
+    def closeEvent(self, event):
+        if hasattr(self, 'studio') and self.studio:
+            try:
+                self.studio.close()
+            except Exception:
+                pass
+        QApplication.quit()
+        super().closeEvent(event)
+
+    def reject(self):
+        if hasattr(self, 'studio') and self.studio:
+            try:
+                self.studio.close()
+            except Exception:
+                pass
+        QApplication.quit()
+        super().reject()
 
     def test_fullscreen(self):
         try:
-            self.hide()
             self.studio = FullscreenStudioMode(self)
             self.studio.showFullScreen()
+            self.hide()
         except Exception as e:
             self.show()
+            import traceback
+            traceback.print_exc()
             print("Error launching fullscreen studio mode:", e)
 
     def reset_defaults(self):
@@ -5252,9 +5269,10 @@ if __name__ == '__main__':
     config_path = os.path.join(config_dir, 'config.json')
     
     if mode == 'c':
+        app.setQuitOnLastWindowClosed(False)
         dialog = SettingsDialog(config_path)
-        dialog.exec()
-        sys.exit(0)
+        dialog.show()
+        sys.exit(app.exec())
     elif mode == 'p':
         # Preview mode inside small settings window. Not supported gracefully in PyQt without heavy win32 embedding.
         sys.exit(0)
