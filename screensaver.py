@@ -16,7 +16,8 @@ from PyQt6.QtWidgets import (
     QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
     QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider, 
     QFileDialog, QStackedWidget, QFrame, QGridLayout, QComboBox, QFontComboBox, 
-    QStackedLayout, QGraphicsOpacityEffect, QProgressBar, QMessageBox, QSizePolicy
+    QStackedLayout, QGraphicsOpacityEffect, QProgressBar, QMessageBox, QSizePolicy,
+    QStyle, QStyleOption
 )
 from PyQt6.QtCore import (
     Qt, QTimer, QTime, QRectF, QDate, QPointF, QByteArray, QThread, 
@@ -1223,6 +1224,81 @@ def get_windows_accent_color():
     return "#0078D4"
 
 
+if sys.platform == "win32":
+    class DWM_MARGINS(ctypes.Structure):
+        _fields_ = [
+            ("cxLeftWidth", ctypes.c_int),
+            ("cxRightWidth", ctypes.c_int),
+            ("cyTopHeight", ctypes.c_int),
+            ("cyBottomHeight", ctypes.c_int),
+        ]
+
+
+def apply_windows_dwm_effects(dialog):
+    """
+    Enables Windows 11 DWM dark titlebar, Mica / Acrylic backdrop, and glass frame extension.
+    Gracefully falls back on older Windows builds or unsupported platforms without crashing.
+    Returns True if DWM backdrop/blur was successfully enabled, False otherwise.
+    """
+    if sys.platform != "win32":
+        return False
+        
+    try:
+        # Pre-set Qt translucency flags so DirectComposition surface is initialized with alpha
+        dialog.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        dialog.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        hwnd = int(dialog.winId())
+        if not hwnd:
+            dialog.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, False)
+            return False
+            
+        dwmapi = ctypes.windll.dwmapi
+        
+        # 1. Enable Windows 11 Dark Mode Titlebar & Frame (DWMWA_USE_IMMERSIVE_DARK_MODE = 20)
+        dark_mode = ctypes.c_int(1)
+        dwmapi.DwmSetWindowAttribute(
+            hwnd, 20, ctypes.byref(dark_mode), ctypes.sizeof(dark_mode)
+        )
+        
+        # 2. Apply Mica / Acrylic System Backdrop (Windows 11 22H2+ / Build 22621+):
+        # DWMWA_SYSTEMBACKDROP_TYPE = 38
+        # DWMSBT_MAINWINDOW = 2 (Mica), DWMSBT_TABBEDWINDOW = 4 (Mica Alt), DWMSBT_TRANSIENTWINDOW = 3 (Acrylic)
+        applied_backdrop = False
+        for backdrop_val in (2, 4, 3):
+            backdrop_type = ctypes.c_int(backdrop_val)
+            res = dwmapi.DwmSetWindowAttribute(
+                hwnd, 38, ctypes.byref(backdrop_type), ctypes.sizeof(backdrop_type)
+            )
+            if res == 0:
+                applied_backdrop = True
+                break
+                
+        # Fallback for Windows 11 21H2 (Build 22000)
+        if not applied_backdrop:
+            mica_val = ctypes.c_int(1)
+            res_mica = dwmapi.DwmSetWindowAttribute(
+                hwnd, 1029, ctypes.byref(mica_val), ctypes.sizeof(mica_val)
+            )
+            if res_mica == 0:
+                applied_backdrop = True
+                
+        # 3. Extend glass frame into client area for DWM & DWMGlassBlur hookers
+        margins = DWM_MARGINS(-1, -1, -1, -1)
+        res_frame = dwmapi.DwmExtendFrameIntoClientArea(hwnd, ctypes.byref(margins))
+        
+        if applied_backdrop or res_frame == 0:
+            return True
+            
+        dialog.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, False)
+        return False
+    except Exception:
+        try:
+            dialog.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, False)
+        except Exception:
+            pass
+        return False
+
+
 def get_color_variants(hex_color):
     hex_clean = hex_color.lstrip('#')
     r, g, b = tuple(int(hex_clean[i:i+2], 16) for i in (0, 2, 4))
@@ -1398,13 +1474,13 @@ class CollapsibleModeCapsule(QFrame):
         
         self.setStyleSheet("""
             QFrame#capsuleFrame {
-                background: #171B26;
+                background: rgba(23, 27, 38, 0.82);
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 19px;
             }
             QFrame#capsuleFrame:hover {
                 border: 1px solid rgba(255, 255, 255, 0.22);
-                background: #1A1F2D;
+                background: rgba(26, 31, 45, 0.88);
             }
         """)
         self.setObjectName("capsuleFrame")
@@ -2015,13 +2091,8 @@ class AboutDialog(QDialog):
         ui_font.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
         self.setFont(ui_font)
 
-        # Windows 11 Dark Mode Titlebar
-        try:
-            hwnd = int(self.winId())
-            dark_mode = ctypes.c_int(1)
-            ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 20, ctypes.byref(dark_mode), ctypes.sizeof(dark_mode))
-        except Exception:
-            pass
+        # Windows 11 DWM Mica / Glass Blur Backdrop Setup
+        self.is_dwm_active = apply_windows_dwm_effects(self)
             
         logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_icon.png")
         if getattr(sys, 'frozen', False):
@@ -2030,21 +2101,25 @@ class AboutDialog(QDialog):
             self.setWindowIcon(QIcon(logo_path))
         self.logo_path = logo_path
         
+        bg_dialog = "rgba(16, 20, 29, 0.72)" if self.is_dwm_active else "#10141D"
+        bg_card = "rgba(23, 27, 38, 0.78)" if self.is_dwm_active else "#171B26"
+        bg_story = "rgba(0, 0, 0, 0.28)" if self.is_dwm_active else "rgba(0, 0, 0, 0.25)"
+        
         self.setStyleSheet(f"""
             QDialog {{
-                background-color: #10141D;
+                background-color: {bg_dialog};
             }}
             QLabel {{
                 color: #FFFFFF;
                 font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, sans-serif;
             }}
             QFrame#aboutCard {{
-                background: #171B26;
+                background: {bg_card};
                 border: 1px solid rgba(255, 255, 255, 0.08);
                 border-radius: 14px;
             }}
             QFrame#storyInnerBox {{
-                background: rgba(0, 0, 0, 0.25);
+                background: {bg_story};
                 border: 1px solid rgba(255, 255, 255, 0.06);
                 border-radius: 10px;
             }}
@@ -2103,8 +2178,9 @@ class AboutDialog(QDialog):
         lbl_logo = QLabel()
         lbl_logo.setFixedSize(54, 54)
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl_logo.setStyleSheet("""
-            background: #171B26;
+        lbl_logo_bg = "rgba(23, 27, 38, 0.78)" if self.is_dwm_active else "#171B26"
+        lbl_logo.setStyleSheet(f"""
+            background: {lbl_logo_bg};
             border: 1px solid rgba(255, 255, 255, 0.14);
             border-radius: 14px;
         """)
@@ -2379,6 +2455,14 @@ rm -- "$0"
             subprocess.Popen(["/bin/sh", sh_path])
             QApplication.quit()
 
+    def paintEvent(self, event):
+        opt = QStyleOption()
+        opt.initFrom(self)
+        p = QPainter(self)
+        self.style().drawPrimitive(QStyle.PrimitiveElement.PE_Widget, opt, p, self)
+        p.end()
+        super().paintEvent(event)
+
 
 class SettingsDialog(QDialog):
     def __init__(self, config_path):
@@ -2401,30 +2485,28 @@ class SettingsDialog(QDialog):
             self.setWindowIcon(QIcon(logo_path))
         self.logo_path = logo_path
         
-        # Windows 11 Dark Mode Titlebar
-        try:
-            hwnd = int(self.winId())
-            dark_mode = ctypes.c_int(1)
-            ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 20, ctypes.byref(dark_mode), ctypes.sizeof(dark_mode))
-        except Exception:
-            pass
+        # Windows 11 DWM Mica / Glass Blur Backdrop Setup
+        self.is_dwm_active = apply_windows_dwm_effects(self)
 
         self.win_accent = get_windows_accent_color()
         self.contrast_text, self.hover_accent, self.press_accent = get_color_variants(self.win_accent)
         check_icon_path = get_or_create_check_icon(self.contrast_text)
         chevron_icon_path = get_or_create_chevron_icon()
 
-        # Spatial Studio Modern Glass Stylesheet (Solid Surface to prevent ghosting)
+        bg_dialog = "rgba(16, 20, 29, 0.72)" if self.is_dwm_active else "#10141D"
+        bg_card = "rgba(23, 27, 38, 0.78)" if self.is_dwm_active else "#171B26"
+
+        # Spatial Studio Modern Glass Stylesheet (DWM Mica / Glass Blur with clean solid fallback)
         self.setStyleSheet(f"""
             QDialog {{
-                background-color: #10141D;
+                background-color: {bg_dialog};
             }}
             QLabel {{
                 color: #FFFFFF;
                 font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, sans-serif;
             }}
             QFrame#bentoCard {{
-                background: #171B26;
+                background: {bg_card};
                 border: 1px solid rgba(255, 255, 255, 0.08);
                 border-radius: 14px;
             }}
@@ -3752,6 +3834,15 @@ class SettingsDialog(QDialog):
 
     def keyPressEvent(self, event):
         super().keyPressEvent(event)
+
+    def paintEvent(self, event):
+        opt = QStyleOption()
+        opt.initFrom(self)
+        p = QPainter(self)
+        self.style().drawPrimitive(QStyle.PrimitiveElement.PE_Widget, opt, p, self)
+        p.end()
+        super().paintEvent(event)
+
 
 if __name__ == '__main__':
     if sys.platform == "win32":
