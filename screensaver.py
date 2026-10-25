@@ -1981,7 +1981,7 @@ class AboutDialog(QDialog):
         title_row.addWidget(lbl_ver)
         header_box.addLayout(title_row)
         
-        lbl_author = QLabel(f"Crafted with passion by <b>{APP_AUTHOR}</b> (@kushalarvindo)")
+        lbl_author = QLabel("Built by <b>Kushal</b> (@kushalarvindo)")
         lbl_author.setTextFormat(Qt.TextFormat.RichText)
         lbl_author.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_author.setStyleSheet("font-size: 12px; color: #94A3B8;")
@@ -1996,15 +1996,16 @@ class AboutDialog(QDialog):
         story_layout.setContentsMargins(18, 16, 18, 16)
         story_layout.setSpacing(12)
         
-        lbl_story_title = QLabel("KEY FEATURES")
+        lbl_story_title = QLabel("ABOUT")
         lbl_story_title.setStyleSheet("font-size: 10px; font-weight: 700; color: #64748B; letter-spacing: 0.6px;")
         story_layout.addWidget(lbl_story_title)
         
         story_text = (
-            f"A clean, minimal screensaver built by Kushal using Python & PyQt6.<br><br>"
-            f"Featuring <b>3 custom modes</b>: an authentic <b>Chrome Dino</b> runner, "
-            f"a retro mechanical <b>3D Flip Clock</b>, and a modern <b>Rotary Dial</b> with live weather and battery info.<br><br>"
-            f"Packed with native <b>OLED burn-in protection</b>, responsive <b>165Hz frame pacing</b>, and customizable <b>hourly bell chimes</b>."
+            f"A clean, minimal screensaver built with Python & PyQt6.<br><br>"
+            f"<b>&middot; CHROME DINO</b> &mdash; Authentic retro runner<br>"
+            f"<b>&middot; 3D FLIP CLOCK</b> &mdash; Retro mechanical display<br>"
+            f"<b>&middot; ROTARY DIAL</b> &mdash; Modern dial with live weather & battery info<br><br>"
+            f"Designed with OLED burn-in protection, high-refresh frame pacing, and custom hourly bell chimes."
         )
         lbl_story = QLabel(story_text)
         lbl_story.setTextFormat(Qt.TextFormat.RichText)
@@ -2031,18 +2032,18 @@ class AboutDialog(QDialog):
         story_layout.addLayout(pills_row)
         layout.addWidget(card_story)
         
-        # 3. Card 2: Updates & Community (Symmetrical Layout)
+        # 3. Card 2: Updates (Symmetrical Layout)
         card_upd = QFrame()
         card_upd.setObjectName("aboutCard")
         upd_layout = QVBoxLayout(card_upd)
         upd_layout.setContentsMargins(18, 14, 18, 14)
         upd_layout.setSpacing(10)
         
-        lbl_upd_head = QLabel("UPDATES & COMMUNITY")
+        lbl_upd_head = QLabel("UPDATES")
         lbl_upd_head.setStyleSheet("font-size: 10px; font-weight: 700; color: #64748B; letter-spacing: 0.6px;")
         upd_layout.addWidget(lbl_upd_head)
         
-        self.lbl_status = QLabel(f"✓ You are running the newest release (<b>{APP_VERSION}</b>).")
+        self.lbl_status = QLabel(f"✓ You're on the newest release (<b>{APP_VERSION}</b>).")
         self.lbl_status.setTextFormat(Qt.TextFormat.RichText)
         self.lbl_status.setStyleSheet("font-size: 11.5px; color: #E2E8F0;")
         upd_layout.addWidget(self.lbl_status)
@@ -2065,7 +2066,7 @@ class AboutDialog(QDialog):
         self.btn_install.clicked.connect(self.install_update_clicked)
         upd_btn_row.addWidget(self.btn_install, stretch=1)
         
-        self.btn_github = QPushButton("GitHub Repository")
+        self.btn_github = QPushButton("GitHub")
         self.btn_github.setObjectName("glassBtn")
         self.btn_github.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(APP_GITHUB_URL)))
         upd_btn_row.addWidget(self.btn_github, stretch=1)
@@ -2601,7 +2602,7 @@ class SettingsDialog(QDialog):
         brand_box.setSpacing(1)
         lbl_app_name = QLabel("Dinoscreener")
         lbl_app_name.setStyleSheet("font-size: 15px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.2px;")
-        lbl_app_sub = QLabel("Screensaver Settings")
+        lbl_app_sub = QLabel("by Kushal")
         lbl_app_sub.setStyleSheet("font-size: 11px; color: #94A3B8;")
         brand_box.addWidget(lbl_app_name)
         brand_box.addWidget(lbl_app_sub)
@@ -2795,20 +2796,14 @@ class SettingsDialog(QDialog):
         self.btn_scale_plus.clicked.connect(lambda: self.step_scale(5))
         scale_box.addWidget(self.btn_scale_plus)
         flip_layout.addLayout(scale_box)
-        
-        self.ambient_cb = QCheckBox("Ambient Mode (Space)")
-        self.ambient_cb.setChecked(self.config.get("ambient_mode", self.preview.show_bg))
-        self.ambient_cb.setToolTip("Subtle ambient glow orbs behind clock (press Spacebar to toggle)")
-        self.ambient_cb.stateChanged.connect(self.on_ambient_cb_changed)
-        flip_layout.addWidget(self.ambient_cb)
 
         # --- Hourly Bell Chime & Audio Customization ---
         chime_row = QHBoxLayout()
-        chime_row.setContentsMargins(0, 0, 0, 0)
+        chime_row.setContentsMargins(0, 4, 0, 0)
         chime_row.setSpacing(6)
         self.hourly_chime_cb = QCheckBox("Hourly Chime")
         self.hourly_chime_cb.setChecked(self.config.get("hourly_chime", False))
-        self.hourly_chime_cb.setToolTip("Plays a gentle bell chime at the top of every hour (Flip Clock)")
+        self.hourly_chime_cb.setToolTip("Plays a chime every hour on the hour")
         self.hourly_chime_cb.stateChanged.connect(self.on_hourly_chime_changed)
         chime_row.addWidget(self.hourly_chime_cb)
         
@@ -2877,7 +2872,7 @@ class SettingsDialog(QDialog):
         vol_box.addWidget(self.lbl_chime_vol)
         flip_layout.addLayout(vol_box)
 
-        lbl_chime_tip = QLabel("Drop audio file to import custom chime")
+        lbl_chime_tip = QLabel("Drop any audio file to use your own chime")
         lbl_chime_tip.setStyleSheet("color: #64748B; font-size: 9.5px;")
         flip_layout.addWidget(lbl_chime_tip)
 
@@ -3023,7 +3018,7 @@ class SettingsDialog(QDialog):
         char_box.addWidget(self.undo_char_btn)
         dino_layout.addLayout(char_box)
         
-        lbl_dino_tip = QLabel("Drop font or sprite image to import directly")
+        lbl_dino_tip = QLabel("Drop font or sprite image to customize")
         lbl_dino_tip.setStyleSheet("color: #64748B; font-size: 10px;")
         dino_layout.addWidget(lbl_dino_tip)
         dino_layout.addStretch()
@@ -3071,21 +3066,27 @@ class SettingsDialog(QDialog):
         card_disp_layout.addLayout(bright_box)
         
         # Display Toggles
-        self.use_24hr_cb = QCheckBox("24-Hour Time Format")
+        self.ambient_cb = QCheckBox("Ambient Mode (Space)")
+        self.ambient_cb.setChecked(self.config.get("ambient_mode", self.preview.show_bg))
+        self.ambient_cb.setToolTip("Soft ambient glow behind clock (press Spacebar anytime)")
+        self.ambient_cb.stateChanged.connect(self.on_ambient_cb_changed)
+        card_disp_layout.addWidget(self.ambient_cb)
+
+        self.pixel_shift_cb = QCheckBox("OLED Burn-in Protection")
+        self.pixel_shift_cb.setChecked(self.config.get("pixel_shift", False))
+        self.pixel_shift_cb.setToolTip("Subtle orbital shift so OLED screens don't get burn-in")
+        self.pixel_shift_cb.stateChanged.connect(self.update_pixel_shift)
+        card_disp_layout.addWidget(self.pixel_shift_cb)
+
+        self.use_24hr_cb = QCheckBox("24-Hour Format")
         self.use_24hr_cb.setChecked(self.config.get("use_24hr", False))
         self.use_24hr_cb.stateChanged.connect(self.update_24hr)
         card_disp_layout.addWidget(self.use_24hr_cb)
         
-        self.leading_zero_cb = QCheckBox("Leading Zero Display")
+        self.leading_zero_cb = QCheckBox("Leading Zeros")
         self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(start_style), False))
         self.leading_zero_cb.stateChanged.connect(self.update_leading_zero)
         card_disp_layout.addWidget(self.leading_zero_cb)
-        
-        self.pixel_shift_cb = QCheckBox("OLED Burn-in Protection")
-        self.pixel_shift_cb.setChecked(self.config.get("pixel_shift", False))
-        self.pixel_shift_cb.setToolTip("Hardware-grade orbital Lissajous drift to prevent burn-in on OLED displays")
-        self.pixel_shift_cb.stateChanged.connect(self.update_pixel_shift)
-        card_disp_layout.addWidget(self.pixel_shift_cb)
         card_disp_layout.addStretch()
         cards_row.addWidget(card_disp, stretch=1)
         
@@ -3100,7 +3101,7 @@ class SettingsDialog(QDialog):
         lbl_sys_title.setStyleSheet("font-size: 13px; font-weight: 600; color: #FFFFFF;")
         card_sys_layout.addWidget(lbl_sys_title)
         
-        self.strict_cb = QCheckBox("Lock Screen on Exit (Ctrl+Z)")
+        self.strict_cb = QCheckBox("Lock on Exit (Ctrl+Z)")
         self.strict_cb.setChecked(self.config.get("strict_exit", False))
         self.strict_cb.setToolTip("Requires pressing Ctrl+Z to dismiss the screensaver")
         self.strict_cb.stateChanged.connect(lambda s: setattr(self.preview, 'strict_exit', self.strict_cb.isChecked()))
@@ -3108,13 +3109,13 @@ class SettingsDialog(QDialog):
         
         self.ignore_media_cb = QCheckBox("Ignore Media Keys")
         self.ignore_media_cb.setChecked(self.config.get("ignore_media_keys", False))
-        self.ignore_media_cb.setToolTip("Volume and playback keys won't dismiss screensaver")
+        self.ignore_media_cb.setToolTip("Volume and track keys won't close screensaver")
         self.ignore_media_cb.stateChanged.connect(lambda s: setattr(self.preview, 'ignore_media_keys', self.ignore_media_cb.isChecked()))
         card_sys_layout.addWidget(self.ignore_media_cb)
         
         self.win_cb = QCheckBox("Enable Windows Key")
         self.win_cb.setChecked(self.config.get("enable_win_key", False))
-        self.win_cb.setToolTip("Allows using the Windows key without waking the screensaver")
+        self.win_cb.setToolTip("Use Windows key without waking screensaver")
         self.win_cb.stateChanged.connect(lambda s: setattr(self.preview, 'enable_win_key', self.win_cb.isChecked()))
         card_sys_layout.addWidget(self.win_cb)
         card_sys_layout.addStretch()
