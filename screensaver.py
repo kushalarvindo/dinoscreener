@@ -381,6 +381,8 @@ class CrispAestheticFlipClock(QWidget):
         font.setPixelSize(int(h * 0.65)) 
         font.setWeight(QFont.Weight.Black) 
         font.setStretch(90) 
+        font.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.PreferQuality)
+        font.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
         painter.setFont(font)
         
         painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, text)
@@ -390,6 +392,8 @@ class CrispAestheticFlipClock(QWidget):
             font_ampm.setFamilies(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
             font_ampm.setPixelSize(int(h * 0.09))
             font_ampm.setWeight(QFont.Weight.Bold)
+            font_ampm.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.PreferQuality)
+            font_ampm.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
             painter.setFont(font_ampm)
             
             padding_x = w * 0.08
@@ -500,12 +504,23 @@ class CrispAestheticFlipClock(QWidget):
         off_white = QColor("#F5F4EE")
         muted_grey = QColor(145, 150, 155) 
 
+        # Helper for crisp DirectWrite subpixel antialiased text
+        def make_rotary_font(sz, weight=QFont.Weight.Normal):
+            f = QFont()
+            families = []
+            if getattr(self, "primary_font_family", ""):
+                families.append(self.primary_font_family)
+            families.extend(["Segoe UI Variable Display", "Segoe UI", "Google Sans", "Product Sans", "Arial"])
+            f.setFamilies(families)
+            f.setPixelSize(int(sz))
+            f.setWeight(weight)
+            f.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.PreferQuality)
+            f.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
+            return f
+
         # --- MINUTE WHEEL ---
         def draw_minute_wheel(radius, val_float, font_size):
-            font = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-            font.setPixelSize(int(font_size))
-            font.setWeight(QFont.Weight.Medium)
-            
+            font = make_rotary_font(font_size, QFont.Weight.Medium)
             tick_offset = w * 0.045 
             
             for i in range(60):
@@ -523,14 +538,11 @@ class CrispAestheticFlipClock(QWidget):
                 else:
                     text_opacity = max(0.0, 1.0 - (dist - 18.0) / 67.0)
                 
-                painter.save()
-                painter.translate(cx, cy)
-                painter.rotate(angle_deg)
-                
+                # 1. Render number upright with zero painter rotation (DirectWrite Subpixel ClearType)
                 if i % 5 == 0 and text_opacity > 0.01:
-                    painter.save()
-                    painter.translate(radius, 0)
-                    painter.rotate(-angle_deg) 
+                    rad = math.radians(angle_deg)
+                    tx = cx + radius * math.cos(rad)
+                    ty = cy + radius * math.sin(rad)
                     
                     color = QColor(muted_grey)
                     color.setAlpha(int(255 * text_opacity))
@@ -538,10 +550,13 @@ class CrispAestheticFlipClock(QWidget):
                     painter.setFont(font)
                     
                     box_size = w * 0.1
-                    text_rect = QRectF(-box_size/2, -box_size/2, box_size, box_size)
+                    text_rect = QRectF(tx - box_size/2, ty - box_size/2, box_size, box_size)
                     painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, f"{i:02d}")
-                    painter.restore()
 
+                # 2. Rotated Tick Lines
+                painter.save()
+                painter.translate(cx, cy)
+                painter.rotate(angle_deg)
                 painter.translate(radius + tick_offset, 0)
                 tick_color = QColor(120, 125, 130)
                 
@@ -559,10 +574,7 @@ class CrispAestheticFlipClock(QWidget):
 
         # --- SECOND WHEEL (Perfect Unified Single-Track) ---
         def draw_second_wheel(radius, val_float, font_size):
-            font = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-            font.setPixelSize(int(font_size))
-            font.setWeight(QFont.Weight.Medium)
-            
+            font = make_rotary_font(font_size, QFont.Weight.Medium)
             tick_offset = w * 0.022 
             
             for i in range(60):
@@ -572,26 +584,25 @@ class CrispAestheticFlipClock(QWidget):
                 opacity = max(0.0, 1.0 - abs(norm_angle) / 75.0) 
                 if opacity <= 0.01: continue
                 
-                painter.save()
-                painter.translate(cx, cy)
-                painter.rotate(angle_deg)
-                
+                # 1. Render number upright with zero painter rotation (DirectWrite Subpixel ClearType)
                 if i % 5 == 0:
-                    painter.save()
-                    painter.translate(radius, 0)
-                    painter.rotate(-angle_deg) 
+                    rad = math.radians(angle_deg)
+                    tx = cx + radius * math.cos(rad)
+                    ty = cy + radius * math.sin(rad)
                     
-                    # Blue accent text matching the image design
                     color = QColor(accent_color)
                     color.setAlpha(int(255 * opacity))
                     painter.setPen(color)
                     painter.setFont(font)
                     
                     box_size = w * 0.1
-                    text_rect = QRectF(-box_size/2, -box_size/2, box_size, box_size)
+                    text_rect = QRectF(tx - box_size/2, ty - box_size/2, box_size, box_size)
                     painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, f"{i:02d}")
-                    painter.restore()
 
+                # 2. Rotated Tick Lines
+                painter.save()
+                painter.translate(cx, cy)
+                painter.rotate(angle_deg)
                 painter.translate(radius + tick_offset, 0)
                 tick_color = QColor(120, 125, 130)
                 
@@ -622,18 +633,14 @@ class CrispAestheticFlipClock(QWidget):
         painter.drawRoundedRect(pill_rect, pill_h/2, pill_h/2)
 
         # 3. Fixed Exact Minute inside Pill overlay
-        font_min_fixed = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-        font_min_fixed.setPixelSize(int(h * 0.070))
-        font_min_fixed.setWeight(QFont.Weight.Bold)
-        
+        font_min_fixed = make_rotary_font(h * 0.070, QFont.Weight.Bold)
         painter.setFont(font_min_fixed)
         painter.setPen(pure_white)
         min_rect = QRectF(cx + R_min - w*0.05, cy - h*0.05, w*0.1, h*0.1)
         painter.drawText(min_rect, Qt.AlignmentFlag.AlignCenter, f"{now.minute():02d}")
 
         # 4. Hard-Anchored Left Hour
-        font_hr = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-        font_hr.setPixelSize(int(h * 0.28))
+        font_hr = make_rotary_font(h * 0.28, QFont.Weight.Normal)
         painter.setFont(font_hr)
         painter.setPen(off_white)
         
@@ -655,13 +662,10 @@ class CrispAestheticFlipClock(QWidget):
             offset_y = cy + h * 0.015
         
         # Draw Center Aligned Date Text
-        font_date_1 = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-        font_date_1.setPixelSize(int(h * 0.022))
+        font_date_1 = make_rotary_font(h * 0.022, QFont.Weight.Normal)
         font_date_1.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 4.0)
         
-        font_date_2 = QFont(["Google Sans", "Product Sans", "Segoe UI", "Arial"])
-        font_date_2.setPixelSize(int(h * 0.038))
-        font_date_2.setWeight(QFont.Weight.Bold)
+        font_date_2 = make_rotary_font(h * 0.038, QFont.Weight.Bold)
         font_date_2.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 3.0)
         
         painter.setFont(font_date_1)
@@ -878,6 +882,8 @@ class CrispAestheticFlipClock(QWidget):
         font_time = QFont([self.dino_font, "Bungee", "Arial Black"])
         font_time.setPixelSize(scaled_size)
         font_time.setWeight(QFont.Weight.Bold)
+        font_time.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.PreferQuality)
+        font_time.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
         
         painter.setFont(font_time)
         painter.setPen(QColor(255, 255, 255))
@@ -973,6 +979,8 @@ class CrispAestheticFlipClock(QWidget):
             font_dead = QFont(["Google Sans", "Segoe UI"])
             font_dead.setPixelSize(24)
             font_dead.setWeight(QFont.Weight.Bold)
+            font_dead.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.PreferQuality)
+            font_dead.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
             painter.setFont(font_dead)
             painter.setPen(QColor(255, 50, 50))
             painter.drawText(QRectF(0, ground_y - 150, w, 50), Qt.AlignmentFlag.AlignHCenter, "G A M E   O V E R")
@@ -2108,16 +2116,16 @@ class AboutDialog(QDialog):
         inner_layout.setSpacing(0)
         
         story_text = (
-            '<p style="text-indent: 18px; margin: 0 0 8px 0; line-height: 1.48;">'
-            "Hey, I'm Kushal! Honestly, I got super tired of exploring countless screensavers online and "
-            "never finding one that had everything I wanted &mdash; so I decided to build my own with all the good stuff packed in! 😄</p>"
-            '<p style="text-indent: 18px; margin: 0 0 8px 0; line-height: 1.48;">'
-            "You get <b>3 distinct modes</b> to fit your setup: an authentic offline <b>Chrome Dino</b> runner, "
-            "a retro mechanical <b>Flip Clock</b>, and a modern glowing <b>Rotary Dial</b> with live weather & battery.</p>"
-            '<p style="text-indent: 18px; margin: 0 0 8px 0; line-height: 1.48;">'
-            "Engineered with buttery-smooth <b>165Hz frame pacing</b>, automatic <b>OLED burn-in protection</b>, "
+            '<p style="margin: 0 0 8px 0; line-height: 1.48;">'
+            "✦ Hey, I'm Kushal! Honestly, I got super tired of exploring countless screensavers online and "
+            "never finding one that had everything I wanted, so I decided to build my own with all the good stuff packed in! 😄</p>"
+            '<p style="margin: 0 0 8px 0; line-height: 1.48;">'
+            "✦ You get <b>3 distinct modes</b> to fit your setup: an authentic offline <b>Chrome Dino</b> runner, "
+            "a retro mechanical <b>Flip Clock</b>, and a modern <b>Rotary Dial</b> with live weather & battery.</p>"
+            '<p style="margin: 0 0 8px 0; line-height: 1.48;">'
+            "✦ Engineered with <b>smooth frame pacing (165Hz)</b>, automatic <b>OLED burn-in protection</b>, "
             "and chill <b>hourly bell chimes</b>.</p>"
-            '<p style="text-indent: 18px; margin: 0 0 0px 0; line-height: 1.48; color: #94A3B8;">'
+            '<p style="margin: 0 0 0px 0; line-height: 1.48; color: #94A3B8;">'
             "Any suggestions or ideas are always welcomed! 😉</p>"
         )
         lbl_story = QLabel(story_text)
