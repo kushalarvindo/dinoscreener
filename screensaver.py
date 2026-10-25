@@ -24,7 +24,7 @@ from PyQt6.QtCore import (
     QParallelAnimationGroup, QSize, QUrl
 )
 from PyQt6.QtGui import (
-    QPainter, QColor, QFont, QPen, QRadialGradient, QPainterPath, 
+    QPainter, QColor, QFont, QPen, QRadialGradient, QLinearGradient, QPainterPath, 
     QFontDatabase, QPixmap, QImage, QIcon, QBrush, QDesktopServices
 )
 
@@ -1377,104 +1377,6 @@ def get_rounded_pixmap(src_path, size=38, radius=9, dpr=3.0):
     return dest
 
 
-class EdgeGlowIndicator(QWidget):
-    """Subtle crescent / curved arc light glow hugging the inner pill border."""
-    def __init__(self, side="left", color="#818cf8", parent=None):
-        super().__init__(parent)
-        self.side = side
-        self._color = QColor(color)
-        self._glow_visible = True
-        self.setFixedSize(18, 38)
-        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-
-    def set_color(self, hex_or_color):
-        self._color = QColor(hex_or_color)
-        self.update()
-
-    def set_glow_visible(self, visible):
-        self._glow_visible = visible
-        self.update()
-
-    def setVisible(self, visible):
-        self.set_glow_visible(visible)
-
-    def paintEvent(self, event):
-        if not self._glow_visible:
-            return
-            
-        p = QPainter(self)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        
-        w = float(self.width())
-        h = float(self.height())
-        r = 19.0
-        
-        c_periwinkle = QColor("#a5b4fc")
-        c_accent = self._color
-        c_bright = QColor("#e0e7ff")
-        
-        if self.side == "left":
-            p.save()
-            clip_path = QPainterPath()
-            clip_path.addRoundedRect(QRectF(1, 1, r * 2, h - 2), r - 1, r - 1)
-            p.setClipPath(clip_path)
-            
-            # 1. Soft ambient radial bleed from apex
-            rad_grad = QRadialGradient(QPointF(0, r), 20.0)
-            rad_grad.setColorAt(0.0, QColor(c_periwinkle.red(), c_periwinkle.green(), c_periwinkle.blue(), 100))
-            rad_grad.setColorAt(0.45, QColor(c_accent.red(), c_accent.green(), c_accent.blue(), 55))
-            rad_grad.setColorAt(1.0, QColor(c_accent.red(), c_accent.green(), c_accent.blue(), 0))
-            p.setBrush(QBrush(rad_grad))
-            p.setPen(Qt.PenStyle.NoPen)
-            p.drawEllipse(QPointF(0, r), 20.0, 20.0)
-            
-            # 2. Glowing curved arc hugging the inner border (tapered)
-            arc_rect = QRectF(1.2, 1.2, (r - 1.2) * 2, (r - 1.2) * 2)
-            
-            pen_bloom = QPen(QColor(c_periwinkle.red(), c_periwinkle.green(), c_periwinkle.blue(), 85))
-            pen_bloom.setWidthF(3.2)
-            pen_bloom.setCapStyle(Qt.PenCapStyle.RoundCap)
-            p.setPen(pen_bloom)
-            p.drawArc(arc_rect, int(130 * 16), int(100 * 16))
-            
-            pen_core = QPen(QColor(c_bright.red(), c_bright.green(), c_bright.blue(), 220))
-            pen_core.setWidthF(1.4)
-            pen_core.setCapStyle(Qt.PenCapStyle.RoundCap)
-            p.setPen(pen_core)
-            p.drawArc(arc_rect, int(145 * 16), int(70 * 16))
-            p.restore()
-        else: # right
-            p.save()
-            clip_path = QPainterPath()
-            clip_path.addRoundedRect(QRectF(w - r * 2 - 1, 1, r * 2, h - 2), r - 1, r - 1)
-            p.setClipPath(clip_path)
-            
-            # 1. Soft ambient radial bleed from right apex
-            rad_grad = QRadialGradient(QPointF(w, r), 20.0)
-            rad_grad.setColorAt(0.0, QColor(c_periwinkle.red(), c_periwinkle.green(), c_periwinkle.blue(), 100))
-            rad_grad.setColorAt(0.45, QColor(c_accent.red(), c_accent.green(), c_accent.blue(), 55))
-            rad_grad.setColorAt(1.0, QColor(c_accent.red(), c_accent.green(), c_accent.blue(), 0))
-            p.setBrush(QBrush(rad_grad))
-            p.setPen(Qt.PenStyle.NoPen)
-            p.drawEllipse(QPointF(w, r), 20.0, 20.0)
-            
-            # 2. Glowing curved arc hugging the inner border (tapered)
-            arc_rect = QRectF(w - (r - 1.2) * 2 - 1.2, 1.2, (r - 1.2) * 2, (r - 1.2) * 2)
-            
-            pen_bloom = QPen(QColor(c_periwinkle.red(), c_periwinkle.green(), c_periwinkle.blue(), 85))
-            pen_bloom.setWidthF(3.2)
-            pen_bloom.setCapStyle(Qt.PenCapStyle.RoundCap)
-            p.setPen(pen_bloom)
-            p.drawArc(arc_rect, int(-50 * 16), int(100 * 16))
-            
-            pen_core = QPen(QColor(c_bright.red(), c_bright.green(), c_bright.blue(), 220))
-            pen_core.setWidthF(1.4)
-            pen_core.setCapStyle(Qt.PenCapStyle.RoundCap)
-            p.setPen(pen_core)
-            p.drawArc(arc_rect, int(-35 * 16), int(70 * 16))
-            p.restore()
-
-
 class CollapsibleModeCapsule(QFrame):
     def __init__(self, win_accent="#0078D4", parent=None):
         super().__init__(parent)
@@ -1514,15 +1416,10 @@ class CollapsibleModeCapsule(QFrame):
         # --- Page 0: Collapsed Pill View ---
         self.collapsed_view = QWidget()
         col_layout = QHBoxLayout(self.collapsed_view)
-        col_layout.setContentsMargins(0, 0, 0, 0)
+        col_layout.setContentsMargins(18, 0, 18, 0)
         col_layout.setSpacing(0)
         
-        self.glow_left = EdgeGlowIndicator("left", self.win_accent, parent=self.collapsed_view)
-        self.glow_right = EdgeGlowIndicator("right", self.win_accent, parent=self.collapsed_view)
-        self.dot_left = self.glow_left
-        self.dot_right = self.glow_right
-        
-        # Center title
+        # Center title (always 100% centered with symmetrical margins)
         self.lbl_mode_name = QLabel("Flip Clock")
         self.lbl_mode_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lbl_mode_name.setStyleSheet("""
@@ -1530,12 +1427,10 @@ class CollapsibleModeCapsule(QFrame):
             font-size: 11.5px;
             font-weight: 600;
             font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+            background: transparent;
         """)
         
-        col_layout.addWidget(self.glow_left)
-        col_layout.addWidget(self.lbl_mode_name, 1)
-        col_layout.addWidget(self.glow_right)
-        
+        col_layout.addWidget(self.lbl_mode_name)
         self.stack.addWidget(self.collapsed_view)
         
         # --- Page 1: Expanded 3-Button View ---
@@ -1588,6 +1483,108 @@ class CollapsibleModeCapsule(QFrame):
         
         self.on_mode_changed = None
         self._anim_group = None
+        self.set_current_mode(0)
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        
+        # Do not render edge indicator glows in expanded 3-button view
+        if self._is_expanded:
+            return
+            
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        
+        w = float(self.width())
+        h = float(self.height())
+        r = 19.0
+        
+        # Strictly clip to the pill's inner rounded boundary (1px inside the 1px border)
+        clip_path = QPainterPath()
+        clip_path.addRoundedRect(QRectF(1.0, 1.0, w - 2.0, h - 2.0), r - 1.0, r - 1.0)
+        p.setClipPath(clip_path)
+        
+        # Soft periwinkle/accent hues
+        c_peri = QColor("#a5b4fc")
+        c_acc = QColor(self.win_accent)
+        c_core = QColor("#e0e7ff")
+        
+        arc_r = r - 1.8
+        arc_d = arc_r * 2.0
+        
+        # Directional Visibility Logic:
+        # idx 0 (Flip Clock): ONLY Right indicator
+        # idx 1 (Rotary Modern): BOTH Left and Right indicators
+        # idx 2 (Dino Runner): ONLY Left indicator
+        show_left = (self._current_mode in [1, 2])
+        show_right = (self._current_mode in [0, 1])
+        
+        # Vertical gradient fading the top and bottom tips smoothly into transparency
+        v_grad_bloom = QLinearGradient(0, 9, 0, 29)
+        v_grad_bloom.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 0))
+        v_grad_bloom.setColorAt(0.2, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 50))
+        v_grad_bloom.setColorAt(0.5, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 85))
+        v_grad_bloom.setColorAt(0.8, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 50))
+        v_grad_bloom.setColorAt(1.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 0))
+        
+        v_grad_core = QLinearGradient(0, 11, 0, 27)
+        v_grad_core.setColorAt(0.0, QColor(c_core.red(), c_core.green(), c_core.blue(), 0))
+        v_grad_core.setColorAt(0.3, QColor(c_core.red(), c_core.green(), c_core.blue(), 110))
+        v_grad_core.setColorAt(0.5, QColor(c_core.red(), c_core.green(), c_core.blue(), 160))
+        v_grad_core.setColorAt(0.7, QColor(c_core.red(), c_core.green(), c_core.blue(), 110))
+        v_grad_core.setColorAt(1.0, QColor(c_core.red(), c_core.green(), c_core.blue(), 0))
+
+        if show_left:
+            # 1. Subtle radial aura
+            grad_l = QRadialGradient(QPointF(1.0, h / 2.0), 12.0)
+            grad_l.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 45))
+            grad_l.setColorAt(0.5, QColor(c_acc.red(), c_acc.green(), c_acc.blue(), 20))
+            grad_l.setColorAt(1.0, QColor(c_acc.red(), c_acc.green(), c_acc.blue(), 0))
+            p.setBrush(QBrush(grad_l))
+            p.setPen(Qt.PenStyle.NoPen)
+            p.drawEllipse(QPointF(1.0, h / 2.0), 12.0, 12.0)
+            
+            # 2. Sleek crescent curved arc hugging the inner left border
+            arc_rect_l = QRectF(1.8, (h - arc_d) / 2.0, arc_d, arc_d)
+            
+            # Bloom stroke
+            pen_bloom = QPen(v_grad_bloom, 2.2)
+            pen_bloom.setCapStyle(Qt.PenCapStyle.RoundCap)
+            p.setPen(pen_bloom)
+            p.drawArc(arc_rect_l, int(130 * 16), int(100 * 16))
+            
+            # Core stroke
+            pen_core = QPen(v_grad_core, 1.1)
+            pen_core.setCapStyle(Qt.PenCapStyle.RoundCap)
+            p.setPen(pen_core)
+            p.drawArc(arc_rect_l, int(145 * 16), int(70 * 16))
+            
+        if show_right:
+            # 1. Subtle radial aura
+            grad_r = QRadialGradient(QPointF(w - 1.0, h / 2.0), 12.0)
+            grad_r.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 45))
+            grad_r.setColorAt(0.5, QColor(c_acc.red(), c_acc.green(), c_acc.blue(), 20))
+            grad_r.setColorAt(1.0, QColor(c_acc.red(), c_acc.green(), c_acc.blue(), 0))
+            p.setBrush(QBrush(grad_r))
+            p.setPen(Qt.PenStyle.NoPen)
+            p.drawEllipse(QPointF(w - 1.0, h / 2.0), 12.0, 12.0)
+            
+            # 2. Sleek crescent curved arc hugging the inner right border
+            arc_rect_r = QRectF(w - arc_d - 1.8, (h - arc_d) / 2.0, arc_d, arc_d)
+            
+            # Bloom stroke
+            pen_bloom = QPen(v_grad_bloom, 2.2)
+            pen_bloom.setCapStyle(Qt.PenCapStyle.RoundCap)
+            p.setPen(pen_bloom)
+            p.drawArc(arc_rect_r, int(-50 * 16), int(100 * 16))
+            
+            # Core stroke
+            pen_core = QPen(v_grad_core, 1.1)
+            pen_core.setCapStyle(Qt.PenCapStyle.RoundCap)
+            p.setPen(pen_core)
+            p.drawArc(arc_rect_r, int(-35 * 16), int(70 * 16))
+
+        p.end()
 
     def get_capsule_width(self):
         return self._width
@@ -1603,31 +1600,16 @@ class CollapsibleModeCapsule(QFrame):
         if 0 <= idx < len(self._modes):
             self.lbl_mode_name.setText(self._modes[idx][0])
             
-        # Crescent edge glows indicating which direction has more modes:
-        # idx == 0 (Flip Clock, leftmost): indicator on the right side
-        # idx == 1 (Rotary Modern, middle): indicators on both left and right sides
-        # idx == 2 (Dino Runner, rightmost): indicator on the left side
-        if idx == 0:
-            self.glow_left.set_glow_visible(False)
-            self.glow_right.set_glow_visible(True)
-        elif idx == 1:
-            self.glow_left.set_glow_visible(True)
-            self.glow_right.set_glow_visible(True)
-        else: # idx == 2
-            self.glow_left.set_glow_visible(True)
-            self.glow_right.set_glow_visible(False)
-            
         for i, btn in enumerate(self.mode_buttons):
             btn.blockSignals(True)
             btn.setChecked(i == idx)
             btn.blockSignals(False)
+            
+        self.update()
 
     def update_accent(self, accent_hex):
         self.win_accent = accent_hex
-        if hasattr(self, 'glow_left'):
-            self.glow_left.set_color(accent_hex)
-        if hasattr(self, 'glow_right'):
-            self.glow_right.set_color(accent_hex)
+        self.update()
 
     def select_mode(self, idx):
         self.set_current_mode(idx)
