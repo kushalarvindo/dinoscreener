@@ -1122,7 +1122,11 @@ class CrispAestheticFlipClock(QWidget):
                 self.close()
 
     def mouseMoveEvent(self, event):
-        if self.preview_mode or getattr(self, 'studio_mode', False): return
+        if getattr(self, 'studio_mode', False):
+            if hasattr(self.parent(), 'handle_canvas_mouse_move'):
+                self.parent().handle_canvas_mouse_move(event)
+            return
+        if self.preview_mode: return
         if self.strict_exit: return
         if self.last_pos is None:
             self.last_pos = event.pos()
@@ -1132,7 +1136,11 @@ class CrispAestheticFlipClock(QWidget):
             self.close()
 
     def mousePressEvent(self, event):
-        if self.preview_mode or getattr(self, 'studio_mode', False): return
+        if getattr(self, 'studio_mode', False):
+            if hasattr(self.parent(), 'handle_canvas_mouse_press'):
+                self.parent().handle_canvas_mouse_press(event)
+            return
+        if self.preview_mode: return
         if self.strict_exit: return
         self.close()
 
@@ -2259,7 +2267,7 @@ class AboutDialog(QDialog):
         
         story_text = (
             '<p style="margin: 0 0 10px 0; line-height: 1.54;">'
-            "✦ Hi, I'm Kushal! 👋 I wanted a screensaver that was simple, neat, and actually fun to look at—so I built <b>Dinoscreener</b>.</p>"
+            "✦ Hi, I'm Kushal! 👋 I wanted a screensaver that was simple, neat, and actually fun to look at, so I built <b>Dinoscreener</b>.</p>"
             '<p style="margin: 0 0 10px 0; line-height: 1.54;">'
             "✦ <b>3 cozy styles</b> in one: a playful <b>Jumping Dino</b>, a classic <b>Flip Clock</b>, and a clean <b>Rotary Dial</b> with your weather & battery.</p>"
             '<p style="margin: 0 0 10px 0; line-height: 1.54;">'
@@ -2601,6 +2609,7 @@ class SpatialGrabberBar(QWidget):
     """
     Apple visionOS-style spatial luminous pill grabber:
     Thin, futuristic glowing capsule bar with soft periwinkle ambient bloom.
+    Features generous hit areas along screen borders so options reliably show on hover.
     Top: 64x5px horizontal capsule floating 14px from top edge.
     Left & Right: 5x64px vertical capsule floating 14px from screen border.
     """
@@ -2612,13 +2621,13 @@ class SpatialGrabberBar(QWidget):
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.hovered = False
         if self.edge == 'top':
-            self.setFixedSize(80, 24)
+            self.setFixedSize(500, 36)
             self.setToolTip("Display & Atmosphere (Click or hover to toggle)")
         elif self.edge == 'left':
-            self.setFixedSize(24, 80)
+            self.setFixedSize(36, 400)
             self.setToolTip("Mode Settings (Click or hover to toggle)")
         else:
-            self.setFixedSize(24, 80)
+            self.setFixedSize(36, 400)
             self.setToolTip("System & Controls (Click or hover to toggle)")
 
     def enterEvent(self, event):
@@ -2650,24 +2659,37 @@ class SpatialGrabberBar(QWidget):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         
-        bloom_a = 95 if self.hovered else 45
-        core_a = 245 if self.hovered else 170
+        bloom_a = 120 if self.hovered else 50
+        core_a = 255 if self.hovered else 175
         
         c_bloom = QColor(165, 180, 252, bloom_a)
         c_core = QColor(255, 255, 255, core_a)
+        w, h = float(self.width()), float(self.height())
+        p.setPen(Qt.PenStyle.NoPen)
         
         if self.edge == 'top':
-            pill_rect = QRectF(8.0, 9.5, 64.0, 5.0)
-            glow_rect = QRectF(6.0, 7.5, 68.0, 9.0)
-            p.setPen(Qt.PenStyle.NoPen)
+            cx = w / 2.0
+            cy = 14.0
+            pill_rect = QRectF(cx - 32.0, cy - 2.5, 64.0, 5.0)
+            glow_rect = QRectF(cx - 34.0, cy - 4.5, 68.0, 9.0)
+            p.setBrush(c_bloom)
+            p.drawRoundedRect(glow_rect, 4.5, 4.5)
+            p.setBrush(c_core)
+            p.drawRoundedRect(pill_rect, 2.5, 2.5)
+        elif self.edge == 'left':
+            cx = 14.0
+            cy = h / 2.0
+            pill_rect = QRectF(cx - 2.5, cy - 32.0, 5.0, 64.0)
+            glow_rect = QRectF(cx - 4.5, cy - 34.0, 9.0, 68.0)
             p.setBrush(c_bloom)
             p.drawRoundedRect(glow_rect, 4.5, 4.5)
             p.setBrush(c_core)
             p.drawRoundedRect(pill_rect, 2.5, 2.5)
         else:
-            pill_rect = QRectF(9.5, 8.0, 5.0, 64.0)
-            glow_rect = QRectF(7.5, 6.0, 9.0, 68.0)
-            p.setPen(Qt.PenStyle.NoPen)
+            cx = w - 14.0
+            cy = h / 2.0
+            pill_rect = QRectF(cx - 2.5, cy - 32.0, 5.0, 64.0)
+            glow_rect = QRectF(cx - 4.5, cy - 34.0, 9.0, 68.0)
             p.setBrush(c_bloom)
             p.drawRoundedRect(glow_rect, 4.5, 4.5)
             p.setBrush(c_core)
@@ -2980,7 +3002,7 @@ class StudioAboutModal(QFrame):
         
         story_text = (
             '<p style="margin: 0 0 8px 0; line-height: 1.5;">'
-            "✦ Hi, I'm Kushal! 👋 I wanted a screensaver that was simple, neat, and actually fun to look at—so I built <b>Dinoscreener</b>.</p>"
+            "✦ Hi, I'm Kushal! 👋 I wanted a screensaver that was simple, neat, and actually fun to look at, so I built <b>Dinoscreener</b>.</p>"
             '<p style="margin: 0 0 8px 0; line-height: 1.5;">'
             "✦ <b>3 cozy styles</b> in one: a playful <b>Jumping Dino</b>, a classic <b>Flip Clock</b>, and a clean <b>Rotary Dial</b> with your weather & battery.</p>"
             '<p style="margin: 0 0 8px 0; line-height: 1.5;">'
@@ -3076,14 +3098,6 @@ class StudioAboutModal(QFrame):
         footer_row.addWidget(btn_close)
         main_layout.addLayout(footer_row)
         
-        # Opacity animation for smooth fade-in / fade-out
-        self.opacity_effect = QGraphicsOpacityEffect(self)
-        self.setGraphicsEffect(self.opacity_effect)
-        self.opacity_effect.setOpacity(1.0)
-        
-        self.anim_opacity = QPropertyAnimation(self.opacity_effect, b"opacity", self)
-        self.anim_opacity.setEasingCurve(QEasingCurve.Type.OutQuart)
-        
         self.latest_download_url = ""
         self.latest_tag = ""
 
@@ -3101,37 +3115,17 @@ class StudioAboutModal(QFrame):
         sw = self.studio.width()
         sh = self.studio.height()
         self.move((sw - self.width()) // 2, (sh - self.height()) // 2)
-        
         if hasattr(self.studio.settings, 'latest_update_info') and self.studio.settings.latest_update_info:
             latest_tag, body, download_url = self.studio.settings.latest_update_info
             self.on_update_result(True, latest_tag, body, download_url)
-            
         self.show()
         self.raise_()
-        
-        self.anim_opacity.stop()
-        try:
-            self.anim_opacity.finished.disconnect()
-        except Exception:
-            pass
-        self.anim_opacity.setDuration(240)
-        self.anim_opacity.setStartValue(0.0)
-        self.anim_opacity.setEndValue(1.0)
-        self.anim_opacity.start()
+        self.setFocus()
 
     def hide_modal(self):
-        if not self.isVisible():
-            return
-        self.anim_opacity.stop()
-        try:
-            self.anim_opacity.finished.disconnect()
-        except Exception:
-            pass
-        self.anim_opacity.finished.connect(self.hide)
-        self.anim_opacity.setDuration(200)
-        self.anim_opacity.setStartValue(self.opacity_effect.opacity())
-        self.anim_opacity.setEndValue(0.0)
-        self.anim_opacity.start()
+        self.hide()
+        if hasattr(self.studio, 'setFocus'):
+            self.studio.setFocus()
 
     def check_updates_clicked(self):
         self.lbl_status.setText("Checking GitHub for the latest release...")
@@ -3206,6 +3200,12 @@ class StudioInfoButton(QPushButton):
         self.setIconSize(QSize(22, 22))
         self.setToolTip("About, version & updates")
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setStyleSheet("""
+            QPushButton#studioInfoBtn {
+                background: transparent;
+                border: none;
+            }
+        """)
         self.clicked.connect(self.studio.toggle_about)
 
     def paintEvent(self, event):
@@ -3369,7 +3369,6 @@ class FullscreenStudioMode(QWidget):
         )
         self.clock.setMouseTracking(True)
         self.clock.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.clock.installEventFilter(self)
         self.clock.lower()
         
         # 1.5 Subtle Spatial Corner Ambient Glows & Optic Brackets
@@ -3454,9 +3453,9 @@ class FullscreenStudioMode(QWidget):
         self.mode_capsule.move((sw - cw) // 2, sh - self.mode_capsule.height() - 32)
         self.mode_capsule.raise_()
         
-        self.left_grabber.move(14, (sh - self.left_grabber.height()) // 2)
-        self.top_grabber.move((sw - self.top_grabber.width()) // 2, 14)
-        self.right_grabber.move(sw - self.right_grabber.width() - 14, (sh - self.right_grabber.height()) // 2)
+        self.left_grabber.move(0, (sh - self.left_grabber.height()) // 2)
+        self.top_grabber.move((sw - self.top_grabber.width()) // 2, 0)
+        self.right_grabber.move(sw - self.right_grabber.width(), (sh - self.right_grabber.height()) // 2)
         self.left_grabber.raise_()
         self.top_grabber.raise_()
         self.right_grabber.raise_()
@@ -3538,40 +3537,58 @@ class FullscreenStudioMode(QWidget):
         if open_state:
             self.right_drawer.raise_()
 
-    def eventFilter(self, obj, event):
-        if event.type() == QEvent.Type.MouseButtonPress:
-            pos = self.mapFromGlobal(event.globalPosition().toPoint())
-            if hasattr(self, 'about_modal') and self.about_modal.isVisible():
-                if not self.about_modal.geometry().contains(pos):
-                    self.hide_about()
-                    return True
-            if self.left_open and not self.left_drawer.geometry().contains(pos):
-                self.set_left_drawer_open(False)
-            if self.top_open and not self.top_drawer.geometry().contains(pos):
-                self.set_top_drawer_open(False)
-            if self.right_open and not self.right_drawer.geometry().contains(pos):
-                self.set_right_drawer_open(False)
-        return super().eventFilter(obj, event)
+    def handle_canvas_mouse_move(self, event):
+        pos = event.pos()
+        sw = self.width()
+        sh = self.height()
+        if pos.x() <= 24:
+            self.set_left_drawer_open(True)
+        elif pos.y() <= 24:
+            self.set_top_drawer_open(True)
+        elif pos.x() >= sw - 24:
+            self.set_right_drawer_open(True)
+
+    def mouseMoveEvent(self, event):
+        self.handle_canvas_mouse_move(event)
+        super().mouseMoveEvent(event)
+
+    def handle_canvas_mouse_press(self, event):
+        pos = event.pos()
+        if hasattr(self, 'about_modal') and self.about_modal.isVisible():
+            if not self.about_modal.geometry().contains(pos):
+                self.hide_about()
+                return
+        if self.left_open and not self.left_drawer.geometry().contains(pos):
+            self.set_left_drawer_open(False)
+        if self.top_open and not self.top_drawer.geometry().contains(pos):
+            self.set_top_drawer_open(False)
+        if self.right_open and not self.right_drawer.geometry().contains(pos):
+            self.set_right_drawer_open(False)
 
     def mousePressEvent(self, event):
         pos = event.pos()
         if hasattr(self, 'about_modal') and self.about_modal.isVisible():
             if not self.about_modal.geometry().contains(pos):
+                if self.btn_info.geometry().contains(pos):
+                    super().mousePressEvent(event)
+                    return
                 self.hide_about()
                 event.accept()
                 return
-        closed_any = False
-        if self.left_open and not self.left_drawer.geometry().contains(pos):
-            self.set_left_drawer_open(False)
-            closed_any = True
-        if self.top_open and not self.top_drawer.geometry().contains(pos):
-            self.set_top_drawer_open(False)
-            closed_any = True
-        if self.right_open and not self.right_drawer.geometry().contains(pos):
-            self.set_right_drawer_open(False)
-            closed_any = True
-        if not closed_any:
+        # If click hits floating HUD controls, let children handle it without interruption
+        if (self.btn_info.geometry().contains(pos) or 
+            self.action_dock.geometry().contains(pos) or 
+            self.mode_capsule.geometry().contains(pos)):
             super().mousePressEvent(event)
+            return
+
+        if self.left_open and not self.left_drawer.geometry().contains(pos) and not self.left_grabber.geometry().contains(pos):
+            self.set_left_drawer_open(False)
+        if self.top_open and not self.top_drawer.geometry().contains(pos) and not self.top_grabber.geometry().contains(pos):
+            self.set_top_drawer_open(False)
+        if self.right_open and not self.right_drawer.geometry().contains(pos) and not self.right_grabber.geometry().contains(pos):
+            self.set_right_drawer_open(False)
+        super().mousePressEvent(event)
 
     def toggle_about(self):
         if hasattr(self, 'about_modal') and self.about_modal.isVisible():
@@ -3982,7 +3999,9 @@ class SettingsDialog(QDialog):
         self.config["character_type"] = getattr(self.preview, 'character_type', "dino")
         self.config["custom_character_image"] = getattr(self, 'custom_character_image', "")
         
-        os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
+        dir_name = os.path.dirname(self.config_path)
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
         with open(self.config_path, 'w') as f:
             json.dump(self.config, f, indent=4)
 
@@ -4074,8 +4093,16 @@ class SettingsDialog(QDialog):
     def test_fullscreen(self):
         try:
             self.studio = FullscreenStudioMode(self)
-            self.studio.showFullScreen()
             self.hide()
+            self.studio.showFullScreen()
+            self.studio.raise_()
+            self.studio.activateWindow()
+            if sys.platform == "win32":
+                try:
+                    import ctypes
+                    ctypes.windll.user32.SetForegroundWindow(int(self.studio.winId()))
+                except Exception:
+                    pass
         except Exception as e:
             self.show()
             import traceback
