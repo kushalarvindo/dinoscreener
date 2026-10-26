@@ -345,7 +345,6 @@ class CrispAestheticFlipClock(QWidget):
                 self.anim_timer.setInterval(self.target_frame_interval)
                 
         self.update()
-        self.update() 
 
     def get_time_strings(self, time_obj):
         hour = time_obj.hour()
@@ -1338,15 +1337,31 @@ def get_color_variants(hex_color):
 def get_or_create_check_icon(color_hex="#FFFFFF"):
     import tempfile
     clean_col = color_hex.replace("#", "")
-    temp_path = os.path.join(tempfile.gettempdir(), f"dinoscreener_chk_{clean_col}.svg").replace("\\", "/")
-    svg_data = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-<path d="M4.5 12.5l5 5L19.5 6.5" fill="none" stroke="{color_hex}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>"""
-    try:
-        with open(temp_path, "w", encoding="utf-8") as f:
-            f.write(svg_data)
-    except Exception:
-        pass
+    temp_path = os.path.join(tempfile.gettempdir(), f"dinoscreener_chk_{clean_col}_v2.png").replace("\\", "/")
+    if not os.path.exists(temp_path):
+        from PyQt6.QtGui import QImage, QPainter, QPen, QColor, QPainterPath
+        from PyQt6.QtCore import Qt, QPointF
+        
+        img = QImage(72, 72, QImage.Format.Format_ARGB32_Premultiplied)
+        img.fill(Qt.GlobalColor.transparent)
+        p = QPainter(img)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        pen = QPen(QColor(color_hex))
+        pen.setWidthF(8.0)
+        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+        p.setPen(pen)
+        
+        path = QPainterPath()
+        path.moveTo(QPointF(14.0, 37.0))
+        path.lineTo(QPointF(29.0, 52.0))
+        path.lineTo(QPointF(58.0, 19.0))
+        p.drawPath(path)
+        p.end()
+        try:
+            img.save(temp_path, "PNG")
+        except Exception:
+            pass
     return temp_path
 
 
@@ -2499,112 +2514,6 @@ rm -- "$0"
 # INTERACTIVE FULLSCREEN STUDIO MODE (165Hz ZERO-LAG OBSIDIAN GLASS ARCHITECTURE)
 # ==============================================================================
 
-class SpatialCornerGlow(QWidget):
-    """
-    Apple visionOS spatial ambient corner glows & optic brackets:
-    Subtle periwinkle / accent radial blooms at all 4 corners with ultra-fine 1.2px corner brackets.
-    100% transparent to mouse events so it never interferes with canvas or controls.
-    """
-    def __init__(self, parent=None, win_accent="#8F96BF"):
-        super().__init__(parent)
-        self.win_accent = win_accent
-        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
-
-    def paintEvent(self, event):
-        p = QPainter(self)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        w = float(self.width())
-        h = float(self.height())
-        if w < 100 or h < 100:
-            p.end()
-            return
-            
-        c_acc = QColor(self.win_accent)
-        c_peri = QColor(165, 180, 252)
-        glow_r = 180.0
-        
-        # 1. Top-Left Radial Glow
-        g_tl = QRadialGradient(QPointF(0.0, 0.0), glow_r)
-        g_tl.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 26))
-        g_tl.setColorAt(0.35, QColor(c_acc.red(), c_acc.green(), c_acc.blue(), 12))
-        g_tl.setColorAt(1.0, QColor(0, 0, 0, 0))
-        p.setBrush(QBrush(g_tl))
-        p.setPen(Qt.PenStyle.NoPen)
-        p.drawRect(QRectF(0.0, 0.0, glow_r, glow_r))
-        
-        # 2. Top-Right Radial Glow
-        g_tr = QRadialGradient(QPointF(w, 0.0), glow_r)
-        g_tr.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 26))
-        g_tr.setColorAt(0.35, QColor(c_acc.red(), c_acc.green(), c_acc.blue(), 12))
-        g_tr.setColorAt(1.0, QColor(0, 0, 0, 0))
-        p.setBrush(QBrush(g_tr))
-        p.setPen(Qt.PenStyle.NoPen)
-        p.drawRect(QRectF(w - glow_r, 0.0, glow_r, glow_r))
-        
-        # 3. Bottom-Left Radial Glow
-        g_bl = QRadialGradient(QPointF(0.0, h), glow_r)
-        g_bl.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 26))
-        g_bl.setColorAt(0.35, QColor(c_acc.red(), c_acc.green(), c_acc.blue(), 12))
-        g_bl.setColorAt(1.0, QColor(0, 0, 0, 0))
-        p.setBrush(QBrush(g_bl))
-        p.setPen(Qt.PenStyle.NoPen)
-        p.drawRect(QRectF(0.0, h - glow_r, glow_r, glow_r))
-        
-        # 4. Bottom-Right Radial Glow
-        g_br = QRadialGradient(QPointF(w, h), glow_r)
-        g_br.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 26))
-        g_br.setColorAt(0.35, QColor(c_acc.red(), c_acc.green(), c_acc.blue(), 12))
-        g_br.setColorAt(1.0, QColor(0, 0, 0, 0))
-        p.setBrush(QBrush(g_br))
-        p.setPen(Qt.PenStyle.NoPen)
-        p.drawRect(QRectF(w - glow_r, h - glow_r, glow_r, glow_r))
-        
-        # Subtle spatial optic bracket arcs at all 4 corners
-        bracket_pen = QPen(QColor(255, 255, 255, 36), 1.2)
-        bracket_pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-        p.setPen(bracket_pen)
-        p.setBrush(Qt.BrushStyle.NoBrush)
-        
-        m = 20.0
-        arm = 22.0
-        r = 8.0
-        
-        # Top-Left Bracket
-        path_tl = QPainterPath()
-        path_tl.moveTo(m, m + arm)
-        path_tl.lineTo(m, m + r)
-        path_tl.quadTo(m, m, m + r, m)
-        path_tl.lineTo(m + arm, m)
-        p.drawPath(path_tl)
-        
-        # Top-Right Bracket
-        path_tr = QPainterPath()
-        path_tr.moveTo(w - m - arm, m)
-        path_tr.lineTo(w - m - r, m)
-        path_tr.quadTo(w - m, m, w - m, m + r)
-        path_tr.lineTo(w - m, m + arm)
-        p.drawPath(path_tr)
-        
-        # Bottom-Left Bracket
-        path_bl = QPainterPath()
-        path_bl.moveTo(m, h - m - arm)
-        path_bl.lineTo(m, h - m - r)
-        path_bl.quadTo(m, h - m, m + r, h - m)
-        path_bl.lineTo(m + arm, h - m)
-        p.drawPath(path_bl)
-        
-        # Bottom-Right Bracket
-        path_br = QPainterPath()
-        path_br.moveTo(w - m - arm, h - m)
-        path_br.lineTo(w - m - r, h - m)
-        path_br.quadTo(w - m, h - m, w - m, h - m - r)
-        path_br.lineTo(w - m, h - m - arm)
-        p.drawPath(path_br)
-        
-        p.end()
-
-
 class SpatialGrabberBar(QWidget):
     """
     Apple visionOS-style spatial luminous pill grabber:
@@ -3371,10 +3280,6 @@ class FullscreenStudioMode(QWidget):
         self.clock.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.clock.lower()
         
-        # 1.5 Subtle Spatial Corner Ambient Glows & Optic Brackets
-        self.corner_glow = SpatialCornerGlow(self, win_accent=self.win_accent)
-        self.corner_glow.setGeometry(0, 0, self.width(), self.height())
-        self.corner_glow.lower()
         self.clock.lower()
         
         # 2. Floating HUD Elements
@@ -3439,7 +3344,6 @@ class FullscreenStudioMode(QWidget):
         sw, sh = self.width(), self.height()
         
         self.clock.setGeometry(0, 0, sw, sh)
-        self.corner_glow.setGeometry(0, 0, sw, sh)
         
         self.btn_info.move(sw - self.btn_info.width() - 32, 32)
         self.btn_info.raise_()
