@@ -1080,6 +1080,10 @@ class CrispAestheticFlipClock(QWidget):
         p_screen.end()
 
     def keyPressEvent(self, event):
+        if getattr(self, 'studio_mode', False):
+            event.ignore()
+            return
+
         if hasattr(self, 'anim_timer') and hasattr(self, 'target_frame_interval'):
             self.anim_timer.setInterval(self.target_frame_interval)
 
@@ -1726,16 +1730,16 @@ class CollapsibleModeCapsule(QFrame):
         self.stack.setCurrentIndex(1)
         
         anim_w = QPropertyAnimation(self, b"capsuleWidth")
-        anim_w.setDuration(180)
+        anim_w.setDuration(240)
         anim_w.setStartValue(self.width())
         anim_w.setEndValue(self._expanded_width)
-        anim_w.setEasingCurve(QEasingCurve.Type.OutCubic)
+        anim_w.setEasingCurve(QEasingCurve.Type.OutQuart)
         
         anim_op = QPropertyAnimation(self.opacity_effect, b"opacity")
-        anim_op.setDuration(180)
+        anim_op.setDuration(240)
         anim_op.setStartValue(0.1)
         anim_op.setEndValue(1.0)
-        anim_op.setEasingCurve(QEasingCurve.Type.InQuad)
+        anim_op.setEasingCurve(QEasingCurve.Type.OutQuart)
         
         self._anim_group = QParallelAnimationGroup()
         self._anim_group.addAnimation(anim_w)
@@ -1751,16 +1755,16 @@ class CollapsibleModeCapsule(QFrame):
             self._anim_group.stop()
             
         anim_w = QPropertyAnimation(self, b"capsuleWidth")
-        anim_w.setDuration(160)
+        anim_w.setDuration(220)
         anim_w.setStartValue(self.width())
         anim_w.setEndValue(self._collapsed_width)
-        anim_w.setEasingCurve(QEasingCurve.Type.OutCubic)
+        anim_w.setEasingCurve(QEasingCurve.Type.OutQuart)
         
         anim_op = QPropertyAnimation(self.opacity_effect, b"opacity")
-        anim_op.setDuration(140)
+        anim_op.setDuration(200)
         anim_op.setStartValue(1.0)
         anim_op.setEndValue(0.0)
-        anim_op.setEasingCurve(QEasingCurve.Type.OutQuad)
+        anim_op.setEasingCurve(QEasingCurve.Type.OutQuart)
         
         self._anim_group = QParallelAnimationGroup()
         self._anim_group.addAnimation(anim_w)
@@ -2676,8 +2680,8 @@ class StudioDrawer(QFrame):
     """
     Floating Studio Obsidian Glass Drawer:
     Hosts the REAL, working Settings cards from SettingsDialog.
-    Renders with a solid, deep obsidian-slate rounded background (QColor(18, 22, 32, 248))
-    and a subtle 1.2px periwinkle rim border so text is 100% crisp and screensaver never bleeds through.
+    Renders with deep obsidian-slate rounded background (QColor(23, 27, 38, 238))
+    and a subtle 1px highlight rim border with 26px rounded corners.
     """
     def __init__(self, studio, win_accent, check_icon_path, fixed_w, fixed_h):
         super().__init__(studio)
@@ -2765,7 +2769,7 @@ class StudioDrawer(QFrame):
         """)
         
         self.drawer_layout = QVBoxLayout(self)
-        self.drawer_layout.setContentsMargins(10, 8, 10, 8)
+        self.drawer_layout.setContentsMargins(14, 12, 14, 12)
         self.drawer_layout.setSpacing(0)
         self.card = None
 
@@ -2773,9 +2777,9 @@ class StudioDrawer(QFrame):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         w, h = float(self.width()), float(self.height())
-        p.setBrush(QColor(23, 27, 38, 250))
-        p.setPen(QPen(QColor(255, 255, 255, 22), 1.0))
-        p.drawRoundedRect(QRectF(1.0, 1.0, w - 2.0, h - 2.0), 14.0, 14.0)
+        p.setBrush(QColor(23, 27, 38, 238))
+        p.setPen(QPen(QColor(255, 255, 255, 26), 1.0))
+        p.drawRoundedRect(QRectF(1.0, 1.0, w - 2.0, h - 2.0), 26.0, 26.0)
         p.end()
         super().paintEvent(event)
 
@@ -2786,25 +2790,430 @@ class StudioDrawer(QFrame):
         card.show()
 
 
+class StudioAboutModal(QFrame):
+    """
+    In-Canvas Spatial Glass About Modal:
+    Zero external Win32 dialogs, 100% stable frameless window activation,
+    with 26px rounded corners, deep obsidian glass styling, and smooth fade transitions.
+    """
+    def __init__(self, studio):
+        super().__init__(studio)
+        self.studio = studio
+        self.setFixedSize(540, 640)
+        self.setObjectName("studioAboutModal")
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        
+        # Subpixel ClearType antialiased font hierarchy
+        ui_font = QFont(["Segoe UI Variable Text", "Segoe UI", "Arial", "sans-serif"], 9)
+        ui_font.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.PreferQuality)
+        ui_font.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
+        self.setFont(ui_font)
+        
+        self.win_accent = self.studio.win_accent
+        self.contrast_text, self.hover_accent, self.press_accent = get_color_variants(self.win_accent)
+        
+        self.setStyleSheet(f"""
+            QFrame#studioAboutModal {{
+                background: transparent;
+                border: none;
+            }}
+            QLabel {{
+                background: transparent;
+                color: #FFFFFF;
+                font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, sans-serif;
+            }}
+            QFrame#aboutCard {{
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 16px;
+            }}
+            QFrame#storyInnerBox {{
+                background: rgba(0, 0, 0, 0.28);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 12px;
+            }}
+            QPushButton#accentBtn {{
+                background-color: {self.win_accent};
+                color: {self.contrast_text};
+                border: none;
+                border-radius: 12px;
+                font-weight: 600;
+                font-size: 11.5px;
+                padding: 6px 16px;
+            }}
+            QPushButton#accentBtn:hover {{
+                background-color: {self.hover_accent};
+            }}
+            QPushButton#glassBtn {{
+                background-color: rgba(255, 255, 255, 0.06);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 12px;
+                color: #FFFFFF;
+                font-size: 11.5px;
+                font-weight: 500;
+                padding: 6px 16px;
+            }}
+            QPushButton#glassBtn:hover {{
+                background-color: rgba(255, 255, 255, 0.12);
+                border-color: rgba(255, 255, 255, 0.25);
+            }}
+            QPushButton#closeIconBtn {{
+                background: transparent;
+                border: none;
+                color: #94A3B8;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 14px;
+            }}
+            QPushButton#closeIconBtn:hover {{
+                color: #FFFFFF;
+                background: rgba(255, 255, 255, 0.10);
+            }}
+            QProgressBar {{
+                background-color: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 6px;
+                text-align: center;
+                color: #FFFFFF;
+                font-size: 11px;
+                font-weight: 600;
+                height: 14px;
+            }}
+            QProgressBar::chunk {{
+                background-color: {self.win_accent};
+                border-radius: 5px;
+            }}
+        """)
+        
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(24, 20, 24, 20)
+        main_layout.setSpacing(12)
+        
+        # Header Row
+        top_bar = QHBoxLayout()
+        top_bar.setContentsMargins(0, 0, 0, 0)
+        
+        btn_dummy = QWidget()
+        btn_dummy.setFixedSize(28, 28)
+        top_bar.addWidget(btn_dummy)
+        
+        top_bar.addStretch()
+        
+        header_center = QVBoxLayout()
+        header_center.setSpacing(4)
+        header_center.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_icon.png")
+        if getattr(sys, 'frozen', False):
+            logo_path = os.path.join(sys._MEIPASS, "app_icon.png")
+        self.logo_path = logo_path
+        
+        lbl_logo = QLabel()
+        lbl_logo.setFixedSize(48, 48)
+        lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lbl_logo.setStyleSheet("""
+            background: rgba(23, 27, 38, 0.78);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 12px;
+        """)
+        if os.path.exists(logo_path):
+            lbl_logo.setPixmap(get_rounded_pixmap(logo_path, size=48, radius=12, dpr=3.0))
+        logo_box = QHBoxLayout()
+        logo_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        logo_box.addWidget(lbl_logo)
+        header_center.addLayout(logo_box)
+        
+        title_row = QHBoxLayout()
+        title_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_row.setSpacing(8)
+        lbl_title = QLabel(APP_NAME)
+        lbl_title.setStyleSheet("background: transparent; font-size: 19px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.3px;")
+        title_row.addWidget(lbl_title)
+        
+        lbl_ver = QLabel(APP_VERSION)
+        lbl_ver.setStyleSheet(f"""
+            background: rgba({QColor(self.win_accent).red()}, {QColor(self.win_accent).green()}, {QColor(self.win_accent).blue()}, 0.18);
+            color: {self.win_accent};
+            border: 1px solid rgba({QColor(self.win_accent).red()}, {QColor(self.win_accent).green()}, {QColor(self.win_accent).blue()}, 0.38);
+            border-radius: 6px;
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 2px 7px;
+        """)
+        title_row.addWidget(lbl_ver)
+        header_center.addLayout(title_row)
+        
+        lbl_author = QLabel("Built by <b>Kushal :)</b> 👋 (@kushalarvindo)")
+        lbl_author.setTextFormat(Qt.TextFormat.RichText)
+        lbl_author.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lbl_author.setStyleSheet("font-size: 11.5px; color: #94A3B8;")
+        header_center.addWidget(lbl_author)
+        
+        top_bar.addLayout(header_center)
+        top_bar.addStretch()
+        
+        btn_close_top = QPushButton("✕")
+        btn_close_top.setObjectName("closeIconBtn")
+        btn_close_top.setFixedSize(28, 28)
+        btn_close_top.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_close_top.clicked.connect(self.studio.hide_about)
+        top_bar.addWidget(btn_close_top)
+        
+        main_layout.addLayout(top_bar)
+        
+        # 1. Card 1: Story & Modes
+        card_story = QFrame()
+        card_story.setObjectName("aboutCard")
+        story_layout = QVBoxLayout(card_story)
+        story_layout.setContentsMargins(16, 12, 16, 12)
+        story_layout.setSpacing(10)
+        
+        lbl_story_title = QLabel("ABOUT")
+        lbl_story_title.setStyleSheet("background: transparent; font-size: 10px; font-weight: 700; color: #64748B; letter-spacing: 0.6px;")
+        story_layout.addWidget(lbl_story_title)
+        
+        inner_box = QFrame()
+        inner_box.setObjectName("storyInnerBox")
+        inner_layout = QVBoxLayout(inner_box)
+        inner_layout.setContentsMargins(14, 10, 14, 10)
+        inner_layout.setSpacing(0)
+        
+        story_text = (
+            '<p style="margin: 0 0 8px 0; line-height: 1.5;">'
+            "✦ Hi, I'm Kushal! 👋 I wanted a screensaver that was simple, neat, and actually fun to look at—so I built <b>Dinoscreener</b>.</p>"
+            '<p style="margin: 0 0 8px 0; line-height: 1.5;">'
+            "✦ <b>3 cozy styles</b> in one: a playful <b>Jumping Dino</b>, a classic <b>Flip Clock</b>, and a clean <b>Rotary Dial</b> with your weather & battery.</p>"
+            '<p style="margin: 0 0 8px 0; line-height: 1.5;">'
+            "✦ Made with love to be <b>super smooth</b>, <b>safe for OLED screens</b>, and complete with gentle <b>hourly bell chimes</b>.</p>"
+            '<p style="margin: 0; line-height: 1.5; color: #94A3B8;">'
+            "Hope it makes your desk smile! Ideas are always welcome 😊</p>"
+        )
+        lbl_story = QLabel(story_text)
+        lbl_story.setTextFormat(Qt.TextFormat.RichText)
+        lbl_story.setWordWrap(True)
+        lbl_story.setStyleSheet("background: transparent; font-size: 11px; color: #CBD5E1;")
+        inner_layout.addWidget(lbl_story)
+        story_layout.addWidget(inner_box)
+        
+        pills_row = QHBoxLayout()
+        pills_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        pills_row.setSpacing(8)
+        for icon_text in ["🦕 Chrome Dino", "⏱️ 3D Flip Clock", "⭕ Rotary Dial"]:
+            lbl_pill = QLabel(icon_text)
+            lbl_pill.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            lbl_pill.setFixedHeight(24)
+            lbl_pill.setStyleSheet("""
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 8px;
+                color: #94A3B8;
+                font-size: 10.5px;
+                font-weight: 500;
+                padding: 0 10px;
+            """)
+            pills_row.addWidget(lbl_pill)
+        story_layout.addLayout(pills_row)
+        main_layout.addWidget(card_story)
+        
+        # 2. Card 2: Status & Updates
+        card_upd = QFrame()
+        card_upd.setObjectName("aboutCard")
+        upd_layout = QVBoxLayout(card_upd)
+        upd_layout.setContentsMargins(16, 12, 16, 12)
+        upd_layout.setSpacing(8)
+        
+        lbl_upd_head = QLabel("UPDATES")
+        lbl_upd_head.setStyleSheet("background: transparent; font-size: 10px; font-weight: 700; color: #64748B; letter-spacing: 0.6px;")
+        upd_layout.addWidget(lbl_upd_head)
+        
+        self.lbl_status = QLabel(f"✓ You're on the newest release (<b>{APP_VERSION}</b>).")
+        self.lbl_status.setTextFormat(Qt.TextFormat.RichText)
+        self.lbl_status.setStyleSheet("background: transparent; font-size: 11.5px; color: #E2E8F0;")
+        upd_layout.addWidget(self.lbl_status)
+        
+        self.material_loader = MaterialYouLoader(self.win_accent, self)
+        upd_layout.addWidget(self.material_loader)
+        
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        upd_layout.addWidget(self.progress_bar)
+        
+        upd_btn_row = QHBoxLayout()
+        upd_btn_row.setSpacing(8)
+        
+        self.btn_check = QPushButton("Check for Updates")
+        self.btn_check.setObjectName("glassBtn")
+        self.btn_check.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_check.clicked.connect(self.check_updates_clicked)
+        upd_btn_row.addWidget(self.btn_check, stretch=1)
+        
+        self.btn_install = QPushButton("Download & Install")
+        self.btn_install.setObjectName("accentBtn")
+        self.btn_install.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_install.setVisible(False)
+        self.btn_install.clicked.connect(self.install_update_clicked)
+        upd_btn_row.addWidget(self.btn_install, stretch=1)
+        
+        upd_layout.addLayout(upd_btn_row)
+        main_layout.addWidget(card_upd)
+        
+        # 3. Footer
+        footer_row = QHBoxLayout()
+        self.btn_github = QPushButton("GitHub")
+        self.btn_github.setObjectName("glassBtn")
+        self.btn_github.setFixedWidth(90)
+        self.btn_github.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_github.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(APP_GITHUB_URL)))
+        footer_row.addWidget(self.btn_github)
+        
+        footer_row.addStretch()
+        
+        btn_close = QPushButton("Close")
+        btn_close.setObjectName("glassBtn")
+        btn_close.setFixedWidth(90)
+        btn_close.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_close.clicked.connect(self.studio.hide_about)
+        footer_row.addWidget(btn_close)
+        main_layout.addLayout(footer_row)
+        
+        # Opacity animation for smooth fade-in / fade-out
+        self.opacity_effect = QGraphicsOpacityEffect(self)
+        self.setGraphicsEffect(self.opacity_effect)
+        self.opacity_effect.setOpacity(1.0)
+        
+        self.anim_opacity = QPropertyAnimation(self.opacity_effect, b"opacity", self)
+        self.anim_opacity.setEasingCurve(QEasingCurve.Type.OutQuart)
+        
+        self.latest_download_url = ""
+        self.latest_tag = ""
+
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        w, h = float(self.width()), float(self.height())
+        p.setBrush(QColor(23, 27, 38, 246))
+        p.setPen(QPen(QColor(255, 255, 255, 28), 1.0))
+        p.drawRoundedRect(QRectF(1.0, 1.0, w - 2.0, h - 2.0), 26.0, 26.0)
+        p.end()
+        super().paintEvent(event)
+
+    def show_modal(self):
+        sw = self.studio.width()
+        sh = self.studio.height()
+        self.move((sw - self.width()) // 2, (sh - self.height()) // 2)
+        
+        if hasattr(self.studio.settings, 'latest_update_info') and self.studio.settings.latest_update_info:
+            latest_tag, body, download_url = self.studio.settings.latest_update_info
+            self.on_update_result(True, latest_tag, body, download_url)
+            
+        self.show()
+        self.raise_()
+        
+        self.anim_opacity.stop()
+        try:
+            self.anim_opacity.finished.disconnect()
+        except Exception:
+            pass
+        self.anim_opacity.setDuration(240)
+        self.anim_opacity.setStartValue(0.0)
+        self.anim_opacity.setEndValue(1.0)
+        self.anim_opacity.start()
+
+    def hide_modal(self):
+        if not self.isVisible():
+            return
+        self.anim_opacity.stop()
+        try:
+            self.anim_opacity.finished.disconnect()
+        except Exception:
+            pass
+        self.anim_opacity.finished.connect(self.hide)
+        self.anim_opacity.setDuration(200)
+        self.anim_opacity.setStartValue(self.opacity_effect.opacity())
+        self.anim_opacity.setEndValue(0.0)
+        self.anim_opacity.start()
+
+    def check_updates_clicked(self):
+        self.lbl_status.setText("Checking GitHub for the latest release...")
+        self.btn_check.setEnabled(False)
+        self.material_loader.start()
+        self.worker = UpdateCheckerWorker()
+        self.worker.update_result.connect(self.on_update_result)
+        self.worker.check_failed.connect(self.on_check_failed)
+        self.worker.start()
+
+    def on_update_result(self, has_update, latest_tag, body, download_url):
+        self.material_loader.stop()
+        self.btn_check.setEnabled(True)
+        self.latest_download_url = download_url
+        self.latest_tag = latest_tag
+        if has_update:
+            self.lbl_status.setText(f"🎉 <b>Update {latest_tag} available!</b> Current version is {APP_VERSION}.")
+            self.btn_install.setVisible(True)
+            self.btn_install.setText(f"Download & Install {latest_tag}")
+        else:
+            self.lbl_status.setText(f"✓ You are running the newest release (<b>{APP_VERSION}</b>).")
+            self.btn_install.setVisible(False)
+
+    def on_check_failed(self, err_msg):
+        self.material_loader.stop()
+        self.btn_check.setEnabled(True)
+        self.lbl_status.setText(f"Could not connect to GitHub API: {err_msg}")
+
+    def install_update_clicked(self):
+        if not self.latest_download_url:
+            QDesktopServices.openUrl(QUrl(f"{APP_GITHUB_URL}/releases/latest"))
+            return
+        self.btn_install.setEnabled(False)
+        self.btn_check.setEnabled(False)
+        self.material_loader.stop()
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setValue(0)
+        self.lbl_status.setText(f"Downloading {self.latest_tag} from GitHub...")
+        
+        self.down_worker = DownloadWorker(self.latest_download_url)
+        self.down_worker.progress.connect(self.on_download_progress)
+        self.down_worker.finished.connect(self.on_download_finished)
+        self.down_worker.failed.connect(self.on_download_failed)
+        self.down_worker.start()
+
+    def on_download_progress(self, downloaded, total):
+        if total > 0:
+            pct = int((downloaded / total) * 100)
+            self.progress_bar.setValue(pct)
+            mb_down = downloaded / (1024 * 1024)
+            mb_tot = total / (1024 * 1024)
+            self.lbl_status.setText(f"Downloading {self.latest_tag}: {mb_down:.1f} MB / {mb_tot:.1f} MB ({pct}%)")
+        else:
+            mb_down = downloaded / (1024 * 1024)
+            self.lbl_status.setText(f"Downloading {self.latest_tag}: {mb_down:.1f} MB...")
+
+    def on_download_finished(self, downloaded_file):
+        self.progress_bar.setValue(100)
+        self.lbl_status.setText("Download complete! Applying update...")
+        dlg = AboutDialog(self, win_accent=self.win_accent, auto_check=False)
+        dlg.apply_update(downloaded_file)
+
+
 class StudioInfoButton(QPushButton):
     def __init__(self, studio):
         super().__init__(studio)
         self.studio = studio
-        self.setFixedSize(40, 40)
+        self.setFixedSize(42, 42)
         self.setObjectName("studioInfoBtn")
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setIcon(get_or_create_info_duotone_icon(self.studio.win_accent))
         self.setIconSize(QSize(22, 22))
         self.setToolTip("About, version & updates")
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
-        self.clicked.connect(self.studio.open_about)
+        self.clicked.connect(self.studio.toggle_about)
 
     def paintEvent(self, event):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         w, h = float(self.width()), float(self.height())
-        bg_col = QColor(32, 38, 54, 250) if self.underMouse() else QColor(23, 27, 38, 250)
-        border_col = QColor(255, 255, 255, 50) if self.underMouse() else QColor(255, 255, 255, 22)
+        bg_col = QColor(36, 42, 60, 245) if self.underMouse() else QColor(23, 27, 38, 238)
+        border_col = QColor(255, 255, 255, 60) if self.underMouse() else QColor(255, 255, 255, 26)
         p.setBrush(bg_col)
         p.setPen(QPen(border_col, 1.0))
         p.drawEllipse(QRectF(1.0, 1.0, w - 2.0, h - 2.0))
@@ -2816,7 +3225,7 @@ class StudioActionDock(QFrame):
     def __init__(self, studio):
         super().__init__(studio)
         self.studio = studio
-        self.setFixedSize(330, 42)
+        self.setFixedSize(330, 44)
         self.setObjectName("studioDock")
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         
@@ -2900,9 +3309,9 @@ class StudioActionDock(QFrame):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         w, h = float(self.width()), float(self.height())
-        p.setBrush(QColor(23, 27, 38, 250))
-        p.setPen(QPen(QColor(255, 255, 255, 22), 1.0))
-        p.drawRoundedRect(QRectF(1.0, 1.0, w - 2.0, h - 2.0), 16.0, 16.0)
+        p.setBrush(QColor(23, 27, 38, 238))
+        p.setPen(QPen(QColor(255, 255, 255, 26), 1.0))
+        p.drawRoundedRect(QRectF(1.0, 1.0, w - 2.0, h - 2.0), 22.0, 22.0)
         p.end()
         super().paintEvent(event)
 
@@ -2959,6 +3368,7 @@ class FullscreenStudioMode(QWidget):
             studio_mode=True
         )
         self.clock.setMouseTracking(True)
+        self.clock.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.clock.installEventFilter(self)
         self.clock.lower()
         
@@ -2978,9 +3388,9 @@ class FullscreenStudioMode(QWidget):
         self.mode_capsule.on_width_changed = self._recenter_mode_capsule
         
         # 3. Real Working Drawers: Hosting the ACTUAL Settings cards
-        self.left_drawer = StudioDrawer(self, self.win_accent, check_icon_path, 330, 310)
-        self.top_drawer = StudioDrawer(self, self.win_accent, check_icon_path, 340, 265)
-        self.right_drawer = StudioDrawer(self, self.win_accent, check_icon_path, 270, 210)
+        self.left_drawer = StudioDrawer(self, self.win_accent, check_icon_path, 340, 316)
+        self.top_drawer = StudioDrawer(self, self.win_accent, check_icon_path, 350, 270)
+        self.right_drawer = StudioDrawer(self, self.win_accent, check_icon_path, 280, 216)
         
         self.left_drawer.set_card(self.settings.card_mode)
         self.top_drawer.set_card(self.settings.card_disp)
@@ -2991,6 +3401,10 @@ class FullscreenStudioMode(QWidget):
         self.top_grabber = SpatialGrabberBar(self, edge='top')
         self.right_grabber = SpatialGrabberBar(self, edge='right')
         
+        # 5. In-Canvas About Modal (Zero window focus deactivation)
+        self.about_modal = StudioAboutModal(self)
+        self.about_modal.hide()
+        
         # State tracking
         self.left_open = False
         self.top_open = False
@@ -2998,16 +3412,16 @@ class FullscreenStudioMode(QWidget):
         
         # Position animations
         self.anim_left = QPropertyAnimation(self.left_drawer, b"pos", self)
-        self.anim_left.setDuration(180)
-        self.anim_left.setEasingCurve(QEasingCurve.Type.OutCubic)
+        self.anim_left.setDuration(260)
+        self.anim_left.setEasingCurve(QEasingCurve.Type.OutQuart)
         
         self.anim_top = QPropertyAnimation(self.top_drawer, b"pos", self)
-        self.anim_top.setDuration(180)
-        self.anim_top.setEasingCurve(QEasingCurve.Type.OutCubic)
+        self.anim_top.setDuration(260)
+        self.anim_top.setEasingCurve(QEasingCurve.Type.OutQuart)
         
         self.anim_right = QPropertyAnimation(self.right_drawer, b"pos", self)
-        self.anim_right.setDuration(180)
-        self.anim_right.setEasingCurve(QEasingCurve.Type.OutCubic)
+        self.anim_right.setDuration(260)
+        self.anim_right.setEasingCurve(QEasingCurve.Type.OutQuart)
 
     def _recenter_mode_capsule(self, w=None):
         if w is None:
@@ -3046,6 +3460,11 @@ class FullscreenStudioMode(QWidget):
         self.left_grabber.raise_()
         self.top_grabber.raise_()
         self.right_grabber.raise_()
+        
+        if hasattr(self, 'about_modal'):
+            self.about_modal.move((sw - self.about_modal.width()) // 2, (sh - self.about_modal.height()) // 2)
+            if self.about_modal.isVisible():
+                self.about_modal.raise_()
         
         if self.left_open:
             self.left_drawer.move(24, (sh - self.left_drawer.height()) // 2)
@@ -3122,6 +3541,10 @@ class FullscreenStudioMode(QWidget):
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.MouseButtonPress:
             pos = self.mapFromGlobal(event.globalPosition().toPoint())
+            if hasattr(self, 'about_modal') and self.about_modal.isVisible():
+                if not self.about_modal.geometry().contains(pos):
+                    self.hide_about()
+                    return True
             if self.left_open and not self.left_drawer.geometry().contains(pos):
                 self.set_left_drawer_open(False)
             if self.top_open and not self.top_drawer.geometry().contains(pos):
@@ -3132,6 +3555,11 @@ class FullscreenStudioMode(QWidget):
 
     def mousePressEvent(self, event):
         pos = event.pos()
+        if hasattr(self, 'about_modal') and self.about_modal.isVisible():
+            if not self.about_modal.geometry().contains(pos):
+                self.hide_about()
+                event.accept()
+                return
         closed_any = False
         if self.left_open and not self.left_drawer.geometry().contains(pos):
             self.set_left_drawer_open(False)
@@ -3145,23 +3573,22 @@ class FullscreenStudioMode(QWidget):
         if not closed_any:
             super().mousePressEvent(event)
 
-    def open_about(self):
+    def toggle_about(self):
+        if hasattr(self, 'about_modal') and self.about_modal.isVisible():
+            self.hide_about()
+        else:
+            self.show_about()
+
+    def show_about(self):
         self.set_left_drawer_open(False)
         self.set_top_drawer_open(False)
         self.set_right_drawer_open(False)
-        
-        dlg = AboutDialog(self, win_accent=self.win_accent, auto_check=False)
-        if hasattr(self.settings, 'latest_update_info') and self.settings.latest_update_info:
-            latest_tag, body, download_url = self.settings.latest_update_info
-            dlg.on_update_result(True, latest_tag, body, download_url)
-        dlg.exec()
-        
-        self.showFullScreen()
-        self.raise_()
-        self.activateWindow()
-        self.setFocus()
-        if hasattr(self, 'clock') and self.clock:
-            self.clock.setFocus()
+        if hasattr(self, 'about_modal'):
+            self.about_modal.show_modal()
+
+    def hide_about(self):
+        if hasattr(self, 'about_modal') and self.about_modal.isVisible():
+            self.about_modal.hide_modal()
 
     def changeEvent(self, event):
         if event.type() == QEvent.Type.ActivationChange and self.isActiveWindow():
@@ -3223,6 +3650,11 @@ class FullscreenStudioMode(QWidget):
         super().closeEvent(event)
 
     def keyPressEvent(self, event):
+        if hasattr(self, 'about_modal') and self.about_modal.isVisible():
+            if event.key() in (Qt.Key.Key_Escape, Qt.Key.Key_Return, Qt.Key.Key_Space):
+                self.hide_about()
+                event.accept()
+                return
         if event.key() == Qt.Key.Key_Space:
             new_val = not self.clock.show_bg
             self.clock.show_bg = new_val
@@ -3245,6 +3677,7 @@ class FullscreenStudioMode(QWidget):
             event.accept()
             return
         super().keyPressEvent(event)
+
 
 class SettingsDialog(QDialog):
     def __init__(self, config_path):
