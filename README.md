@@ -1,8 +1,8 @@
 <div align="center">
   <img src="app_icon.png" width="96" height="96" alt="Dinoscreener Logo" style="border-radius: 20px;" />
   <h1>🦕 Dinoscreener</h1>
-  <p><strong>A stunning, ultra-minimalist modern clock screensaver suite for Windows & Linux.</strong></p>
-  <p>Featuring <strong>Modern Rotary</strong>, <strong>Classic Flip Clock</strong>, and <strong>Chrome Dino Runner</strong> with custom typography & sprite imports.</p>
+  <p><strong>The modern, ultra-aesthetic clock screensaver suite for Windows & Linux.</strong></p>
+  <p>Featuring <strong>Modern Rotary</strong>, <strong>Classic Flip Clock</strong>, and <strong>Chrome Dino Runner</strong> with real-time physics, Apple visionOS spatial studio, and custom typography & sprite imports.</p>
 
   <p>
     <a href="https://github.com/kushalarvindo/dinoscreener/releases"><img src="https://img.shields.io/github/v/release/kushalarvindo/dinoscreener?color=0078D4&style=flat-square" alt="Latest Release" /></a>
@@ -16,109 +16,115 @@
 <br />
 
 <div align="center">
-  <img src="screenshots/dino.gif" alt="Dinoscreener Screenshot" width="800">
+  <img src="screenshots/Screenshot (Fullscreen Studio Mode).png" alt="Dinoscreener Fullscreen Studio Mode" width="850" style="border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1);">
+  <p><em>The all-new Apple visionOS-inspired Fullscreen Studio Mode in v6.1 — pure edge-to-edge `#000000`, spatial grabbers & floating obsidian glass drawers.</em></p>
 </div>
 
 ---
 
-## ✨ Features & Architecture
+## 👋 Hey there!
 
-Dinoscreener is built natively using **Python** and **PyQt6**. It renders buttery-smooth 60 FPS antialiased graphics drawn using vector `QPainter` geometry and real-time physics.
+Tired of boring Windows screensavers that look like they haven't seen an update since Windows XP? Me too. 
 
-### 🎨 Clock Modes
-
-Dinoscreener features three distinct, meticulously crafted clock styles. Switch between them instantly using the **Up/Down arrow keys** or via the interactive settings dialog!
-
-| Mode | Description | Preview |
-|---|---|---|
-| **Modern Rotary** | A dual-ring rotary interface calculating exact rotation angles using trigonometry for a seamless spinning wheel effect with optional Weather & Battery telemetry. | <img src="screenshots/Screenshot (Modern Rotary).png" width="260" alt="Rotary Clock"> |
-| **Classic Flip Clock** | A retro mechanical flip-clock style utilizing 3D perspective scaling to visually compress flip tiles, customizable scaling, and leading zero toggles. | <img src="screenshots/Screenshot (Flip Clock).png" width="260" alt="Flip Clock"> |
-| **Chrome Dino Game** | An authentic auto-playing Chrome Dino runner with accurate gravity physics, procedurally generated obstacles, and custom typography/sprites. | <img src="screenshots/Screenshot (Chrome Dino Game).png" width="260" alt="Dino Game"> |
+I built **Dinoscreener** because I wanted something clean, distraction-free, and genuinely aesthetic for my desk setup. Whether you're pulling an all-nighter studying, letting your OLED display chill without burn-in, or just vibing to lo-fi beats, Dinoscreener turns your monitor into a stunning minimalist centerpiece with butter-smooth 60–165Hz animations, tactile hourly chimes, and an offline Dino runner that actually jumps over cacti in real time.
 
 ---
 
-### 🎛️ Modern Spatial Settings Studio
+## 🎨 Three Distinct Clock Modes
+
+Switch between them on the fly using the **Up / Down arrow keys**, the floating mode switcher, or right from the visual settings studio!
+
+| Mode | What makes it cool | Preview |
+|---|---|---|
+| **Modern Rotary** | A hypnotic dual-ring rotary dial calculating rotation angles with exact trigonometry for a sleek spinning wheel effect. Includes real-time weather and battery telemetry. | <img src="screenshots/Screenshot (Modern Rotary).png" width="260" alt="Rotary Clock"> |
+| **Classic Flip Clock** | Vintage mechanical split-flap aesthetic using 3D perspective scaling to simulate realistic tile drops. Super customizable with leading zero toggles and scale slider. | <img src="screenshots/Screenshot (Flip Clock).png" width="260" alt="Flip Clock"> |
+| **Chrome Dino Runner** | The legendary offline Chrome Dino game, running on auto-pilot with authentic gravity physics, obstacles, and the ability to drop in your own custom fonts and character sprites! | <img src="screenshots/Screenshot (Chrome Dino Game).png" width="260" alt="Dino Game"> |
 
 <div align="center">
-  <img src="screenshots/Screenshot (Settings UI).png" alt="Settings UI" width="700">
+  <img src="screenshots/dino.gif" alt="Dino Runner in motion" width="700">
 </div>
 
-- **16:9 Authentic Widescreen Preview**: Real-time live canvas displaying exact font scaling, sprite styling, and visual luminance before applying.
-- **Symmetrical Capsule Mode Switcher**: A minimalist pill indicator that automatically expands on hover into a floating segmented switcher, featuring corner-anchored directional indicator dots and dead-centered active mode typography.
-- **Windows 11 Dynamic Accent Color**: Automatically reads your Windows 11 accent color (`DWM / AccentColorMenu`) and harmonizes buttons, sliders, duotone icons, and checkboxes with your desktop theme.
-- **Custom Typography & Sprite Engine**: Simply **drag and drop** any `.ttf` / `.otf` font file or `.png` / `.jpg` sprite image directly onto the window to customize clock numbers or character sprites. Revert anytime with one click.
-- **Ambient Lighting Mode**: Soft, silky background glow orbs that can be toggled via the settings menu or instantly with the **Spacebar**.
-- **Tactile Luminance & Scale Controls**: Full-width brightness slider (10% to 100%) and interactive scale slider with tactile `-` / `+` micro-adjusters.
-- **Per-Monitor v2 High-DPI Super-Sampling**: Crystal-sharp vector graphics, smooth bilinear pixmap interpolation (`SmoothPixmapTransform`), and antialiased DirectWrite typography across 100%, 125%, 150%, 175%, and 200% displays on 2K and 4K monitors.
-- **Hardware-Grade OLED Burn-in Protection**: Continuous Lissajous orbital subpixel shifting ($\pm 8\text{px} \times \pm 6\text{px}$ over a 2.6–4.2 min period) redistributes luminous diode wear across 2K and 4K OLED panels to prevent static element burn-in.
-- **High-Refresh Smoothness (165Hz/144Hz/120Hz)**: Dynamic delta-time physics and frame pacing eliminate micro-stutters and judder in the Chrome Dino runner across high-refresh gaming displays.
-- **Dynamic Frame Throttle (Power Optimization)**: Intelligently throttles frame rates down to 1 FPS when the clock is static, slashing idle CPU consumption from ~45% of a core to < 0.5% while instantly snapping to native refresh rates during card flips and game runs.
-- **Multi-Preset Acoustic Hourly Chimes & Volume Control**: Choose from 4 built-in synthesized chime styles (*Acoustic Bell*, *Windows Modern Chime*, *Zen Singing Bowl*, *Minimal Watch Ping*), dial in your preferred volume with a tactile slider (5% to 100%), or drag-and-drop any custom audio file (`.wav`, `.mp3`, `.ogg`, `.flac`) with one-click test preview!
-- **Automated In-App Update Checker & Info Dialog (`ⓘ`)**: Automatic background checks against GitHub Releases, notifying you of updates with one-click download, verification, and automatic installation handoff. Featuring an authentic, golden-ratio balanced creator profile.
-- **Independent Telemetry & Weather Feeds**: Toggle Weather and Battery displays independently (centered alone or joined with a separator dot), and toggle between Celsius (`°C`) and Fahrenheit (`°F`).
-- **Cross-Platform Battery Telemetry**: Native battery reading via `kernel32` on Windows and `/sys/class/power_supply` on Linux laptops.
-- **Strict Exit & System Intercepts**:
-  - **Lock Screen on Exit (`Ctrl + Z`)**: Keeps the screensaver active even on mouse movement; requires `Ctrl + Z` to unlock.
-  - **Ignore Media Keys**: Prevents volume knobs or Spotify track changes from prematurely closing the screensaver.
-  - **Windows Key Guard**: Disables the Windows key to prevent accidental taskbar pops.
+---
+
+## 🥽 Spatial Fullscreen Studio Mode (`[ ⛶ ]`)
+
+Hit the **`[ ⛶ ]`** button anywhere in the settings menu to enter **Fullscreen Studio Mode** — an immersive, Apple visionOS-inspired interactive control room:
+
+- **True Edge-to-Edge Canvas**: The normal window chrome completely disappears. The live clock fills 100% of your screen on pure `#000000` black so OLED screens can completely shut off their pixels.
+- **Luminous Spatial Grabber Bars**: Hover near the sleek glowing pills at the top, left, or right edges to slide out translucent obsidian glass drawers containing your settings.
+- **Symmetrical Mode Capsule**: A floating bottom dock lets you switch clock styles instantly while previewing them at your monitor's true full resolution.
+- **Zero-Lag 165Hz Architecture**: Built with lightweight native composition without heavy CPU blur filters, keeping your high-refresh gaming display locked at native refresh rate.
+- **Seamless State Sync**: Tweak anything in Fullscreen Studio and tap `Esc` or `✕ Exit` — all your changes instantly sync back to the main settings window without missing a beat.
 
 ---
 
-## ⌨️ Controls & Keyboard Shortcuts
+## 🎛️ The Visual Settings Studio
 
-While the screensaver is running, you can use these keyboard shortcuts to modify it in real time:
+<div align="center">
+  <img src="screenshots/Screenshot (Settings UI).png" alt="Settings UI" width="750" style="border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1);">
+</div>
 
-- **`Spacebar`**: Toggle Ambient Mode glow orbs (or restart Dino game after Game Over).
-- **`Arrow Up` / `Arrow Down`**: Toggle between Flip Clock, Rotary Modern, and Chrome Dino clock styles.
-- **`+` (Plus) / `-` (Minus)**: Scale the clock size up or down in real time.
-- **`Ctrl + Z`**: Unlock / exit the screensaver when "Lock Screen on Exit" (Strict Exit) is enabled.
+- **Windows 11 Accent Synchronization**: Automatically grabs your system accent color from `DWM` and dynamically styles all buttons, sliders, and glows to match your desktop wallpaper.
+- **Drag & Drop Custom Fonts & Sprites**: Don't like the default fonts? Drag and drop any `.ttf` or `.otf` file onto the window to customize clock numbers. Want your own character instead of the Dino? Drag and drop any `.png` sprite!
+- **Acoustic Hourly Chimes**: 4 handcrafted chime sounds (*Acoustic Bell*, *Windows Modern Chime*, *Zen Singing Bowl*, *Minimal Watch Ping*), complete with a tactile volume slider and a `🔔 Test` button. You can even import your own custom `.wav` chime sound!
+- **Hardware-Grade OLED Burn-In Shield**: An automated orbital Lissajous subpixel micro-drift gently migrates static elements across a $\pm 8\text{px} \times \pm 6\text{px}$ zone over a 3-minute period, ensuring zero burn-in on OLED displays.
+- **Razor-Sharp High-DPI Vector UI**: Custom vector checkmarks and crisp antialiased rendering looking razor-sharp on 100%, 125%, 150%, and 200% scaling factors across 2K and 4K displays.
+- **Dynamic Battery Saver**: Automatically throttles to 1 FPS when the clock face is static, dropping idle CPU utilization to `< 0.5%`, then instantly spikes to 165Hz whenever cards flip or the dino jumps.
+- **System Intercepts & Security**:
+  - **Strict Exit (`Ctrl + Z`)**: Keeps the screensaver locked on screen against accidental bumps until you enter `Ctrl + Z`.
+  - **Ignore Media Keys**: Volume dials and Spotify track skips won't dismiss your screensaver.
+  - **Windows Key Guard**: Suppresses accidental Start Menu popups.
 
 ---
 
-## 🚀 Quick Setup (Pre-Compiled)
+## ⌨️ Shortcuts & Hotkeys
 
-### 🪟 Windows Setup
-You can use Dinoscreener in two ways on Windows:
+While the screensaver is running, you're in full control:
 
-1. **Native Screensaver Mode (`.scr`)**:
-   - Download **`Dinoscreener.scr`** from the [Releases](https://github.com/kushalarvindo/dinoscreener/releases) page.
-   - Right-click on **`Dinoscreener.scr`** and select **Install**.
-   - The Windows Screen Saver Settings dialog will open automatically. Click **Settings...** to customize your preferences!
+| Key | Action |
+|---|---|
+| **`Spacebar`** | Toggle Ambient Mode backlight orbs (or respawn Dino if game over) |
+| **`Arrow Up` / `Arrow Down`** | Switch instantly between Flip Clock, Rotary Modern, and Dino Runner |
+| **`+` / `-`** | Scale the clock larger or smaller |
+| **`Ctrl + Z`** | Unlock screensaver when Strict Lock is enabled |
+| **`Esc`** | Exit Fullscreen Studio Mode back to Settings |
 
-2. **Standalone Desktop Mode (`.exe`)**:
-   - Download **`Dinoscreener.exe`** from the [Releases](https://github.com/kushalarvindo/dinoscreener/releases) page.
-   - Double-click to run immediately without needing installation.
+---
 
-> [!WARNING]
-> **Windows Defender Notice**  
-> Because `Dinoscreener.scr` is compiled into a standalone executable without an expensive enterprise code-signing certificate, Windows Defender SmartScreen might prompt an unrecognized binary notice.  
-> **This is normal and safe.** The entire codebase is 100% open source. To proceed, click **More Info** $\rightarrow$ **Run Anyway** (or select **Allow on device** in Windows Security).
+## 🚀 Download & Installation
 
-### 🐧 Linux Setup
-1. Download **`dinoscreener-linux-x86_64.tar.gz`** from the [Releases](https://github.com/kushalarvindo/dinoscreener/releases) page.
-2. Extract the archive and run the one-click installer:
+### 🪟 Windows (Recommended)
+You can grab the pre-compiled binaries directly from the [Releases](https://github.com/kushalarvindo/dinoscreener/releases) page:
+
+1. **Install as Native Windows Screensaver (`.scr`)**:
+   - Download **`Dinoscreener.scr`**.
+   - Right-click **`Dinoscreener.scr`** $\rightarrow$ **Install**.
+   - The classic Windows Screen Saver dialog will pop up. Click **Settings...** to open the studio!
+
+2. **Standalone Portable App (`.exe`)**:
+   - Download **`Dinoscreener.exe`** and launch it anywhere — no installer required.
+
+> [!NOTE]
+> **Windows SmartScreen Note**: Because open-source indie software doesn't come with a \$500/year enterprise certificate, Windows Defender SmartScreen may ask for confirmation on first launch. Click **More Info** $\rightarrow$ **Run Anyway**. The source code is 100% open and verifiable right here.
+
+### 🐧 Linux
+1. Grab **`dinoscreener-linux-x86_64.tar.gz`** from [Releases](https://github.com/kushalarvindo/dinoscreener/releases).
+2. Extract and run the installer:
    ```bash
    tar -xzvf dinoscreener-linux-x86_64.tar.gz
    cd dinoscreener
    chmod +x install-linux.sh
    ./install-linux.sh
    ```
-3. Launch **Dinoscreener** from your application menu, or run from the command line:
-   - `dinoscreener` or `dinoscreener --settings` $\rightarrow$ Opens the visual settings studio.
-   - `dinoscreener --fullscreen` or `dinoscreener -s` $\rightarrow$ Launches the screensaver directly in fullscreen.
+3. Run `dinoscreener --settings` to customize or `dinoscreener --fullscreen` to start relaxing.
 
 ---
 
-## 🛠️ How to Compile It Yourself
+## 🛠️ Building from Source
 
-If you prefer building the binary directly from source:
+If you like compiling things yourself:
 
-### Prerequisites
-- Python 3.10+
-- `pip` package manager
-
-### Windows Build Steps
-```cmd
+```bash
 git clone https://github.com/kushalarvindo/dinoscreener.git
 cd dinoscreener
 pip install -r requirements.txt
@@ -126,22 +132,13 @@ pyinstaller Dinoscreener.spec --noconfirm
 copy /y dist\Dinoscreener.exe Dinoscreener.scr
 ```
 
-### Linux Build Steps
-```bash
-git clone https://github.com/kushalarvindo/dinoscreener.git
-cd dinoscreener
-pip install -r requirements.txt
-pyinstaller --noconfirm --onefile --windowed --add-data "Bungee-Regular.ttf:." --add-data "app_icon.png:." --name dinoscreener screensaver.py
-chmod +x dist/dinoscreener
-./dist/dinoscreener --settings
-```
-
 ---
 
 <div align="center">
+  <p>Built with ❤️, Python, and caffeine by <b>Kushal :)</b> 👋 (<a href="https://github.com/kushalarvindo">@kushalarvindo</a>)</p>
+  <p>If you enjoy Dinoscreener, give it a ⭐ on GitHub — it means the world!</p>
+  <br />
   <a href="https://github.com/kushalarvindo/dinoscreener">
     <img src="https://komarev.com/ghpvc/?username=kushalarvindo-dinoscreener&label=Views&color=0078D4&style=flat-square" alt="Repository Views" />
   </a>
-  <br /><br />
-  <p>Crafted with precision using Python & PyQt6</p>
 </div>

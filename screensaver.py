@@ -29,7 +29,7 @@ from PyQt6.QtGui import (
     QFontDatabase, QPixmap, QImage, QIcon, QBrush, QDesktopServices
 )
 
-APP_VERSION = "v6.0"
+APP_VERSION = "v6.1"
 APP_NAME = "Dinoscreener"
 APP_AUTHOR = "Kushal Arvind"
 APP_GITHUB_REPO = "kushalarvindo/dinoscreener"
