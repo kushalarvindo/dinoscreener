@@ -16,8 +16,7 @@
 <br />
 
 <div align="center">
-  <img src="screenshots/Screenshot (Fullscreen Studio Mode).png" alt="Dinoscreener Fullscreen Studio Mode" width="850" style="border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1);">
-  <p><em>The all-new Apple visionOS-inspired Fullscreen Studio Mode in v6.1 — pure edge-to-edge `#000000`, spatial grabbers & floating obsidian glass drawers.</em></p>
+  <img src="screenshots/dino.gif" alt="Dinoscreener Screenshot" width="800">
 </div>
 
 ---
@@ -40,13 +39,13 @@ Switch between them on the fly using the **Up / Down arrow keys**, the floating 
 | **Classic Flip Clock** | Vintage mechanical split-flap aesthetic using 3D perspective scaling to simulate realistic tile drops. Super customizable with leading zero toggles and scale slider. | <img src="screenshots/Screenshot (Flip Clock).png" width="260" alt="Flip Clock"> |
 | **Chrome Dino Runner** | The legendary offline Chrome Dino game, running on auto-pilot with authentic gravity physics, obstacles, and the ability to drop in your own custom fonts and character sprites! | <img src="screenshots/Screenshot (Chrome Dino Game).png" width="260" alt="Dino Game"> |
 
-<div align="center">
-  <img src="screenshots/dino.gif" alt="Dino Runner in motion" width="700">
-</div>
-
 ---
 
 ## 🥽 Spatial Fullscreen Studio Mode (`[ ⛶ ]`)
+
+<div align="center">
+  <img src="screenshots/Screenshot (Fullscreen Studio Mode).png" alt="Fullscreen Studio Mode" width="800">
+</div>
 
 Hit the **`[ ⛶ ]`** button anywhere in the settings menu to enter **Fullscreen Studio Mode** — an immersive, Apple visionOS-inspired interactive control room:
 
@@ -61,7 +60,7 @@ Hit the **`[ ⛶ ]`** button anywhere in the settings menu to enter **Fullscreen
 ## 🎛️ The Visual Settings Studio
 
 <div align="center">
-  <img src="screenshots/Screenshot (Settings UI).png" alt="Settings UI" width="750" style="border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1);">
+  <img src="screenshots/Screenshot (Settings UI).png" alt="Settings UI" width="750">
 </div>
 
 - **Windows 11 Accent Synchronization**: Automatically grabs your system accent color from `DWM` and dynamically styles all buttons, sliders, and glows to match your desktop wallpaper.
