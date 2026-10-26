@@ -3557,17 +3557,33 @@ class FullscreenStudioMode(QWidget):
         self.mode_capsule.set_current_mode(self.clock.clock_style)
 
     def close_studio(self):
+        if hasattr(self, 'settings') and self.settings:
+            try:
+                self.settings.restore_cards()
+            except Exception:
+                pass
+            self.settings.studio = None
+            try:
+                self.settings.show()
+                self.settings.raise_()
+                self.settings.activateWindow()
+            except Exception:
+                pass
         self.close()
 
     def closeEvent(self, event):
         if hasattr(self, 'settings') and self.settings:
             try:
                 self.settings.restore_cards()
+            except Exception as e:
+                print("Error restoring cards:", e)
+            self.settings.studio = None
+            try:
                 self.settings.show()
                 self.settings.raise_()
                 self.settings.activateWindow()
-            except Exception as e:
-                print("Error restoring cards:", e)
+            except Exception:
+                pass
         super().closeEvent(event)
 
     def keyPressEvent(self, event):
@@ -3937,9 +3953,12 @@ class SettingsDialog(QDialog):
             self.card_mode.setParent(self)
             self.card_disp.setParent(self)
             self.card_sys.setParent(self)
-            self.cards_row.addWidget(self.card_mode, stretch=1)
-            self.cards_row.addWidget(self.card_disp, stretch=1)
-            self.cards_row.addWidget(self.card_sys, stretch=1)
+            if self.cards_row.indexOf(self.card_mode) == -1:
+                self.cards_row.addWidget(self.card_mode, stretch=1)
+            if self.cards_row.indexOf(self.card_disp) == -1:
+                self.cards_row.addWidget(self.card_disp, stretch=1)
+            if self.cards_row.indexOf(self.card_sys) == -1:
+                self.cards_row.addWidget(self.card_sys, stretch=1)
             self.card_mode.show()
             self.card_disp.show()
             self.card_sys.show()
@@ -3957,42 +3976,56 @@ class SettingsDialog(QDialog):
         self.sync_studio_clock()
 
     def _get_active_dialog_parent(self):
-        if hasattr(self, 'studio') and self.studio and self.studio.isVisible():
-            return self.studio
+        try:
+            if hasattr(self, 'studio') and self.studio and self.studio.isVisible():
+                return self.studio
+        except (RuntimeError, AttributeError):
+            self.studio = None
+        except Exception:
+            pass
         return self
 
     def sync_studio_clock(self):
-        if hasattr(self, 'studio') and self.studio and hasattr(self.studio, 'clock') and self.studio.clock:
-            c = self.studio.clock
-            p = self.preview
-            c.clock_style = p.clock_style
-            c.clock_scales = dict(p.clock_scales)
-            c.leading_zeros = dict(p.leading_zeros)
-            c.rotary_accent = p.rotary_accent
-            c.show_bg = p.show_bg
-            c.brightness = p.brightness
-            c.use_24hr = p.use_24hr
-            c.show_weather = p.show_weather
-            c.show_battery = p.show_battery
-            c.use_fahrenheit = p.use_fahrenheit
-            c.pixel_shift = p.pixel_shift
-            c.strict_exit = getattr(p, 'strict_exit', False)
-            c.ignore_media_keys = getattr(p, 'ignore_media_keys', False)
-            c.enable_win_key = getattr(p, 'enable_win_key', False)
-            c.hourly_chime = p.hourly_chime
-            c.chime_preset = getattr(p, 'chime_preset', 'acoustic_bell')
-            c.chime_volume = getattr(p, 'chime_volume', 45)
-            c.custom_chime_path = getattr(p, 'custom_chime_path', '')
-            c.primary_font = getattr(p, 'primary_font', '')
-            c.primary_font_family = getattr(p, 'primary_font_family', '')
-            c.dino_font = getattr(p, 'dino_font', 'Bungee')
-            c.character_type = getattr(p, 'character_type', 'dino')
-            c.custom_character_image = getattr(p, 'custom_character_image', '')
-            if c.character_type == "custom" and c.custom_character_image:
-                c.set_custom_character(c.custom_character_image)
-            elif hasattr(p, 'custom_char_pixmap') and p.custom_char_pixmap and not p.custom_char_pixmap.isNull():
-                c.custom_char_pixmap = p.custom_char_pixmap
-            c.update()
+        try:
+            if hasattr(self, 'studio') and self.studio:
+                if not self.studio.isVisible():
+                    return
+                c = getattr(self.studio, 'clock', None)
+                if not c:
+                    return
+                p = self.preview
+                c.clock_style = p.clock_style
+                c.clock_scales = dict(p.clock_scales)
+                c.leading_zeros = dict(p.leading_zeros)
+                c.rotary_accent = p.rotary_accent
+                c.show_bg = p.show_bg
+                c.brightness = p.brightness
+                c.use_24hr = p.use_24hr
+                c.show_weather = p.show_weather
+                c.show_battery = p.show_battery
+                c.use_fahrenheit = p.use_fahrenheit
+                c.pixel_shift = p.pixel_shift
+                c.strict_exit = getattr(p, 'strict_exit', False)
+                c.ignore_media_keys = getattr(p, 'ignore_media_keys', False)
+                c.enable_win_key = getattr(p, 'enable_win_key', False)
+                c.hourly_chime = p.hourly_chime
+                c.chime_preset = getattr(p, 'chime_preset', 'acoustic_bell')
+                c.chime_volume = getattr(p, 'chime_volume', 45)
+                c.custom_chime_path = getattr(p, 'custom_chime_path', '')
+                c.primary_font = getattr(p, 'primary_font', '')
+                c.primary_font_family = getattr(p, 'primary_font_family', '')
+                c.dino_font = getattr(p, 'dino_font', 'Bungee')
+                c.character_type = getattr(p, 'character_type', 'dino')
+                c.custom_character_image = getattr(p, 'custom_character_image', '')
+                if c.character_type == "custom" and c.custom_character_image:
+                    c.set_custom_character(c.custom_character_image)
+                elif hasattr(p, 'custom_char_pixmap') and p.custom_char_pixmap and not p.custom_char_pixmap.isNull():
+                    c.custom_char_pixmap = p.custom_char_pixmap
+                c.update()
+        except (RuntimeError, AttributeError):
+            self.studio = None
+        except Exception:
+            pass
 
     def test_fullscreen(self):
         try:
@@ -4698,11 +4731,17 @@ class SettingsDialog(QDialog):
             self.leading_zero_cb.blockSignals(False)
         self.sync_studio_clock()
         if hasattr(self, 'studio') and self.studio:
-            if hasattr(self.studio, 'mode_capsule') and self.studio.mode_capsule:
-                self.studio.mode_capsule.set_current_mode(idx)
-            if hasattr(self.studio, 'clock') and self.studio.clock:
-                self.studio.clock.clock_style = idx
-                self.studio.clock.update()
+            try:
+                if self.studio.isVisible():
+                    if hasattr(self.studio, 'mode_capsule') and self.studio.mode_capsule:
+                        self.studio.mode_capsule.set_current_mode(idx)
+                    if hasattr(self.studio, 'clock') and self.studio.clock:
+                        self.studio.clock.clock_style = idx
+                        self.studio.clock.update()
+            except (RuntimeError, AttributeError):
+                self.studio = None
+            except Exception:
+                pass
         self.repaint()
 
     def update_swatch_highlights(self):
