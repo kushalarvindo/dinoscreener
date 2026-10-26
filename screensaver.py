@@ -1503,6 +1503,7 @@ class CollapsibleModeCapsule(QFrame):
         
         # Center title (always 100% centered with symmetrical margins)
         self.lbl_mode_name = QLabel("Flip Clock")
+        self.lbl_mode_name.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         self.lbl_mode_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lbl_mode_name.setStyleSheet("""
             color: #FFFFFF;
@@ -1699,6 +1700,12 @@ class CollapsibleModeCapsule(QFrame):
         self.set_current_mode(idx)
         if self.on_mode_changed:
             self.on_mode_changed(idx)
+        self.collapse()
+
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+        if not self._is_expanded:
+            self.expand()
 
     def enterEvent(self, event):
         super().enterEvent(event)
@@ -2480,6 +2487,112 @@ rm -- "$0"
 # INTERACTIVE FULLSCREEN STUDIO MODE (165Hz ZERO-LAG OBSIDIAN GLASS ARCHITECTURE)
 # ==============================================================================
 
+class SpatialCornerGlow(QWidget):
+    """
+    Apple visionOS spatial ambient corner glows & optic brackets:
+    Subtle periwinkle / accent radial blooms at all 4 corners with ultra-fine 1.2px corner brackets.
+    100% transparent to mouse events so it never interferes with canvas or controls.
+    """
+    def __init__(self, parent=None, win_accent="#8F96BF"):
+        super().__init__(parent)
+        self.win_accent = win_accent
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        w = float(self.width())
+        h = float(self.height())
+        if w < 100 or h < 100:
+            p.end()
+            return
+            
+        c_acc = QColor(self.win_accent)
+        c_peri = QColor(165, 180, 252)
+        glow_r = 180.0
+        
+        # 1. Top-Left Radial Glow
+        g_tl = QRadialGradient(QPointF(0.0, 0.0), glow_r)
+        g_tl.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 26))
+        g_tl.setColorAt(0.35, QColor(c_acc.red(), c_acc.green(), c_acc.blue(), 12))
+        g_tl.setColorAt(1.0, QColor(0, 0, 0, 0))
+        p.setBrush(QBrush(g_tl))
+        p.setPen(Qt.PenStyle.NoPen)
+        p.drawRect(QRectF(0.0, 0.0, glow_r, glow_r))
+        
+        # 2. Top-Right Radial Glow
+        g_tr = QRadialGradient(QPointF(w, 0.0), glow_r)
+        g_tr.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 26))
+        g_tr.setColorAt(0.35, QColor(c_acc.red(), c_acc.green(), c_acc.blue(), 12))
+        g_tr.setColorAt(1.0, QColor(0, 0, 0, 0))
+        p.setBrush(QBrush(g_tr))
+        p.setPen(Qt.PenStyle.NoPen)
+        p.drawRect(QRectF(w - glow_r, 0.0, glow_r, glow_r))
+        
+        # 3. Bottom-Left Radial Glow
+        g_bl = QRadialGradient(QPointF(0.0, h), glow_r)
+        g_bl.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 26))
+        g_bl.setColorAt(0.35, QColor(c_acc.red(), c_acc.green(), c_acc.blue(), 12))
+        g_bl.setColorAt(1.0, QColor(0, 0, 0, 0))
+        p.setBrush(QBrush(g_bl))
+        p.setPen(Qt.PenStyle.NoPen)
+        p.drawRect(QRectF(0.0, h - glow_r, glow_r, glow_r))
+        
+        # 4. Bottom-Right Radial Glow
+        g_br = QRadialGradient(QPointF(w, h), glow_r)
+        g_br.setColorAt(0.0, QColor(c_peri.red(), c_peri.green(), c_peri.blue(), 26))
+        g_br.setColorAt(0.35, QColor(c_acc.red(), c_acc.green(), c_acc.blue(), 12))
+        g_br.setColorAt(1.0, QColor(0, 0, 0, 0))
+        p.setBrush(QBrush(g_br))
+        p.setPen(Qt.PenStyle.NoPen)
+        p.drawRect(QRectF(w - glow_r, h - glow_r, glow_r, glow_r))
+        
+        # Subtle spatial optic bracket arcs at all 4 corners
+        bracket_pen = QPen(QColor(255, 255, 255, 36), 1.2)
+        bracket_pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        p.setPen(bracket_pen)
+        p.setBrush(Qt.BrushStyle.NoBrush)
+        
+        m = 20.0
+        arm = 22.0
+        r = 8.0
+        
+        # Top-Left Bracket
+        path_tl = QPainterPath()
+        path_tl.moveTo(m, m + arm)
+        path_tl.lineTo(m, m + r)
+        path_tl.quadTo(m, m, m + r, m)
+        path_tl.lineTo(m + arm, m)
+        p.drawPath(path_tl)
+        
+        # Top-Right Bracket
+        path_tr = QPainterPath()
+        path_tr.moveTo(w - m - arm, m)
+        path_tr.lineTo(w - m - r, m)
+        path_tr.quadTo(w - m, m, w - m, m + r)
+        path_tr.lineTo(w - m, m + arm)
+        p.drawPath(path_tr)
+        
+        # Bottom-Left Bracket
+        path_bl = QPainterPath()
+        path_bl.moveTo(m, h - m - arm)
+        path_bl.lineTo(m, h - m - r)
+        path_bl.quadTo(m, h - m, m + r, h - m)
+        path_bl.lineTo(m + arm, h - m)
+        p.drawPath(path_bl)
+        
+        # Bottom-Right Bracket
+        path_br = QPainterPath()
+        path_br.moveTo(w - m - arm, h - m)
+        path_br.lineTo(w - m - r, h - m)
+        path_br.quadTo(w - m, h - m, w - m, h - m - r)
+        path_br.lineTo(w - m, h - m - arm)
+        p.drawPath(path_br)
+        
+        p.end()
+
+
 class SpatialGrabberBar(QWidget):
     """
     Apple visionOS-style spatial luminous pill grabber:
@@ -2496,8 +2609,13 @@ class SpatialGrabberBar(QWidget):
         self.hovered = False
         if self.edge == 'top':
             self.setFixedSize(80, 24)
+            self.setToolTip("Display & Atmosphere (Click or hover to toggle)")
+        elif self.edge == 'left':
+            self.setFixedSize(24, 80)
+            self.setToolTip("Mode Settings (Click or hover to toggle)")
         else:
             self.setFixedSize(24, 80)
+            self.setToolTip("System & Controls (Click or hover to toggle)")
 
     def enterEvent(self, event):
         super().enterEvent(event)
@@ -2518,11 +2636,11 @@ class SpatialGrabberBar(QWidget):
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
         if self.edge == 'left':
-            self.studio.set_left_drawer_open(True)
+            self.studio.set_left_drawer_open(not self.studio.left_open)
         elif self.edge == 'top':
-            self.studio.set_top_drawer_open(True)
+            self.studio.set_top_drawer_open(not self.studio.top_open)
         elif self.edge == 'right':
-            self.studio.set_right_drawer_open(True)
+            self.studio.set_right_drawer_open(not self.studio.right_open)
 
     def paintEvent(self, event):
         p = QPainter(self)
@@ -2638,7 +2756,7 @@ class StudioDrawer(QFrame):
                 font-size: 11px;
             }}
             QComboBox QAbstractItemView {{
-                background-color: #1a1e2b;
+                background-color: #171B26;
                 border: 1px solid rgba(255, 255, 255, 0.15);
                 border-radius: 6px;
                 color: #FFFFFF;
@@ -2655,9 +2773,9 @@ class StudioDrawer(QFrame):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         w, h = float(self.width()), float(self.height())
-        p.setBrush(QColor(18, 22, 32, 248))
-        p.setPen(QPen(QColor(165, 180, 252, 55), 1.2))
-        p.drawRoundedRect(QRectF(1.0, 1.0, w - 2.0, h - 2.0), 18.0, 18.0)
+        p.setBrush(QColor(23, 27, 38, 250))
+        p.setPen(QPen(QColor(255, 255, 255, 22), 1.0))
+        p.drawRoundedRect(QRectF(1.0, 1.0, w - 2.0, h - 2.0), 14.0, 14.0)
         p.end()
         super().paintEvent(event)
 
@@ -2685,10 +2803,10 @@ class StudioInfoButton(QPushButton):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         w, h = float(self.width()), float(self.height())
-        bg_col = QColor(28, 33, 48, 248) if self.underMouse() else QColor(18, 22, 32, 248)
-        border_col = QColor(165, 180, 252, 110) if self.underMouse() else QColor(165, 180, 252, 55)
+        bg_col = QColor(32, 38, 54, 250) if self.underMouse() else QColor(23, 27, 38, 250)
+        border_col = QColor(255, 255, 255, 50) if self.underMouse() else QColor(255, 255, 255, 22)
         p.setBrush(bg_col)
-        p.setPen(QPen(border_col, 1.2))
+        p.setPen(QPen(border_col, 1.0))
         p.drawEllipse(QRectF(1.0, 1.0, w - 2.0, h - 2.0))
         p.end()
         super().paintEvent(event)
@@ -2782,9 +2900,9 @@ class StudioActionDock(QFrame):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         w, h = float(self.width()), float(self.height())
-        p.setBrush(QColor(18, 22, 32, 248))
-        p.setPen(QPen(QColor(165, 180, 252, 55), 1.2))
-        p.drawRoundedRect(QRectF(1.0, 1.0, w - 2.0, h - 2.0), 18.0, 18.0)
+        p.setBrush(QColor(23, 27, 38, 250))
+        p.setPen(QPen(QColor(255, 255, 255, 22), 1.0))
+        p.drawRoundedRect(QRectF(1.0, 1.0, w - 2.0, h - 2.0), 16.0, 16.0)
         p.end()
         super().paintEvent(event)
 
@@ -2844,6 +2962,12 @@ class FullscreenStudioMode(QWidget):
         self.clock.installEventFilter(self)
         self.clock.lower()
         
+        # 1.5 Subtle Spatial Corner Ambient Glows & Optic Brackets
+        self.corner_glow = SpatialCornerGlow(self, win_accent=self.win_accent)
+        self.corner_glow.setGeometry(0, 0, self.width(), self.height())
+        self.corner_glow.lower()
+        self.clock.lower()
+        
         # 2. Floating HUD Elements
         self.btn_info = StudioInfoButton(self)
         self.action_dock = StudioActionDock(self)
@@ -2854,9 +2978,9 @@ class FullscreenStudioMode(QWidget):
         self.mode_capsule.on_width_changed = self._recenter_mode_capsule
         
         # 3. Real Working Drawers: Hosting the ACTUAL Settings cards
-        self.left_drawer = StudioDrawer(self, self.win_accent, check_icon_path, 300, 260)
-        self.top_drawer = StudioDrawer(self, self.win_accent, check_icon_path, 320, 240)
-        self.right_drawer = StudioDrawer(self, self.win_accent, check_icon_path, 240, 180)
+        self.left_drawer = StudioDrawer(self, self.win_accent, check_icon_path, 330, 310)
+        self.top_drawer = StudioDrawer(self, self.win_accent, check_icon_path, 340, 265)
+        self.right_drawer = StudioDrawer(self, self.win_accent, check_icon_path, 270, 210)
         
         self.left_drawer.set_card(self.settings.card_mode)
         self.top_drawer.set_card(self.settings.card_disp)
@@ -2902,6 +3026,7 @@ class FullscreenStudioMode(QWidget):
         sw, sh = self.width(), self.height()
         
         self.clock.setGeometry(0, 0, sw, sh)
+        self.corner_glow.setGeometry(0, 0, sw, sh)
         
         self.btn_info.move(sw - self.btn_info.width() - 32, 32)
         self.btn_info.raise_()
@@ -2954,18 +3079,7 @@ class FullscreenStudioMode(QWidget):
         self.anim_left.start()
         
         if open_state:
-            self.left_grabber.setVisible(False)
             self.left_drawer.raise_()
-        else:
-            self.anim_left.finished.connect(self._on_left_anim_done)
-
-    def _on_left_anim_done(self):
-        if not self.left_open:
-            self.left_grabber.setVisible(True)
-        try:
-            self.anim_left.finished.disconnect(self._on_left_anim_done)
-        except Exception:
-            pass
 
     def set_top_drawer_open(self, open_state):
         if self.top_open == open_state:
@@ -2984,18 +3098,7 @@ class FullscreenStudioMode(QWidget):
         self.anim_top.start()
         
         if open_state:
-            self.top_grabber.setVisible(False)
             self.top_drawer.raise_()
-        else:
-            self.anim_top.finished.connect(self._on_top_anim_done)
-
-    def _on_top_anim_done(self):
-        if not self.top_open:
-            self.top_grabber.setVisible(True)
-        try:
-            self.anim_top.finished.disconnect(self._on_top_anim_done)
-        except Exception:
-            pass
 
     def set_right_drawer_open(self, open_state):
         if self.right_open == open_state:
@@ -3014,29 +3117,10 @@ class FullscreenStudioMode(QWidget):
         self.anim_right.start()
         
         if open_state:
-            self.right_grabber.setVisible(False)
             self.right_drawer.raise_()
-        else:
-            self.anim_right.finished.connect(self._on_right_anim_done)
-
-    def _on_right_anim_done(self):
-        if not self.right_open:
-            self.right_grabber.setVisible(True)
-        try:
-            self.anim_right.finished.disconnect(self._on_right_anim_done)
-        except Exception:
-            pass
 
     def eventFilter(self, obj, event):
-        if event.type() == QEvent.Type.MouseMove:
-            pos = self.mapFromGlobal(event.globalPosition().toPoint())
-            if self.left_open and pos.x() > self.left_drawer.geometry().right() + 80:
-                self.set_left_drawer_open(False)
-            if self.top_open and pos.y() > self.top_drawer.geometry().bottom() + 80:
-                self.set_top_drawer_open(False)
-            if self.right_open and pos.x() < self.right_drawer.geometry().left() - 80:
-                self.set_right_drawer_open(False)
-        elif event.type() == QEvent.Type.MouseButtonPress:
+        if event.type() == QEvent.Type.MouseButtonPress:
             pos = self.mapFromGlobal(event.globalPosition().toPoint())
             if self.left_open and not self.left_drawer.geometry().contains(pos):
                 self.set_left_drawer_open(False)
@@ -3062,8 +3146,28 @@ class FullscreenStudioMode(QWidget):
             super().mousePressEvent(event)
 
     def open_about(self):
+        self.set_left_drawer_open(False)
+        self.set_top_drawer_open(False)
+        self.set_right_drawer_open(False)
+        
         dlg = AboutDialog(self, win_accent=self.win_accent, auto_check=False)
+        if hasattr(self.settings, 'latest_update_info') and self.settings.latest_update_info:
+            latest_tag, body, download_url = self.settings.latest_update_info
+            dlg.on_update_result(True, latest_tag, body, download_url)
         dlg.exec()
+        
+        self.showFullScreen()
+        self.raise_()
+        self.activateWindow()
+        self.setFocus()
+        if hasattr(self, 'clock') and self.clock:
+            self.clock.setFocus()
+
+    def changeEvent(self, event):
+        if event.type() == QEvent.Type.ActivationChange and self.isActiveWindow():
+            if hasattr(self, 'clock') and self.clock:
+                self.clock.update()
+        super().changeEvent(event)
 
     def apply_clicked(self):
         self.settings.save_config()
@@ -3127,6 +3231,12 @@ class FullscreenStudioMode(QWidget):
             event.accept()
             return
         elif event.key() in (Qt.Key.Key_Escape, Qt.Key.Key_F11):
+            if self.left_open or self.top_open or self.right_open:
+                self.set_left_drawer_open(False)
+                self.set_top_drawer_open(False)
+                self.set_right_drawer_open(False)
+                event.accept()
+                return
             self.close_studio()
             event.accept()
             return
@@ -3490,6 +3600,11 @@ class SettingsDialog(QDialog):
         self.preview.enable_win_key = self.win_cb.isChecked()
         self.sync_studio_clock()
 
+    def _get_active_dialog_parent(self):
+        if hasattr(self, 'studio') and self.studio and self.studio.isVisible():
+            return self.studio
+        return self
+
     def sync_studio_clock(self):
         if hasattr(self, 'studio') and self.studio and hasattr(self.studio, 'clock') and self.studio.clock:
             c = self.studio.clock
@@ -3517,7 +3632,9 @@ class SettingsDialog(QDialog):
             c.dino_font = getattr(p, 'dino_font', 'Bungee')
             c.character_type = getattr(p, 'character_type', 'dino')
             c.custom_character_image = getattr(p, 'custom_character_image', '')
-            if hasattr(p, 'custom_char_pixmap') and p.custom_char_pixmap:
+            if c.character_type == "custom" and c.custom_character_image:
+                c.set_custom_character(c.custom_character_image)
+            elif hasattr(p, 'custom_char_pixmap') and p.custom_char_pixmap and not p.custom_char_pixmap.isNull():
                 c.custom_char_pixmap = p.custom_char_pixmap
             c.update()
 
@@ -4250,7 +4367,8 @@ class SettingsDialog(QDialog):
 
 
     def pick_color(self):
-        color = QColorDialog.getColor(QColor(self.config.get("accent_color", self.win_accent)), self, "Select Accent Color")
+        parent = self._get_active_dialog_parent()
+        color = QColorDialog.getColor(QColor(self.config.get("accent_color", self.win_accent)), parent, "Select Accent Color")
         if color.isValid():
             self.set_accent_color(color.name())
 
@@ -4278,6 +4396,7 @@ class SettingsDialog(QDialog):
         val = self.hourly_chime_cb.isChecked()
         self.preview.hourly_chime = val
         self.config["hourly_chime"] = val
+        self.sync_studio_clock()
 
     def refresh_chime_combobox(self):
         if not hasattr(self, 'chime_sound_cb'):
@@ -4307,11 +4426,13 @@ class SettingsDialog(QDialog):
         else:
             self.config["chime_preset"] = key
             self.preview.chime_preset = key
+        self.sync_studio_clock()
 
     def on_chime_volume_changed(self, val):
         self.lbl_chime_vol.setText(f"{val}%")
         self.config["chime_volume"] = val
         self.preview.chime_volume = val
+        self.sync_studio_clock()
 
     def test_chime_sound(self):
         preset = self.chime_sound_cb.currentData() if hasattr(self, 'chime_sound_cb') else "acoustic_bell"
@@ -4320,7 +4441,8 @@ class SettingsDialog(QDialog):
         play_chime(preset=preset, volume=vol, custom_path=c_path if preset == "custom" else "")
 
     def browse_custom_sound(self):
-        file, _ = QFileDialog.getOpenFileName(self, "Select Audio File", "", "Audio Files (*.wav *.mp3 *.ogg *.flac)")
+        parent = self._get_active_dialog_parent()
+        file, _ = QFileDialog.getOpenFileName(parent, "Select Audio File", "", "Audio Files (*.wav *.mp3 *.ogg *.flac)")
         if file:
             self.handle_sound_import(file)
 
@@ -4334,6 +4456,7 @@ class SettingsDialog(QDialog):
         self.preview.chime_preset = "custom"
         self.refresh_chime_combobox()
         self.test_chime_sound()
+        self.sync_studio_clock()
 
     def on_bg_update_checked(self, has_update, latest_tag, body, download_url):
         if has_update and hasattr(self, 'btn_update_badge'):
@@ -4379,6 +4502,7 @@ class SettingsDialog(QDialog):
         self.preview.pixel_shift = val
         self.config["pixel_shift"] = val
         self.preview.update()
+        self.sync_studio_clock()
 
     def refresh_font_combobox(self):
         if not hasattr(self, 'font_cb'):
@@ -4440,10 +4564,12 @@ class SettingsDialog(QDialog):
             self.preview.primary_font = self.primary_font
             self.preview.update()
             self.check_font_changed()
+            self.sync_studio_clock()
         else:
             self.preview.dino_font = str(data)
             self.preview.update()
             self.check_font_changed()
+            self.sync_studio_clock()
 
     def handle_font_import(self, path):
         if not path or not os.path.exists(path):
@@ -4463,9 +4589,11 @@ class SettingsDialog(QDialog):
         self.refresh_font_combobox()
         self.preview.update()
         self.check_font_changed()
+        self.sync_studio_clock()
 
     def import_primary_font(self):
-        file, _ = QFileDialog.getOpenFileName(self, "Select Font File", "", "Font Files (*.ttf *.otf)")
+        parent = self._get_active_dialog_parent()
+        file, _ = QFileDialog.getOpenFileName(parent, "Select Font File", "", "Font Files (*.ttf *.otf)")
         if file:
             self.handle_font_import(file)
         else:
@@ -4500,6 +4628,7 @@ class SettingsDialog(QDialog):
         self.refresh_font_combobox()
         self.preview.update()
         self.check_font_changed()
+        self.sync_studio_clock()
 
     def refresh_char_combobox(self):
         if not hasattr(self, 'char_cb'):
@@ -4534,11 +4663,13 @@ class SettingsDialog(QDialog):
             self.preview.character_type = "dino"
             self.preview.update()
             self.check_char_changed()
+            self.sync_studio_clock()
         else:
             self.preview.character_type = "custom"
             self.preview.set_custom_character(str(data))
             self.preview.update()
             self.check_char_changed()
+            self.sync_studio_clock()
 
     def handle_character_import(self, path):
         if not path or not os.path.exists(path):
@@ -4549,9 +4680,11 @@ class SettingsDialog(QDialog):
         self.refresh_char_combobox()
         self.preview.update()
         self.check_char_changed()
+        self.sync_studio_clock()
 
     def import_character(self):
-        file, _ = QFileDialog.getOpenFileName(self, "Select Character Image", "", "Image Files (*.png *.jpg *.jpeg *.bmp *.webp)")
+        parent = self._get_active_dialog_parent()
+        file, _ = QFileDialog.getOpenFileName(parent, "Select Character Image", "", "Image Files (*.png *.jpg *.jpeg *.bmp *.webp)")
         if file:
             self.handle_character_import(file)
         else:
@@ -4580,6 +4713,7 @@ class SettingsDialog(QDialog):
         self.refresh_char_combobox()
         self.preview.update()
         self.check_char_changed()
+        self.sync_studio_clock()
 
     def keyPressEvent(self, event):
         super().keyPressEvent(event)
