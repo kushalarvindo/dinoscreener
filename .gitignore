@@ -3,3 +3,8 @@ build/
 dist/
 *.pyc
 test_config.json
+
+# Local Agent Collaboration & Custom Skills
+101.md
+sync.md
+.skills/
