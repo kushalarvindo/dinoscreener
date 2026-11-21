@@ -1,71 +1,141 @@
 <div align="center">
-  <img src="app_icon.png" width="80" height="80" alt="Dinoscreener app icon">
-  <h1>Dinoscreener</h1>
-  <p>Three clocks for the time your desk has to itself.</p>
-  <a href="https://github.com/kushalarvindo/dinoscreener/releases/tag/v6.2">Download v6.2 for Windows or Linux</a>
+  <img src="app_icon.png" width="96" height="96" alt="Dinoscreener Logo" style="border-radius: 20px;" />
+  <h1>🦕 Dinoscreener</h1>
+  <p><strong>The modern, ultra-aesthetic clock screensaver suite for Windows & Linux.</strong></p>
+  <p>Featuring <strong>Rotary Clock</strong>, <strong>Flip Clock</strong>, and <strong>Dino Runner</strong> with real-time physics, a visionOS-inspired fullscreen studio, and custom typography & sprite imports.</p>
+
+  <p>
+    <a href="https://github.com/kushalarvindo/dinoscreener/releases"><img src="https://img.shields.io/github/v/release/kushalarvindo/dinoscreener?color=0078D4&style=flat-square" alt="Latest Release" /></a>
+    <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-0078D4?style=flat-square&logo=windows&logoColor=white" alt="Platform" />
+    <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
+    <img src="https://img.shields.io/badge/GUI-PyQt6-41CD52?style=flat-square&logo=qt&logoColor=white" alt="PyQt6" />
+    <img src="https://img.shields.io/badge/License-MIT-gray?style=flat-square" alt="License" />
+  </p>
 </div>
 
-## Hey, I'm Kushal 👋
-
-I wanted a clock I’d actually leave running on my desk. Some days that’s two big flip cards on a black screen. Other days it’s a little dino trying to clear the next cactus. Dinoscreener lets me switch between the two, with a rotary dial for the days I want the weather there too.
-
-## Pick your clock
-
-| Mode | On your screen | Preview |
-| --- | --- | --- |
-| **Flip Clock** | Two split-flap cards drop into place as the time changes. Adjust their size, switch to 24-hour time, or give single-digit hours a leading zero. | <img src="screenshots/flip-clock.png" width="250" alt="Two split-flap cards showing the hour and minutes"> |
-| **Rotary Clock** | Two numbered rings sweep past a fixed marker. Pick a dial accent and choose whether the weather and battery sit beside the date. | <img src="screenshots/rotary-clock.png" width="250" alt="Rotary dial with minute marks and a date readout"> |
-| **Dino Runner** | The clock keeps time above a dino that jumps cacti on its own. Set the clock size or drop in your own font and sprite. | <img src="screenshots/dino-runner.png" width="250" alt="Pixel dino running underneath the clock"> |
-
-## A look inside Settings
+<br />
 
 <div align="center">
-  <img src="screenshots/settings-v6.2.png" width="780" alt="Dino Runner settings with the live preview above the mode, Appearance and Behavior panels">
+  <img src="screenshots/dino.gif" alt="Dinoscreener Screenshot" width="800">
 </div>
 
-Start with the little mode selector under the preview. The first panel changes with your clock. **Appearance** holds brightness, ambient lighting and burn-in protection. **Behavior** is where you’ll find exit controls and the hourly chime. You can audition a bell, set its volume or bring your own audio file.
+---
 
-Want to see how the dial looks from across the room? Open **Studio**. Move to the screen edges to reveal the same controls over the full-size clock. **Exit** brings you back to Settings. Use **Apply** to save your choices.
+## 👋 Hey there!
 
-## Get it running
+Tired of boring Windows screensavers that look like they haven't seen an update since Windows XP? Me too.
 
-**Windows.** Download the screensaver, right-click it and choose **Install**. Windows opens Screen Saver Settings, where **Settings…** takes you to the live preview above. For a portable copy, launch the executable directly or run `Dinoscreener.exe --settings` to configure it. [Screensaver (.scr)](https://github.com/kushalarvindo/dinoscreener/releases/download/v6.2/Dinoscreener.scr) · [Portable app (.exe)](https://github.com/kushalarvindo/dinoscreener/releases/download/v6.2/Dinoscreener.exe)
+I built **Dinoscreener** because I wanted something clean, distraction-free, and genuinely aesthetic for my desk setup. Whether you're pulling an all-nighter studying, giving your OLED display a little downtime, or just vibing to lo-fi beats, Dinoscreener turns your monitor into a stunning minimalist centerpiece with flipping tiles, hourly chimes, and an offline Dino runner that actually jumps over cacti in real time.
 
-**Linux (x86-64).** Download the archive and run the commands below from your downloads folder. The installer adds Dinoscreener to your application menu. Launch it there for Settings, or run `~/.local/bin/dinoscreener --fullscreen` for the clock. [Linux archive](https://github.com/kushalarvindo/dinoscreener/releases/download/v6.2/dinoscreener-linux-x86_64.tar.gz)
+---
 
-```sh
-tar -xzf dinoscreener-linux-x86_64.tar.gz
-cd dinoscreener
-./install-linux.sh
-```
+## 🎨 Three Distinct Clock Modes
 
-## Keys worth knowing
+Switch between them on the fly using the **Up / Down arrow keys**, the floating mode switcher, or right from the visual settings studio!
 
-| While the screensaver is running | What it does |
-| --- | --- |
-| ↑ / ↓ | Cycle through the three clocks. |
-| + / − | Resize the current clock. |
-| Space | Toggle ambient lighting. If the dino has crashed, Space starts its run again. |
-| Ctrl+Z | Exit when **Lock on exit** is enabled. |
+| Mode | What makes it cool | Preview |
+|---|---|---|
+| **Rotary Clock** | A hypnotic dual-ring rotary dial calculating rotation angles with exact trigonometry for a sleek spinning wheel effect. Includes real-time weather and battery telemetry. | <img src="screenshots/rotary-clock.png" width="260" alt="Rotary Clock"> |
+| **Flip Clock** | Vintage mechanical split-flap aesthetic using 3D perspective scaling to simulate realistic tile drops. Super customizable with leading zero toggles and scale slider. | <img src="screenshots/flip-clock.png" width="260" alt="Flip Clock"> |
+| **Dino Runner** | The legendary offline Chrome Dino game, running on auto-pilot with authentic gravity physics, obstacles, and the ability to drop in your own custom fonts and character sprites! | <img src="screenshots/dino-runner.png" width="260" alt="Dino Game"> |
 
-In **Studio**, press **Esc** to return to Settings.
+---
 
-## Run it from source
+## 🥽 Spatial Fullscreen Studio Mode (`[ ⛶ ]`)
 
-With Python installed, run these commands from the project folder. The first launch opens Settings so you can pick a clock.
+<div align="center">
+  <img src="screenshots/studio-v6.2.png" alt="Fullscreen Studio Mode" width="800">
+</div>
 
-```sh
-python -m pip install -r requirements.txt
-python screensaver.py --settings
-```
+Hit **Studio** in the settings menu to enter **Fullscreen Studio Mode** — an immersive, Apple visionOS-inspired interactive control room:
 
-To build the Windows screensaver, run these in PowerShell.
+- **True Edge-to-Edge Canvas**: The normal window chrome completely disappears. The live clock fills 100% of your screen on pure `#000000` black so OLED screens can completely shut off their pixels.
+- **Luminous Spatial Grabber Bars**: Hover near the sleek glowing pills at the top, left, or right edges to slide out translucent obsidian glass drawers containing your settings.
+- **Symmetrical Mode Capsule**: A floating bottom dock lets you switch clock styles instantly while previewing them at your monitor's true full resolution.
+- **Glass drawers** keep their frosted look while the clock runs behind them. Studio caches the glass so it can spend its time drawing the clock.
+- **Seamless State Sync**: Tweak anything in Fullscreen Studio and tap `Esc` or `✕ Exit` — all your changes instantly sync back to the main settings window without missing a beat.
+
+---
+
+## 🎛️ The Visual Settings Studio
+
+<div align="center">
+  <img src="screenshots/settings-v6.2.png" alt="Settings UI" width="750">
+</div>
+
+- Pick a clock under the preview and its settings pop up in the first panel. **Appearance** is for brightness and ambient lighting. **Behavior** is where the hourly chimes live, whichever clock you pick.
+- **Drag & Drop Custom Fonts & Sprites**: Don't like the default fonts? Drag and drop any `.ttf` or `.otf` file onto the window to customize clock numbers. Want your own character instead of the Dino? Drag and drop any `.png` sprite!
+- **Acoustic Hourly Chimes**: 4 handcrafted chime sounds (*Acoustic Bell*, *Windows Modern Chime*, *Zen Singing Bowl*, *Minimal Watch Ping*), complete with a tactile volume slider and a **Test** button. You can even import your own custom `.wav` chime sound!
+- **Burn-in protection** gently moves the clock over time. You can turn it on in Appearance.
+- **System Intercepts & Security**:
+  - **Strict Exit (`Ctrl + Z`)**: Keeps the screensaver locked on screen against accidental bumps until you enter `Ctrl + Z`.
+  - **Ignore Media Keys**: Volume dials and Spotify track skips won't dismiss your screensaver.
+  - **Windows Key Guard**: Suppresses accidental Start Menu popups.
+
+---
+
+## ⌨️ Shortcuts & Hotkeys
+
+While the screensaver is running, you're in full control:
+
+| Key | Action |
+|---|---|
+| **`Spacebar`** | Toggle Ambient Mode backlight orbs (or respawn Dino if game over) |
+| **`Arrow Up` / `Arrow Down`** | Switch instantly between Flip Clock, Rotary Clock, and Dino Runner |
+| **`+` / `-`** | Scale the clock larger or smaller |
+| **`Ctrl + Z`** | Unlock screensaver when Strict Lock is enabled |
+| **`Esc`** | Exit Fullscreen Studio Mode back to Settings |
+
+---
+
+## 🚀 Download & Installation
+
+### 🪟 Windows (Recommended)
+You can grab the pre-compiled binaries directly from the [Releases](https://github.com/kushalarvindo/dinoscreener/releases) page:
+
+1. **Install as Native Windows Screensaver (`.scr`)**:
+   - Download [Dinoscreener.scr](https://github.com/kushalarvindo/dinoscreener/releases/download/v6.2/Dinoscreener.scr).
+   - Right-click **`Dinoscreener.scr`** $\rightarrow$ **Install**.
+   - The classic Windows Screen Saver dialog will pop up. Click **Settings...** to open the studio!
+
+2. **Standalone Portable App (`.exe`)**:
+   - Download [Dinoscreener.exe](https://github.com/kushalarvindo/dinoscreener/releases/download/v6.2/Dinoscreener.exe) and launch it anywhere — no installer required.
+
+> [!NOTE]
+> Windows may show a SmartScreen prompt the first time you launch the app.
+
+### 🐧 Linux
+1. Grab **`dinoscreener-linux-x86_64.tar.gz`** from [Releases](https://github.com/kushalarvindo/dinoscreener/releases).
+2. Extract and run the installer:
+   ```bash
+   tar -xzvf dinoscreener-linux-x86_64.tar.gz
+   cd dinoscreener
+   chmod +x install-linux.sh
+   ./install-linux.sh
+   ```
+3. Run `dinoscreener --settings` to customize or `dinoscreener --fullscreen` to start relaxing.
+
+---
+
+## 🛠️ Building from Source
+
+If you like compiling things yourself, here’s the Windows build in PowerShell.
 
 ```powershell
-python -m PyInstaller --noconfirm Dinoscreener.spec
+git clone https://github.com/kushalarvindo/dinoscreener.git
+cd dinoscreener
+pip install -r requirements.txt
+pyinstaller Dinoscreener.spec --noconfirm
 Copy-Item dist/Dinoscreener.exe Dinoscreener.scr
 ```
 
-Built by [Kushal :)](https://github.com/kushalarvindo). If something looks off on your screen, tell me which clock you were using and what happened. [Open an issue](https://github.com/kushalarvindo/dinoscreener/issues)
+---
 
-<img src="https://komarev.com/ghpvc/?username=kushalarvindo-dinoscreener&label=Views&color=0078D4&style=flat-square" alt="Repository views">
+<div align="center">
+  <p>Built with ❤️, Python, and caffeine by <b>Kushal :)</b> 👋 (<a href="https://github.com/kushalarvindo">@kushalarvindo</a>)</p>
+  <p>If you enjoy Dinoscreener, give it a ⭐ on GitHub — it means the world!</p>
+  <br />
+  <a href="https://github.com/kushalarvindo/dinoscreener">
+    <img src="https://komarev.com/ghpvc/?username=kushalarvindo-dinoscreener&label=Views&color=0078D4&style=flat-square" alt="Repository Views" />
+  </a>
+</div>
