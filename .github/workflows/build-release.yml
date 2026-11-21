@@ -127,7 +127,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            windows-binaries/*
+            windows-binaries/dist/Dinoscreener.exe
+            windows-binaries/Dinoscreener.scr
+            windows-binaries/Dinoscreener-Windows.zip
             linux-binaries/*
           name: "${{ github.ref_name == 'v6.2' && 'v6.2:  The UI Rewamp Update! + Tons of fixes' || github.ref_name }}"
           generate_release_notes: true
