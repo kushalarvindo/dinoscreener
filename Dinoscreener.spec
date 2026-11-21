@@ -5,7 +5,7 @@ a = Analysis(
     ['screensaver.py'],
     pathex=[],
     binaries=[],
-    datas=[('Bungee-Regular.ttf', '.'), ('app_icon.png', '.'), ('app_icon.ico', '.'), ('hourly_chime.wav', '.')],
+    datas=[('ui-assets','ui-assets'), ('Bungee-Regular.ttf', '.'), ('app_icon.png', '.'), ('app_icon_taskbar.png', '.'), ('app_icon_taskbar.ico', '.'), ('hourly_chime.wav', '.')],
     hiddenimports=['PyQt6.QtSvg'],
     hookspath=[],
     hooksconfig={},
@@ -14,6 +14,16 @@ a = Analysis(
     noarchive=False,
     optimize=0,
 )
+# Use Qt's newer compatible runtime at the extraction root as well.
+from pathlib import Path
+import PyQt6
+qt_bin = Path(PyQt6.__file__).parent / 'Qt6' / 'bin'
+a.binaries = [(dest, str(qt_bin / Path(src).name), kind)
+              if dest.lower() in ('vcruntime140.dll', 'vcruntime140_1.dll')
+              else (dest, src, kind) for dest, src, kind in a.binaries]
+a.binaries += [(p.name, str(p), 'BINARY') for p in qt_bin.glob('*.dll') if p.name.lower().startswith(('msvcp', 'vcruntime', 'concrt'))]
+import os
+a.binaries = [(dest, os.path.join(os.environ['SystemRoot'], 'System32', 'icuuc.dll'), kind) if dest.lower() == 'icuuc.dll' else (dest, src, kind) for dest, src, kind in a.binaries]
 pyz = PYZ(a.pure)
 
 exe = EXE(
@@ -35,5 +45,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='app_icon.ico',
+    icon='app_icon_taskbar.ico',
 )

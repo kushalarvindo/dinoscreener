@@ -84,6 +84,8 @@ jobs:
             --noconfirm \
             --onefile \
             --windowed \
+            --add-data "ui-assets:ui-assets" \
+            --add-data "app_icon_taskbar.png:." \
             --add-data "Bungee-Regular.ttf:." \
             --add-data "app_icon.png:." \
             --add-data "hourly_chime.wav:." \
@@ -127,4 +129,5 @@ jobs:
           files: |
             windows-binaries/*
             linux-binaries/*
+          name: "${{ github.ref_name == 'v6.2' && 'v6.2:  The UI Rewamp Update! + Tons of fixes' || github.ref_name }}"
           generate_release_notes: true

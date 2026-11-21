@@ -14,22 +14,485 @@ import shutil
 import re
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
-    QLineEdit, QCheckBox, QPushButton, QColorDialog, QFormLayout, QSlider, 
+    QLineEdit, QCheckBox, QPushButton as NativePushButton, QColorDialog, QFormLayout, QSlider, 
     QFileDialog, QStackedWidget, QFrame, QGridLayout, QComboBox, QFontComboBox, 
     QStackedLayout, QGraphicsOpacityEffect, QGraphicsDropShadowEffect, QProgressBar, QMessageBox, QSizePolicy,
-    QStyle, QStyleOption
+    QStyle, QStyleOption, QStyleOptionButton, QStyleOptionSlider, QScrollArea
 )
 from PyQt6.QtCore import (
     Qt, QTimer, QTime, QRectF, QDate, QPointF, QByteArray, QThread,
     pyqtSignal, QPropertyAnimation, QEasingCurve, pyqtProperty,
-    QParallelAnimationGroup, QSize, QUrl, QVariantAnimation, QRect, QPoint, QEvent
+    QParallelAnimationGroup, QSize, QUrl, QVariantAnimation, QRect, QPoint, QEvent, QObject
 )
 from PyQt6.QtGui import (
     QPainter, QColor, QFont, QPen, QRadialGradient, QLinearGradient, QPainterPath, 
-    QFontDatabase, QPixmap, QImage, QIcon, QBrush, QDesktopServices
+    QFontDatabase, QPixmap, QImage, QIcon, QBrush, QDesktopServices, QShortcut, QKeySequence, QOpenGLContext, QSurfaceFormat, QRegion
 )
 
-APP_VERSION = "v6.1"
+try:
+    from PyQt6.QtOpenGLWidgets import QOpenGLWidget
+except ImportError:
+    QOpenGLWidget = None
+
+
+class QPushButton(NativePushButton):
+    """Keep native button behavior; smooth QSS outlines at the display's DPR."""
+    def paintEvent(self, event):
+        option = QStyleOptionButton()
+        self.initStyleOption(option)
+        dpr = self.devicePixelRatioF()
+        key = (self.width(), self.height(), dpr, option.state.value,
+               option.features.value, option.palette.cacheKey(), self.styleSheet())
+        if getattr(self, '_bevel_key', None) != key:
+            scale = dpr * 2.0
+            panel = QImage(math.ceil(self.width()*scale), math.ceil(self.height()*scale),
+                           QImage.Format.Format_ARGB32_Premultiplied)
+            panel.setDevicePixelRatio(scale)
+            panel.fill(Qt.GlobalColor.transparent)
+            p = QPainter(panel)
+            p.setRenderHint(QPainter.RenderHint.Antialiasing)
+            if hasattr(self, '_material_surface'):
+                primary, text_action, radius = self._material_surface
+                enabled = self.isEnabled()
+                hover = bool(option.state & QStyle.StateFlag.State_MouseOver)
+                pressed = bool(option.state & QStyle.StateFlag.State_Sunken)
+                fill = QColor(MATERIAL['primary']) if primary else QColor(255,255,255,0 if text_action else 14)
+                if hover:
+                    fill = QColor('#A6B8CC') if primary else QColor(255,255,255,28)
+                if pressed:
+                    fill = QColor('#7E90A4') if primary else QColor(255,255,255,43)
+                if not enabled:
+                    fill.setAlpha(20)
+                border = QColor(255,255,255,0 if primary or text_action else 61)
+                if self.hasFocus() and self.testAttribute(Qt.WidgetAttribute.WA_KeyboardFocusChange):
+                    border = QColor('#DCE5EE')
+                reset_state = self.property('resetState')
+                if reset_state == 1:
+                    fill = QColor('#841E26')
+                elif text_action and hover:
+                    fill = QColor('#FFB4AB')
+                p.setPen(QPen(border, 1))
+                p.setBrush(fill)
+                p.drawRoundedRect(QRectF(self.rect()).adjusted(1,1,-1,-1), radius, radius)
+            else:
+                self.style().drawControl(QStyle.ControlElement.CE_PushButtonBevel, option, p, self)
+            p.end()
+            self._bevel_key, self._bevel_image = key, panel
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.drawImage(QRectF(self.rect()), self._bevel_image)
+        painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+        if self.objectName() == 'closeIconBtn':
+            center = QPointF(self.rect().center()) + QPointF(0.5, 0.5)
+            pen = QPen(QColor('#FFFFFF' if self.underMouse() else '#92A4B8'), 1.8)
+            pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+            painter.setPen(pen)
+            painter.drawLine(center + QPointF(-6, -6), center + QPointF(6, 6))
+            painter.drawLine(center + QPointF(6, -6), center + QPointF(-6, 6))
+        elif not self.icon().isNull() and self.text():
+            label = self.text()
+            gap = 7
+            width = self.fontMetrics().horizontalAdvance(label)
+            size = self.iconSize()
+            left = (self.width()-width-gap-size.width())//2
+            self.icon().paint(painter, QRect(left,(self.height()-size.height())//2,size.width(),size.height()), Qt.AlignmentFlag.AlignCenter, QIcon.Mode.Normal if self.isEnabled() else QIcon.Mode.Disabled)
+            color = option.palette.buttonText().color()
+            if self.property('resetState') == 1:
+                color = QColor('#FFFFFF')
+            elif self.text() in ('Reset Defaults','Resetted!') and self.underMouse():
+                color = QColor('#401018')
+            painter.setPen(color)
+            painter.drawText(QRect(left+size.width()+gap,0,width+1,self.height()),Qt.AlignmentFlag.AlignVCenter,label)
+        else:
+            self.style().drawControl(QStyle.ControlElement.CE_PushButtonLabel, option, painter, self)
+        painter.end()
+
+    def changeEvent(self, event):
+        self._bevel_key = None
+        super().changeEvent(event)
+
+
+def clock_gpu_available():
+    app=QApplication.instance()
+    if QOpenGLWidget is None or app is None or app.platformName()!='windows':return False
+    if not hasattr(app,'_clock_gl_available'):
+        context=QOpenGLContext()
+        app._clock_gl_available=bool(context.create())
+    return app._clock_gl_available
+
+
+class ClockGLSurface(QOpenGLWidget if QOpenGLWidget is not None else QWidget):
+    """Accelerate the existing QPainter canvas; settings remain native widgets."""
+    def __init__(self,clock):
+        super().__init__(clock)
+        self.clock=clock
+        self.paint_count=0
+        self.last_frame_ms=0
+        self.engine_name='pending'
+        format=QSurfaceFormat()
+        format.setAlphaBufferSize(8)
+        format.setDepthBufferSize(0)
+        format.setStencilBufferSize(8)
+        format.setSamples(4)
+        # QOpenGLWidget is composited by Qt/DWM; avoid an additional blocking swap wait.
+        format.setSwapInterval(0)
+        self.setFormat(format)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents,True)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.setGeometry(clock.rect())
+        self.show()
+        QTimer.singleShot(500,self.check_context)
+    def check_context(self):
+        if not self.isValid():
+            self.hide()
+            self.clock._gpu_surface=None
+            self.clock.update()
+            self.deleteLater()
+    def paintGL(self):
+        start=time.perf_counter()
+        painter=QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        self.engine_name=painter.paintEngine().type().name
+        # QOpenGLWidget's framebuffer contents outside a clip are undefined.
+        # Clear every pixel first; remove rounded corners with an AA shape rather
+        # than a stencil clip, whose boundary can leave hard/dirty pixels.
+        if self.clock.preview_mode:
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
+            painter.fillRect(QRectF(-1, -1, self.width()+2, self.height()+2), Qt.GlobalColor.transparent)
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
+        self.clock.render_clock_canvas(painter,self.width(),self.height(),clip_preview=False)
+        if self.clock.preview_mode:
+            outside = QPainterPath()
+            outside.addRect(QRectF(self.rect()))
+            inside = QPainterPath()
+            inside.addRoundedRect(QRectF(self.rect()), 12, 12)
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_DestinationOut)
+            painter.fillPath(outside.subtracted(inside), QColor('white'))
+        painter.end()
+        self.last_frame_ms=(time.perf_counter()-start)*1000
+        self.paint_count+=1
+        if hasattr(self,'benchmark_samples'):self.benchmark_samples.append(self.last_frame_ms)
+
+
+class DisplayPositionAnimation(QObject):
+    """Elapsed-time drawer easing paced to the actual window's display."""
+    finished = pyqtSignal()
+    def __init__(self, widget, property_name, parent):
+        super().__init__(parent)
+        self.widget = widget
+        self.property_name = property_name
+        self._duration = 260
+        self._curve = QEasingCurve(QEasingCurve.Type.OutQuart)
+        self._start = QPoint(); self._end = QPoint(); self._running = False
+        self._timer = QTimer(self)
+        self._timer.setSingleShot(True)
+        self._timer.setTimerType(Qt.TimerType.PreciseTimer)
+        self._timer.timeout.connect(self._tick)
+    def setDuration(self, duration):self._duration = duration
+    def setEasingCurve(self, curve):self._curve = QEasingCurve(curve)
+    def setStartValue(self, point):self._start = int(point) if self.property_name == b'capsuleWidth' else QPoint(point)
+    def setEndValue(self, point):self._end = int(point) if self.property_name == b'capsuleWidth' else QPoint(point)
+    def endValue(self):return self._end if self.property_name == b'capsuleWidth' else QPoint(self._end)
+    def state(self):return QPropertyAnimation.State.Running if self._running else QPropertyAnimation.State.Stopped
+    def stop(self):self._timer.stop();self._running = False
+    def start(self):
+        self.stop();self._running = True;self._started = time.perf_counter();self._frame = 0
+        hz = self.widget.screen().refreshRate() if self.widget.screen() else 60
+        self._period = 1/max(60,min(360,hz or 60))
+        self._tick()
+    def _tick(self):
+        if not self._running:return
+        elapsed = time.perf_counter()-self._started
+        progress = min(1,elapsed/(self._duration/1000))
+        eased = self._curve.valueForProgress(progress)
+        previous = self.widget.geometry()
+        if self.property_name == b'capsuleWidth':
+            self.widget.set_capsule_width(round(self._start+(self._end-self._start)*eased))
+        else:
+            self.widget.move(round(self._start.x()+(self._end.x()-self._start.x())*eased),round(self._start.y()+(self._end.y()-self._start.y())*eased))
+        parent = self.widget.parentWidget()
+        if parent is not None:
+            parent.update(previous.united(self.widget.geometry()).adjusted(-2,-2,2,2))
+        if progress >= 1:
+            self.stop();self.finished.emit();return
+        self._frame = max(self._frame+1,int(elapsed/self._period)+1)
+        remaining = self._started+self._frame*self._period-time.perf_counter()
+        self._timer.start(max(1,round(remaining*1000)))
+
+
+def save_demo_capture(widget,path):
+    """QA-only: QWidget.grab does not reliably include OpenGL child buffers."""
+    clock=getattr(widget,'preview',None) or getattr(widget,'clock',None)
+    surface=getattr(clock,'_gpu_surface',None) if clock is not None else None
+    if surface is None or not surface.isValid():
+        widget.grab().save(path);return
+    framebuffer=surface.grabFramebuffer()
+    if hasattr(widget,'preview'):
+        image=widget.grab().toImage()
+        painter=QPainter(image)
+        point=surface.mapTo(widget,QPoint(0,0))
+        target=QRectF(point.x(),point.y(),surface.width(),surface.height())
+        painter.fillRect(target,QColor('#121212'))
+        painter.drawImage(target,framebuffer)
+        painter.end()
+    else:
+        image=framebuffer.copy()
+        image.setDevicePixelRatio(surface.devicePixelRatioF())
+        painter=QPainter(image)
+        for child in widget.children():
+            if isinstance(child,QWidget) and child is not clock and child.isVisible():
+                painter.drawPixmap(child.pos(),child.grab())
+        painter.end()
+    image.save(path)
+
+
+MATERIAL = {'primary': '#92A4B8', 'on_primary': '#15202B', 'track': '#424A53', 'outline': '#84909D', 'text': '#E5E5E5'}
+
+def action_icon(text, color):
+    choices = {'apply': None, 'github':'github-twotone', 'test':'play-twotone',
+               'custom':'paint-drop-twotone', 'install':'download-twotone',
+               'download':'download-twotone', 'close':'close', 'exit':'close',
+               'reset':'backup-restore', 'update':'backup-restore'}
+    name = next((icon for word, icon in choices.items() if word in text.lower()), None)
+    return QIcon(os.path.join(os.path.dirname(__file__), 'ui-assets', name+'.svg')) if name else QIcon()
+
+
+def load_ui_font():
+    app = QApplication.instance()
+    if not hasattr(app, '_sans_flex_id'):
+        app._sans_flex_id = QFontDatabase.addApplicationFont(os.path.join(os.path.dirname(__file__), 'ui-assets', 'GoogleSansFlex.ttf'))
+
+
+def polish_controls(root, accent):
+    """Shared desktop control treatment; no additional widgets or effects."""
+    ink, hover, pressed = get_color_variants(accent)
+    for label in root.findChildren(QLabel):
+        if label.objectName() == 'versionBadge' or root.__class__.__name__ == 'AboutDialog':
+            continue
+        text = label.text()
+        size = 18 if text == 'Dinoscreener' else 13 if text in ('Appearance', 'Behavior', 'Flip Clock', 'Rotary Clock', 'Dino Runner') else 11
+        label.setStyleSheet(label.styleSheet() + f"; font-family: 'Google Sans Flex'; font-size: {size}px; background: transparent;")
+    for widget in root.findChildren(QWidget):
+        if isinstance(widget, (QSlider, QComboBox, QCheckBox)):
+            widget.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+    for slider in root.findChildren(QSlider):
+        slider._accent = MATERIAL['primary']
+        slider.setStyleSheet(f"""
+            QSlider {{ background: transparent; min-height: 26px; }}
+            QSlider::groove:horizontal {{ background: rgba(255,255,255,0.14); height: 4px; border-radius: 2px; }}
+            QSlider::sub-page:horizontal {{ background: {accent}; border-radius: 2px; }}
+            QSlider::handle:horizontal {{ background: #F2F2F2; border: 2px solid {accent}; width: 16px; height: 16px; margin: -6px 0; border-radius: 9px; }}
+            QSlider::handle:horizontal:hover, QSlider::handle:horizontal:focus {{ border-color: #FFFFFF; background: #FFFFFF; }}
+        """)
+    for combo in root.findChildren(QComboBox):
+        combo.setMinimumContentsLength(10)
+        combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+        combo.setStyleSheet(f"""
+            QComboBox {{ background: rgba(255,255,255,0.055); color: #E8E8E8; border: 1px solid rgba(255,255,255,0.17); border-radius: 8px; padding: 4px 24px 4px 10px; font: 11px 'Google Sans Flex'; min-height: 22px; }}
+            QComboBox:hover {{ background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.32); }}
+            QComboBox:focus {{ border-color: #E8E8E8; }}
+            QComboBox:disabled {{ color: #737373; background: rgba(255,255,255,0.025); border-color: rgba(255,255,255,0.08); }}
+            QComboBox::down-arrow:disabled {{ image: none; }}
+            QComboBox::drop-down {{ width: 20px; border: none; }}
+            QComboBox::down-arrow {{ image: url("{get_or_create_chevron_icon()}"); width: 10px; height: 10px; }}
+            QComboBox QAbstractItemView {{ background: #242424; color: #F2F2F2; selection-background-color: {accent}; selection-color: {ink}; border: 1px solid #555555; padding: 6px; }}
+        """)
+    excluded = set(getattr(getattr(root, 'mode_capsule', None), 'mode_buttons', []))
+    for button in root.findChildren(QPushButton):
+        if button in excluded or isinstance(button, ColorSwatch):
+            continue
+        button_accent = MATERIAL['primary']
+        ink, hover, pressed = get_color_variants(button_accent)
+        primary = button.text() == 'Apply' 
+        destructive = 'Reset' in button.text()
+        icon = action_icon(button.text(), ink if primary else MATERIAL['primary'])
+        if not icon.isNull():
+            button.setIcon(icon)
+            button.setIconSize(QSize(14,14))
+        if button.maximumHeight() >= 28:
+            button.setMinimumHeight(28)
+        radius = 8
+        button._material_surface = (primary, destructive, radius)
+        button.setStyleSheet(f"""
+            QPushButton {{ background: {button_accent if primary else 'transparent' if destructive else 'rgba(255,255,255,0.055)'}; color: {ink if primary else '#92A4B8'}; border: 1px solid {'transparent' if primary or destructive else 'rgba(255,255,255,0.24)'}; border-radius: {radius}px; font: {'600' if primary else '500'} 11px 'Google Sans Flex'; padding: 5px 10px; }}
+            QPushButton:hover {{ background: {hover if primary else 'rgba(255,255,255,0.11)'}; color: {ink if primary else '#FFFFFF'}; border-color: rgba(255,255,255,0.30); }}
+            QPushButton:pressed {{ background: {pressed if primary else 'rgba(255,255,255,0.17)'}; }}
+            QPushButton:focus {{ border: 1px solid #FFFFFF; }}
+            QPushButton:disabled {{ color: #777777; background: rgba(255,255,255,0.025); border-color: rgba(255,255,255,0.06); }}
+        """)
+        if button.width() <= 40 or button.objectName() == 'closeIconBtn':
+            button.setStyleSheet(button.styleSheet() + ' QPushButton { padding: 0px; }')
+        if not button.accessibleName():
+            button.setAccessibleName(button.text() or button.toolTip())
+    for check in root.findChildren(VectorCheckBox):
+        check.setStyleSheet("QCheckBox { background: transparent; spacing: 9px; font: 11px 'Google Sans Flex'; min-height: 28px; } QCheckBox::indicator { width: 32px; height: 20px; }")
+
+
+class StudioSlider(QSlider):
+    """Paint at the screen's pixel ratio while preserving Qt input semantics."""
+    def paintEvent(self, event):
+        option = QStyleOptionSlider()
+        self.initStyleOption(option)
+        handle = self.style().subControlRect(QStyle.ComplexControl.CC_Slider, option, QStyle.SubControl.SC_SliderHandle, self)
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        accent = QColor(getattr(self, '_accent', '#B8B8B8'))
+        y = self.height() / 2
+        left, right = 9.0, self.width()-9.0
+        x = max(left, min(right, handle.center().x()))
+        if not self.isEnabled():
+            painter.setOpacity(0.38)
+        painter.setPen(QPen(QColor(MATERIAL['track']),8,Qt.PenStyle.SolidLine,Qt.PenCapStyle.RoundCap))
+        painter.drawLine(QPointF(left,y),QPointF(right,y))
+        painter.setPen(QPen(accent,8,Qt.PenStyle.SolidLine,Qt.PenCapStyle.RoundCap))
+        start = right if option.upsideDown else left
+        painter.drawLine(QPointF(start,y),QPointF(x,y))
+        if self.hasFocus() or self.isSliderDown():
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(146,164,184,40))
+            painter.drawEllipse(QPointF(x,y),12,12)
+        painter.setPen(QPen(QColor('#19191F'),8,Qt.PenStyle.SolidLine,Qt.PenCapStyle.RoundCap))
+        painter.drawLine(QPointF(x,y-8),QPointF(x,y+8))
+        painter.setPen(QPen(accent,4,Qt.PenStyle.SolidLine,Qt.PenCapStyle.RoundCap))
+        painter.drawLine(QPointF(x,y-9),QPointF(x,y+9))
+        painter.end()
+
+
+class ColorSwatch(QPushButton):
+    def __init__(self, color):
+        super().__init__()
+        self.color = QColor(color)
+        self.setCheckable(True)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        center = QRectF(self.rect()).center()
+        ring_radius = min(self.width(), self.height())/2 - 2
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(self.color)
+        painter.drawEllipse(center, 8, 8)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        if self.isChecked() or self.hasFocus():
+            painter.setPen(QPen(QColor('#F5F5F5'), 1.5))
+            painter.drawEllipse(center, ring_radius, ring_radius)
+        elif self.underMouse():
+            painter.setPen(QPen(QColor(255,255,255,120), 1))
+            painter.drawEllipse(center, ring_radius, ring_radius)
+        painter.end()
+
+
+class VectorCheckBox(QCheckBox):
+    """Native checkbox semantics with a device-resolution vector indicator."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._accent = QColor("#D0D0D0")
+
+    def hitButton(self, point):
+        return self.rect().contains(point)
+
+    def paintEvent(self, event):
+        option = QStyleOptionButton()
+        self.initStyleOption(option)
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        rect = QRectF(self.style().subElementRect(QStyle.SubElement.SE_CheckBoxIndicator, option, self)).adjusted(1, 1, -1, -1)
+        label_rect = self.rect().adjusted(int(rect.right()) + 9, 0, 0, 0)
+        painter.setFont(self.font())
+        painter.setPen(QColor('#E5E5E5') if self.isEnabled() else QColor('#777777'))
+        painter.drawText(label_rect, Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft, self.text())
+        if not self.isEnabled():
+            painter.setOpacity(0.38)
+        checked = self.isChecked()
+        painter.setPen(QPen(QColor('#C3D0E1' if checked else MATERIAL['outline']), 1.4))
+        painter.setBrush(QColor('#C3D0E1' if checked else '#303840'))
+        painter.drawRoundedRect(rect, rect.height()/2, rect.height()/2)
+        radius = 6.5 if checked else 5.0
+        center = QPointF(rect.right()-9 if checked else rect.left()+9, rect.center().y())
+        if self.underMouse() or self.hasFocus():
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(146,164,184,45))
+            painter.drawEllipse(center,11,11)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor(MATERIAL['on_primary'] if checked else '#C6CDD4'))
+        painter.drawEllipse(center,radius,radius)
+        if self.hasFocus() and self.testAttribute(Qt.WidgetAttribute.WA_KeyboardFocusChange):
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.setPen(QPen(QColor('#DCE5EE'),1))
+            painter.drawRoundedRect(rect.adjusted(2,2,-2,-2),7,7)
+        painter.end()
+
+
+class LockExitSwitch(VectorCheckBox):
+    def nextCheckState(self):
+        if self.isChecked():
+            self.setChecked(False)
+            return
+        bubble = LockNotice(self)
+        if bubble.exec() == QDialog.DialogCode.Accepted:
+            self.setChecked(True)
+        bubble.deleteLater()
+
+
+class LockNotice(QDialog):
+    message = "IMPORTANT! When the screen saver is active, press Ctrl+Z to exit screensaver. OR You might be stuck forever :(!!"
+
+    def __init__(self, switch):
+        super().__init__(switch.window(), Qt.WindowType.Dialog | Qt.WindowType.FramelessWindowHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setAccessibleName("Confirm Lock on exit")
+        self.setStyleSheet("QDialog { background: transparent; } QLabel { background: transparent; color: #EAF0F5; }")
+        self.anchor = switch.mapToGlobal(QPoint(16, switch.height()//2))
+        area = switch.screen().availableGeometry()
+        self.above = self.anchor.y()-area.top() > 150
+        row = QHBoxLayout(self)
+        row.setContentsMargins(14, 12 if self.above else 22, 10, 22 if self.above else 12)
+        label = QLabel(self.message)
+        label.setWordWrap(True)
+        label.setFixedWidth(224)
+        row.addWidget(label)
+        close = QPushButton("×")
+        close.setAccessibleName("Acknowledge warning and enable Lock on exit")
+        close.setFixedSize(24,24)
+        close.clicked.connect(self.accept)
+        row.addWidget(close, 0, Qt.AlignmentFlag.AlignTop)
+        self.setFixedSize(row.sizeHint())
+        x = min(max(area.left(), self.anchor.x()-36), area.right()-self.width()+1)
+        y = self.anchor.y()-switch.height()//2-self.height() if self.above else self.anchor.y()+switch.height()//2
+        self.tip = max(13,min(self.width()-13,self.anchor.x()-x))
+        self.move(x,y)
+        self.pulse = QVariantAnimation(self)
+        self.pulse.setDuration(600)
+        self.pulse.setStartValue(0.0)
+        self.pulse.setKeyValueAt(0.45,1.0)
+        self.pulse.setEndValue(0.0)
+        self.pulse.valueChanged.connect(lambda _: self.update())
+        self.pulse.start()
+
+    def paintEvent(self,event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        top = 1 if self.above else 11
+        bottom = self.height()-(11 if self.above else 1)
+        body = QPainterPath()
+        body.addRoundedRect(QRectF(1,top,self.width()-2,bottom-top),5,5)
+        side = bottom if self.above else top
+        arrow = QPainterPath()
+        arrow.moveTo(self.tip-8,side)
+        arrow.lineTo(self.tip,side+(9 if self.above else -9))
+        arrow.lineTo(self.tip+8,side)
+        arrow.closeSubpath()
+        p.setBrush(QColor('#222930'))
+        p.setPen(QPen(QColor('#92A4B8').lighter(100+round(45*(self.pulse.currentValue() or 0))),2))
+        p.drawPath(body.united(arrow))
+        p.end()
+
+
+APP_VERSION = "v6.2"
 APP_NAME = "Dinoscreener"
 APP_AUTHOR = "Kushal Arvind"
 APP_GITHUB_REPO = "kushalarvindo/dinoscreener"
@@ -40,6 +503,8 @@ class CrispAestheticFlipClock(QWidget):
     def __init__(self, accent_color="#8F96BF", enable_win_key=False, strict_exit=False, show_info=True, preview_mode=False, brightness=100, clock_style=1, clock_scales=None, use_24hr=False, leading_zeros=None, config_path=None, full_config=None, ignore_media_keys=False, dino_font="Bungee", live_weather=False, pixel_shift=False, primary_font="", character_type="dino", custom_character_image="", show_weather=True, show_battery=True, use_fahrenheit=False, ambient_mode=False, hourly_chime=False, chime_preset="acoustic_bell", chime_volume=45, custom_chime_path="", parent=None, studio_mode=False):
         super().__init__(parent)
         self.studio_mode = studio_mode
+        if not preview_mode:
+            self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
         self.last_pos = None
         self.enable_frame_caching = False
         self.cached_frame = None
@@ -141,7 +606,20 @@ class CrispAestheticFlipClock(QWidget):
             print("Sprite load failed", e)
             
         self.initUI()
-        
+        self._gpu_surface=ClockGLSurface(self) if clock_gpu_available() else None
+
+    def update(self,*args):
+        surface=getattr(self,'_gpu_surface',None)
+        if surface is not None:
+            surface.update(*args)
+            if surface.isValid():return
+        super().update(*args)
+
+    def resizeEvent(self,event):
+        super().resizeEvent(event)
+        surface=getattr(self,'_gpu_surface',None)
+        if surface is not None:surface.setGeometry(self.rect())
+
     def set_accent_color(self, hex_col):
         self.rotary_accent = QColor(hex_col)
         self.update()
@@ -186,7 +664,7 @@ class CrispAestheticFlipClock(QWidget):
         self.sync_timer.start(200)
 
         # High-Refresh Rate & Delta Frame Pacing (Smooth on 165Hz, 144Hz, 120Hz, 60Hz)
-        screen = QApplication.primaryScreen()
+        screen = self.screen() or QApplication.primaryScreen()
         hz = screen.refreshRate() if screen else 60.0
         if not hz or hz <= 30.0:
             hz = 60.0
@@ -195,6 +673,7 @@ class CrispAestheticFlipClock(QWidget):
         self.last_frame_time = time.perf_counter()
 
         self.anim_timer = QTimer(self)
+        self.anim_timer.setTimerType(Qt.TimerType.PreciseTimer)
         self.anim_timer.timeout.connect(self.updateAnimation)
         self.anim_timer.start(self.target_frame_interval)
 
@@ -222,8 +701,8 @@ class CrispAestheticFlipClock(QWidget):
             if hasattr(self, 'anim_timer') and hasattr(self, 'target_frame_interval'):
                 self.anim_timer.setInterval(self.target_frame_interval)
 
-        # Hourly chime (Flip Clock mode, top of the hour :00, non-preview)
-        if self.hourly_chime and self.clock_style == 0 and not self.preview_mode:
+        # Chime once at the start of each hour in the running screensaver.
+        if self.hourly_chime and not self.preview_mode:
             if now.minute() == 0 and now.hour() != self.last_chime_hour:
                 self.last_chime_hour = now.hour()
                 play_chime(
@@ -337,12 +816,20 @@ class CrispAestheticFlipClock(QWidget):
         # Dynamic Frame Throttle (Power Optimization):
         # When Flip Clock is static (not animating, no ambient glow, and not preview mode),
         # throttle frame timer from 165Hz/60Hz down to 1000ms (1 FPS), dropping CPU usage to < 0.5%
-        if not self.preview_mode and self.clock_style == 0 and not self.animating and not self.show_bg and self.bg_opacity <= 0.0:
+        if self.clock_style == 0 and not self.animating and not self.show_bg and self.bg_opacity <= 0.0:
             if self.anim_timer.interval() != 1000:
                 self.anim_timer.setInterval(1000)
         else:
-            if hasattr(self, 'target_frame_interval') and self.anim_timer.interval() != self.target_frame_interval:
-                self.anim_timer.setInterval(self.target_frame_interval)
+            # Fractional refresh periods (175Hz = 5.714ms) must not be rounded
+            # permanently to 6ms/166Hz. Alternate integer timer waits against a
+            # monotonic deadline, and skip missed deadlines instead of bursting.
+            period=1/max(30,self.display_hz)
+            deadline=getattr(self,'_next_frame_due',now_time)
+            if deadline<now_time-period:deadline=now_time
+            deadline+=period
+            self._next_frame_due=deadline
+            interval=max(1,round((deadline-time.perf_counter())*1000))
+            if self.anim_timer.interval()!=interval:self.anim_timer.setInterval(interval)
                 
         self.update()
 
@@ -483,6 +970,56 @@ class CrispAestheticFlipClock(QWidget):
     # ==========================================
     # DESIGN 2: MODERN PIXEL ROTARY (DUAL RING)
     # ==========================================
+    def rotary_battery_status(self):
+        now=time.monotonic()
+        if now<getattr(self,'_battery_check_due',0):return self._battery_display
+        bat_text = "100%"
+        bat_val = 100
+        is_charging = False
+        if sys.platform.startswith("win32"):
+            try:
+                class SYSTEM_POWER_STATUS(ctypes.Structure):
+                    _fields_ = [
+                        ('ACLineStatus', ctypes.c_byte),
+                        ('BatteryFlag', ctypes.c_byte),
+                        ('BatteryLifePercent', ctypes.c_byte),
+                        ('SystemStatusFlag', ctypes.c_byte),
+                        ('BatteryLifeTime', ctypes.c_ulong),
+                        ('BatteryFullLifeTime', ctypes.c_ulong),
+                    ]
+                sys_pwr = SYSTEM_POWER_STATUS()
+                ctypes.windll.kernel32.GetSystemPowerStatus(ctypes.byref(sys_pwr))
+                if sys_pwr.BatteryLifePercent == 255:
+                    bat_text = "PWR"
+                else:
+                    bat_text = f"{sys_pwr.BatteryLifePercent}%"
+                    bat_val = sys_pwr.BatteryLifePercent
+                    if sys_pwr.ACLineStatus == 1:
+                        is_charging = True
+            except Exception:
+                pass
+        elif sys.platform.startswith("linux"):
+            try:
+                import glob
+                bat_paths = glob.glob("/sys/class/power_supply/BAT*")
+                if bat_paths:
+                    cap_file = os.path.join(bat_paths[0], "capacity")
+                    status_file = os.path.join(bat_paths[0], "status")
+                    if os.path.exists(cap_file):
+                        with open(cap_file, "r") as f:
+                            bat_val = int(f.read().strip())
+                            bat_text = f"{bat_val}%"
+                    if os.path.exists(status_file):
+                        with open(status_file, "r") as f:
+                            is_charging = (f.read().strip().lower() == "charging")
+            except Exception:
+                pass
+            
+
+        self._battery_display=(bat_text,bat_val,is_charging)
+        self._battery_check_due=now+1
+        return self._battery_display
+
     def draw_rotary_style(self, painter, w, h):
         now = QTime.currentTime()
         msec = now.msec()
@@ -511,6 +1048,9 @@ class CrispAestheticFlipClock(QWidget):
 
         # Helper for crisp DirectWrite subpixel antialiased text (Original Google Sans / Product Sans aesthetic)
         def make_rotary_font(sz, weight=QFont.Weight.Normal):
+            key=(int(sz),int(weight))
+            if not hasattr(self,'_rotary_fonts'):self._rotary_fonts={}
+            if key in self._rotary_fonts:return self._rotary_fonts[key]
             f = QFont()
             families = ["Google Sans", "Product Sans", "Segoe UI", "Arial"]
             f.setFamilies(families)
@@ -518,6 +1058,7 @@ class CrispAestheticFlipClock(QWidget):
             f.setWeight(weight)
             f.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.PreferQuality)
             f.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
+            self._rotary_fonts[key]=f
             return f
 
         # --- MINUTE WHEEL ---
@@ -709,48 +1250,8 @@ class CrispAestheticFlipClock(QWidget):
             w_icon_size = h * 0.016
             
             # Battery text & status
-            bat_text = "100%"
-            bat_val = 100
-            is_charging = False
-            if sys.platform.startswith("win32"):
-                try:
-                    class SYSTEM_POWER_STATUS(ctypes.Structure):
-                        _fields_ = [
-                            ('ACLineStatus', ctypes.c_byte),
-                            ('BatteryFlag', ctypes.c_byte),
-                            ('BatteryLifePercent', ctypes.c_byte),
-                            ('SystemStatusFlag', ctypes.c_byte),
-                            ('BatteryLifeTime', ctypes.c_ulong),
-                            ('BatteryFullLifeTime', ctypes.c_ulong),
-                        ]
-                    sys_pwr = SYSTEM_POWER_STATUS()
-                    ctypes.windll.kernel32.GetSystemPowerStatus(ctypes.byref(sys_pwr))
-                    if sys_pwr.BatteryLifePercent == 255:
-                        bat_text = "PWR"
-                    else:
-                        bat_text = f"{sys_pwr.BatteryLifePercent}%"
-                        bat_val = sys_pwr.BatteryLifePercent
-                        if sys_pwr.ACLineStatus == 1:
-                            is_charging = True
-                except Exception:
-                    pass
-            elif sys.platform.startswith("linux"):
-                try:
-                    import glob
-                    bat_paths = glob.glob("/sys/class/power_supply/BAT*")
-                    if bat_paths:
-                        cap_file = os.path.join(bat_paths[0], "capacity")
-                        status_file = os.path.join(bat_paths[0], "status")
-                        if os.path.exists(cap_file):
-                            with open(cap_file, "r") as f:
-                                bat_val = int(f.read().strip())
-                                bat_text = f"{bat_val}%"
-                        if os.path.exists(status_file):
-                            with open(status_file, "r") as f:
-                                is_charging = (f.read().strip().lower() == "charging")
-                except Exception:
-                    pass
-                
+            bat_text,bat_val,is_charging=self.rotary_battery_status()
+
             bat_icon_w = w * 0.019
             bat_icon_h = h * 0.015
             b_gap = w * 0.005
@@ -1012,8 +1513,8 @@ class CrispAestheticFlipClock(QWidget):
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawRect(QRectF(current_x - current_size/2, current_y - current_size/2, current_size, current_size))
 
-    def render_clock_canvas(self, painter, w, h):
-        if self.preview_mode:
+    def render_clock_canvas(self, painter, w, h, clip_preview=True):
+        if self.preview_mode and clip_preview:
             clip_path = QPainterPath()
             clip_path.addRoundedRect(QRectF(0, 0, w, h), 12, 12)
             painter.setClipPath(clip_path)
@@ -1066,12 +1567,13 @@ class CrispAestheticFlipClock(QWidget):
             painter.fillRect(QRectF(0, 0, w, h), QColor(0, 0, 0, overlay_alpha))
 
     def paintEvent(self, event):
+        surface=getattr(self,'_gpu_surface',None)
+        if surface is not None and surface.isValid():return
         w = self.width()
         h = self.height()
         if w <= 0 or h <= 0:
             return
         p_screen = QPainter(self)
-        p_screen.fillRect(QRectF(0, 0, w, h), QColor(0, 0, 0))
         p_screen.setRenderHint(QPainter.RenderHint.Antialiasing)
         p_screen.setRenderHint(QPainter.RenderHint.TextAntialiasing)
         p_screen.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
@@ -1195,6 +1697,14 @@ class SpatialStageFrame(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("spatialStage")
+        self.setAutoFillBackground(False)
+        self.setStyleSheet("QFrame#spatialStage { background: transparent; border: none; }")
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        outline = QPainterPath()
+        outline.addRoundedRect(QRectF(self.rect()), 20, 20)
+        self.setMask(QRegion(outline.toFillPolygon().toPolygon()))
         
     def set_stage_theme(self, clock_style, accent_hex):
         pass
@@ -1206,39 +1716,20 @@ class SpatialStageFrame(QFrame):
         h = self.height()
         
         # Deep black true screensaver display
-        painter.setBrush(QColor(0, 0, 0))
+        painter.setBrush(QColor(27, 29, 32))
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawRoundedRect(QRectF(0, 0, w, h), 14, 14)
+        painter.drawRoundedRect(QRectF(0, 0, w, h), 20, 20)
         
         # Subtle glass specular border
         border_pen = QPen(QColor(255, 255, 255, 25), 1)
         painter.setPen(border_pen)
         painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.drawRoundedRect(QRectF(0.5, 0.5, w - 1, h - 1), 14, 14)
+        painter.drawRoundedRect(QRectF(0.5, 0.5, w - 1, h - 1), 20, 20)
 
 
 def get_windows_accent_color():
-    try:
-        import winreg
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\DWM")
-        val, _ = winreg.QueryValueEx(key, "AccentColor")
-        r = val & 0xFF
-        g = (val >> 8) & 0xFF
-        b = (val >> 16) & 0xFF
-        return f"#{r:02x}{g:02x}{b:02x}"
-    except Exception:
-        pass
-    try:
-        import winreg
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Explorer\Accent")
-        val, _ = winreg.QueryValueEx(key, "AccentColorMenu")
-        r = val & 0xFF
-        g = (val >> 8) & 0xFF
-        b = (val >> 16) & 0xFF
-        return f"#{r:02x}{g:02x}{b:02x}"
-    except Exception:
-        pass
-    return "#0078D4"
+    """Keep the demo's chosen slate accent independent of the Windows theme."""
+    return "#92A4B8"
 
 
 if sys.platform == "win32":
@@ -1270,6 +1761,11 @@ def apply_windows_dwm_effects(dialog):
             return False
             
         dwmapi = ctypes.windll.dwmapi
+        # Explicit pointer-sized HWND signatures for 64-bit builds.
+        dwmapi.DwmSetWindowAttribute.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_void_p, ctypes.c_uint]
+        dwmapi.DwmSetWindowAttribute.restype = ctypes.c_long
+        dwmapi.DwmExtendFrameIntoClientArea.argtypes = [ctypes.c_void_p, ctypes.POINTER(DWM_MARGINS)]
+        dwmapi.DwmExtendFrameIntoClientArea.restype = ctypes.c_long
         
         # 1. Enable Windows 11 Dark Mode Titlebar & Frame (DWMWA_USE_IMMERSIVE_DARK_MODE = 20)
         dark_mode = ctypes.c_int(1)
@@ -1281,7 +1777,7 @@ def apply_windows_dwm_effects(dialog):
         # DWMWA_SYSTEMBACKDROP_TYPE = 38
         # DWMSBT_MAINWINDOW = 2 (Mica), DWMSBT_TABBEDWINDOW = 4 (Mica Alt), DWMSBT_TRANSIENTWINDOW = 3 (Acrylic)
         applied_backdrop = False
-        for backdrop_val in (2, 4, 3):
+        for backdrop_val in (3, 2, 4):
             backdrop_type = ctypes.c_int(backdrop_val)
             res = dwmapi.DwmSetWindowAttribute(
                 hwnd, 38, ctypes.byref(backdrop_type), ctypes.sizeof(backdrop_type)
@@ -1290,6 +1786,30 @@ def apply_windows_dwm_effects(dialog):
                 applied_backdrop = True
                 break
                 
+        # Some compositor customizers acknowledge Acrylic but substitute Mica.
+        # Use the window accent blur only in that case, without CPU image effects.
+        if applied_backdrop:
+            backdrop = ctypes.c_int()
+            get_backdrop = dwmapi.DwmGetWindowAttribute
+            get_backdrop.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_void_p, ctypes.c_uint]
+            get_backdrop.restype = ctypes.c_long
+            if get_backdrop(hwnd, 38, ctypes.byref(backdrop), ctypes.sizeof(backdrop)) == 0 and backdrop.value != 3:
+                class AccentPolicy(ctypes.Structure):
+                    _fields_ = [('state', ctypes.c_int), ('flags', ctypes.c_int),
+                                ('color', ctypes.c_uint), ('animation', ctypes.c_int)]
+
+                class CompositionData(ctypes.Structure):
+                    _fields_ = [('attribute', ctypes.c_int), ('data', ctypes.c_void_p),
+                                ('size', ctypes.c_size_t)]
+
+                set_composition = getattr(ctypes.windll.user32, 'SetWindowCompositionAttribute', None)
+                if set_composition is not None:
+                    set_composition.argtypes = [ctypes.c_void_p, ctypes.POINTER(CompositionData)]
+                    set_composition.restype = ctypes.c_int
+                    policy = AccentPolicy(4, 0, 0x66121212, 0)
+                    data = CompositionData(19, ctypes.addressof(policy), ctypes.sizeof(policy))
+                    dialog._accent_blur_active = bool(set_composition(hwnd, ctypes.byref(data)))
+
         # Fallback for Windows 11 21H2 (Build 22000)
         if not applied_backdrop:
             mica_val = ctypes.c_int(1)
@@ -1299,11 +1819,11 @@ def apply_windows_dwm_effects(dialog):
             if res_mica == 0:
                 applied_backdrop = True
                 
-        # 3. Extend glass frame into client area for DWM & DWMGlassBlur hookers
+        # 3. Extend the system backdrop across the client area; no external blur tool needed
         margins = DWM_MARGINS(-1, -1, -1, -1)
         res_frame = dwmapi.DwmExtendFrameIntoClientArea(hwnd, ctypes.byref(margins))
         
-        if applied_backdrop or res_frame == 0:
+        if applied_backdrop and res_frame == 0:
             return True
             
         dialog.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, False)
@@ -1320,7 +1840,7 @@ def get_color_variants(hex_color):
     hex_clean = hex_color.lstrip('#')
     r, g, b = tuple(int(hex_clean[i:i+2], 16) for i in (0, 2, 4))
     lum = 0.299 * r + 0.587 * g + 0.114 * b
-    text_color = "#0B0F19" if lum > 140 else "#FFFFFF"
+    text_color = "#111111" if lum > 140 else "#FFFFFF"
     
     if lum > 140:
         hover_r, hover_g, hover_b = max(0, r - 20), max(0, g - 20), max(0, b - 20)
@@ -1380,6 +1900,7 @@ def get_or_create_chevron_icon():
 
 
 def get_or_create_fullscreen_duotone_icon(accent_hex):
+    accent_hex = "#92A4B8"
     import tempfile
     clean_col = accent_hex.replace("#", "")
     temp_path = os.path.join(tempfile.gettempdir(), f"dinoscreener_fs_duotone_{clean_col}.svg").replace("\\", "/")
@@ -1423,6 +1944,7 @@ def get_or_create_fullscreen_duotone_icon(accent_hex):
 
 
 def get_or_create_info_duotone_icon(accent_hex):
+    accent_hex = "#92A4B8"
     import tempfile
     clean_col = accent_hex.replace("#", "")
     temp_path = os.path.join(tempfile.gettempdir(), f"dinoscreener_info_duotone_{clean_col}.svg").replace("\\", "/")
@@ -1493,7 +2015,7 @@ class CollapsibleModeCapsule(QFrame):
         self._current_mode = 0
         self._modes = [
             ("Flip Clock", 0),
-            ("Rotary Modern", 1),
+            ("Rotary Clock", 1),
             ("Dino Runner", 2)
         ]
         self._is_expanded = False
@@ -1505,18 +2027,10 @@ class CollapsibleModeCapsule(QFrame):
         self.setFixedWidth(self._collapsed_width)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         
-        self.setStyleSheet("""
-            QFrame#capsuleFrame {
-                background: rgba(23, 27, 38, 0.82);
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 19px;
-            }
-            QFrame#capsuleFrame:hover {
-                border: 1px solid rgba(255, 255, 255, 0.22);
-                background: rgba(26, 31, 45, 0.88);
-            }
-        """)
+        self.setStyleSheet("QFrame#capsuleFrame { background: transparent; border: none; }")
         self.setObjectName("capsuleFrame")
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setAutoFillBackground(False)
         
         self.stack = QStackedLayout(self)
         self.stack.setContentsMargins(0, 0, 0, 0)
@@ -1524,6 +2038,7 @@ class CollapsibleModeCapsule(QFrame):
         
         # --- Page 0: Collapsed Pill View ---
         self.collapsed_view = QWidget()
+        self.collapsed_view.setStyleSheet('background: transparent;')
         col_layout = QHBoxLayout(self.collapsed_view)
         col_layout.setContentsMargins(18, 0, 18, 0)
         col_layout.setSpacing(0)
@@ -1536,7 +2051,7 @@ class CollapsibleModeCapsule(QFrame):
             color: #FFFFFF;
             font-size: 11.5px;
             font-weight: 600;
-            font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+            font-family: 'Google Sans Flex', 'Google Sans Flex', sans-serif;
             background: transparent;
         """)
         
@@ -1545,39 +2060,41 @@ class CollapsibleModeCapsule(QFrame):
         
         # --- Page 1: Expanded 3-Button View ---
         self.expanded_view = QWidget()
+        self.expanded_view.setFixedSize(self._expanded_width, 38)
+        self.expanded_view.setStyleSheet('background: transparent;')
         exp_layout = QHBoxLayout(self.expanded_view)
-        exp_layout.setContentsMargins(3, 3, 3, 3)
+        exp_layout.setContentsMargins(7, 4, 7, 4)
         exp_layout.setSpacing(4)
         
         self.mode_buttons = []
         for label, idx in self._modes:
             btn = QPushButton(label)
             btn.setCheckable(True)
-            btn.setFixedSize(118, 32)
+            btn.setFixedSize(118, 30)
             btn.setFocusPolicy(Qt.FocusPolicy.NoFocus)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.setStyleSheet("""
                 QPushButton {
                     background: transparent;
-                    color: #94A3B8;
+                    color: #A8A8A8;
                     border: 1px solid transparent;
-                    border-radius: 16px;
+                    border-radius: 14px;
                     font-size: 11.5px;
                     font-weight: 500;
                     outline: none;
-                    font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+                    font-family: 'Google Sans Flex', 'Google Sans Flex', sans-serif;
                 }
                 QPushButton:hover:!checked {
                     color: #FFFFFF;
                     background: rgba(255, 255, 255, 0.08);
-                    border-radius: 16px;
+                    border-radius: 14px;
                 }
                 QPushButton:checked {
-                    background: #252B3B;
-                    color: #FFFFFF;
+                    background: rgba(210,218,228,0.12);
+                    color: #92A4B8;
                     font-weight: 600;
                     border: 1px solid rgba(255, 255, 255, 0.18);
-                    border-radius: 16px;
+                    border-radius: 14px;
                 }
             """)
             btn.clicked.connect(lambda checked, i=idx: self.select_mode(i))
@@ -1585,10 +2102,11 @@ class CollapsibleModeCapsule(QFrame):
             self.mode_buttons.append(btn)
             
         self.stack.addWidget(self.expanded_view)
+        self.stack.setAlignment(self.expanded_view, Qt.AlignmentFlag.AlignCenter)
         self.stack.setCurrentIndex(0)
         
         self.opacity_effect = QGraphicsOpacityEffect(self.expanded_view)
-        self.expanded_view.setGraphicsEffect(self.opacity_effect)
+        # Width clipping reveals the native labels without an offscreen opacity layer.
         self.opacity_effect.setOpacity(1.0)
         self.on_mode_changed = None
         self.on_width_changed = None
@@ -1597,6 +2115,18 @@ class CollapsibleModeCapsule(QFrame):
 
     def paintEvent(self, event):
         super().paintEvent(event)
+        if not getattr(self, 'studio_glass', False):
+            panel = QPainter(self)
+            panel.setRenderHint(QPainter.RenderHint.Antialiasing)
+            panel.setPen(QPen(QColor(255,255,255,45),1))
+            panel.setBrush(QColor(38,39,42,145 if self.underMouse() else 110))
+            panel.drawRoundedRect(QRectF(self.rect()).adjusted(1,1,-1,-1),19,19)
+            panel.end()
+        if getattr(self, 'studio_glass', False):
+            glass = QPainter(self)
+            glass.setRenderHint(QPainter.RenderHint.Antialiasing)
+            paint_frosted_surface(glass, self, 19)
+            glass.end()
         
         # Do not render edge indicator glows in expanded 3-button view
         if self._is_expanded:
@@ -1615,7 +2145,7 @@ class CollapsibleModeCapsule(QFrame):
         p.setClipPath(clip_path)
         
         # Soft periwinkle/accent hues
-        c_peri = QColor("#a5b4fc")
+        c_peri = QColor("#92A4B8")
         c_acc = QColor(self.win_accent)
         c_core = QColor("#e0e7ff")
         
@@ -1624,7 +2154,7 @@ class CollapsibleModeCapsule(QFrame):
         
         # Directional Visibility Logic:
         # idx 0 (Flip Clock): ONLY Right indicator
-        # idx 1 (Rotary Modern): BOTH Left and Right indicators
+        # idx 1 (Rotary Clock): BOTH Left and Right indicators
         # idx 2 (Dino Runner): ONLY Left indicator
         show_left = (self._current_mode in [1, 2])
         show_right = (self._current_mode in [0, 1])
@@ -1702,6 +2232,9 @@ class CollapsibleModeCapsule(QFrame):
     def set_capsule_width(self, w):
         self._width = w
         self.setFixedWidth(w)
+        if not getattr(self, 'pin_open', False):
+            fraction = (w-self._collapsed_width)/(self._expanded_width-self._collapsed_width)
+            self.opacity_effect.setOpacity(max(0.0,min(1.0,fraction)))
         if hasattr(self, 'on_width_changed') and callable(self.on_width_changed):
             self.on_width_changed(w)
 
@@ -1742,63 +2275,31 @@ class CollapsibleModeCapsule(QFrame):
         super().leaveEvent(event)
         self.collapse()
 
-    def expand(self):
-        if self._is_expanded:
-            return
-        self._is_expanded = True
-        
-        if self._anim_group and self._anim_group.state() == QParallelAnimationGroup.State.Running:
-            self._anim_group.stop()
-            
-        self.stack.setCurrentIndex(1)
-        
-        anim_w = QPropertyAnimation(self, b"capsuleWidth")
-        anim_w.setDuration(240)
-        anim_w.setStartValue(self.width())
-        anim_w.setEndValue(self._expanded_width)
-        anim_w.setEasingCurve(QEasingCurve.Type.OutQuart)
-        
-        anim_op = QPropertyAnimation(self.opacity_effect, b"opacity")
-        anim_op.setDuration(240)
-        anim_op.setStartValue(0.1)
-        anim_op.setEndValue(1.0)
-        anim_op.setEasingCurve(QEasingCurve.Type.OutQuart)
-        
-        self._anim_group = QParallelAnimationGroup()
-        self._anim_group.addAnimation(anim_w)
-        self._anim_group.addAnimation(anim_op)
+    def _animate_width(self, expanded):
+        if self._anim_group is None:
+            self._anim_group = DisplayPositionAnimation(self, b"capsuleWidth", self)
+            self._anim_group.finished.connect(self._finish_width)
+        self._anim_group.stop()
+        self._is_expanded = expanded
+        self.stack.setCurrentIndex(1 if expanded else 0)
+        self._anim_group.setDuration(240 if expanded else 220)
+        self._anim_group.setEasingCurve(QEasingCurve.Type.OutQuart)
+        self._anim_group.setStartValue(self.width())
+        self._anim_group.setEndValue(self._expanded_width if expanded else self._collapsed_width)
         self._anim_group.start()
+
+    def expand(self):
+        if not self._is_expanded:
+            self._animate_width(True)
 
     def collapse(self):
-        if not self._is_expanded:
-            return
-        self._is_expanded = False
-        
-        if self._anim_group and self._anim_group.state() == QParallelAnimationGroup.State.Running:
-            self._anim_group.stop()
-            
-        anim_w = QPropertyAnimation(self, b"capsuleWidth")
-        anim_w.setDuration(220)
-        anim_w.setStartValue(self.width())
-        anim_w.setEndValue(self._collapsed_width)
-        anim_w.setEasingCurve(QEasingCurve.Type.OutQuart)
-        
-        anim_op = QPropertyAnimation(self.opacity_effect, b"opacity")
-        anim_op.setDuration(200)
-        anim_op.setStartValue(1.0)
-        anim_op.setEndValue(0.0)
-        anim_op.setEasingCurve(QEasingCurve.Type.OutQuart)
-        
-        self._anim_group = QParallelAnimationGroup()
-        self._anim_group.addAnimation(anim_w)
-        self._anim_group.addAnimation(anim_op)
-        self._anim_group.finished.connect(self._on_collapse_finished)
-        self._anim_group.start()
+        if not getattr(self, 'pin_open', False) and self._is_expanded:
+            self._animate_width(False)
 
-    def _on_collapse_finished(self):
-        if not self._is_expanded:
-            self.stack.setCurrentIndex(0)
-            self.opacity_effect.setOpacity(1.0)
+    def _finish_width(self):
+        self.stack.setCurrentIndex(1 if self._is_expanded else 0)
+        self.opacity_effect.setOpacity(1.0)
+
 
 
 # ==========================================
@@ -2119,8 +2620,46 @@ class MaterialYouLoader(QWidget):
         p.end()
 
 
+class PaletteStrip(QWidget):
+    colors = ('#F1DAD4','#EFC9CB','#DCB1EE','#F1B5D8','#E89EAE','#F48BAB',
+              '#F8BDA2','#F0CA99','#A1E4AD','#A8E1D9','#89BDD8','#7CD7DE',
+              '#C6C6F0','#9B8C9F','#D5DCE8')
+
+    def __init__(self):
+        super().__init__()
+        self.setFixedHeight(22)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        bar = QRectF(self.rect()).adjusted(8,8,-8,-8)
+        path = QPainterPath()
+        path.addRoundedRect(bar,3,3)
+        painter.setClipPath(path)
+        for index,color in enumerate(self.colors):
+            left = round(index*bar.width()/len(self.colors))
+            right = round((index+1)*bar.width()/len(self.colors))
+            painter.fillRect(QRectF(bar.left()+left,bar.top(),right-left,bar.height()), QColor(color))
+        painter.end()
+
+
+class ResetDismissFilter(QObject):
+    def eventFilter(self, watched, event):
+        settings = self.parent()
+        if event.type() == QEvent.Type.MouseButtonPress and settings.reset_state == 1:
+            buttons = [settings.reset_button]
+            studio = getattr(settings,'studio',None)
+            if studio:
+                buttons.append(studio.action_dock.btn_reset)
+            point = event.globalPosition().toPoint()
+            if not any(b.isVisible() and b.rect().contains(b.mapFromGlobal(point)) for b in buttons):
+                settings.set_reset_state(0)
+        return False
+
+
 class AboutDialog(QDialog):
-    def __init__(self, parent=None, win_accent="#8F96BF", auto_check=False):
+    def __init__(self, parent=None, win_accent="#D0D0D0", auto_check=False):
         super().__init__(parent)
         self.setWindowTitle("About Dinoscreener")
         self.setFixedSize(560, 680)
@@ -2128,23 +2667,24 @@ class AboutDialog(QDialog):
         self.contrast_text, self.hover_accent, self.press_accent = get_color_variants(self.win_accent)
         
         # Subpixel ClearType Antialiased Font Hierarchy
-        ui_font = QFont(["Segoe UI Variable Text", "Segoe UI", "Arial", "sans-serif"], 9)
+        ui_font = QFont(["Google Sans Flex", "Segoe UI Emoji", "Arial", "sans-serif"], 9)
         ui_font.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.PreferQuality)
-        ui_font.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
+        ui_font.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
         self.setFont(ui_font)
 
         # Windows 11 DWM Mica / Glass Blur Backdrop Setup
         self.is_dwm_active = apply_windows_dwm_effects(self)
+        QTimer.singleShot(0, lambda: apply_windows_dwm_effects(self))
             
         logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_icon.png")
         if getattr(sys, 'frozen', False):
             logo_path = os.path.join(sys._MEIPASS, "app_icon.png")
         if os.path.exists(logo_path):
-            self.setWindowIcon(QIcon(logo_path))
+            self.setWindowIcon(QIcon(os.path.join(os.path.dirname(logo_path), "app_icon_taskbar.png")))
         self.logo_path = logo_path
         
-        bg_dialog = "rgba(16, 20, 29, 0.72)" if self.is_dwm_active else "#10141D"
-        bg_card = "rgba(23, 27, 38, 0.78)" if self.is_dwm_active else "#171B26"
+        bg_dialog = "rgba(18, 18, 18, 0.34)" if self.is_dwm_active else "#121212"
+        bg_card = "rgba(26, 26, 26, 0.50)" if self.is_dwm_active else "#1A1A1A"
         bg_story = "rgba(0, 0, 0, 0.28)" if self.is_dwm_active else "rgba(0, 0, 0, 0.25)"
         
         self.setStyleSheet(f"""
@@ -2154,14 +2694,14 @@ class AboutDialog(QDialog):
             QLabel {{
                 background: transparent;
                 color: #FFFFFF;
-                font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, sans-serif;
+                font-family: 'Google Sans Flex', 'Google Sans Flex', -apple-system, sans-serif;
             }}
             QFrame {{
                 background: transparent;
             }}
             QFrame#aboutCard {{
                 background: {bg_card};
-                border: 1px solid rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.14);
                 border-radius: 14px;
             }}
             QFrame#storyInnerBox {{
@@ -2211,7 +2751,7 @@ class AboutDialog(QDialog):
         """)
         
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(26, 22, 26, 20)
+        layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(14)
         
         # 1. Centered Symmetrical Header (Golden Ratio Balance)
@@ -2224,29 +2764,26 @@ class AboutDialog(QDialog):
         lbl_logo = QLabel()
         lbl_logo.setFixedSize(54, 54)
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl_logo_bg = "rgba(23, 27, 38, 0.78)" if self.is_dwm_active else "#171B26"
-        lbl_logo.setStyleSheet(f"""
-            background: {lbl_logo_bg};
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 14px;
-        """)
+        lbl_logo_bg = "rgba(26, 26, 26, 0.50)" if self.is_dwm_active else "#1A1A1A"
+        lbl_logo.setStyleSheet("background: transparent; border: none; padding: 0px;")
         if hasattr(self, 'logo_path') and os.path.exists(self.logo_path):
-            lbl_logo.setPixmap(get_rounded_pixmap(self.logo_path, size=54, radius=14, dpr=3.0))
+            lbl_logo.setPixmap(get_rounded_pixmap(self.logo_path, size=54, radius=14, dpr=lbl_logo.devicePixelRatioF()))
         logo_row.addWidget(lbl_logo)
         header_box.addLayout(logo_row)
         
         title_row = QHBoxLayout()
         title_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_row.setSpacing(8)
+        title_row.setSpacing(10)
         lbl_title = QLabel(APP_NAME)
         lbl_title.setStyleSheet("background: transparent; font-size: 20px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.3px;")
         title_row.addWidget(lbl_title)
         
         lbl_ver = QLabel(APP_VERSION)
+        lbl_ver.setObjectName('versionBadge')
         lbl_ver.setStyleSheet(f"""
-            background: rgba({QColor(self.win_accent).red()}, {QColor(self.win_accent).green()}, {QColor(self.win_accent).blue()}, 0.18);
-            color: {self.win_accent};
-            border: 1px solid rgba({QColor(self.win_accent).red()}, {QColor(self.win_accent).green()}, {QColor(self.win_accent).blue()}, 0.38);
+            background: #D1D1E5;
+            color: #202733;
+            border: 1px solid #D1D1E5;
             border-radius: 6px;
             font-size: 11px;
             font-weight: 700;
@@ -2258,7 +2795,7 @@ class AboutDialog(QDialog):
         lbl_author = QLabel("Built by <b>Kushal :)</b> 👋 (@kushalarvindo)")
         lbl_author.setTextFormat(Qt.TextFormat.RichText)
         lbl_author.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl_author.setStyleSheet("font-size: 12px; color: #94A3B8;")
+        lbl_author.setStyleSheet("font-size: 12px; color: #A8A8A8;")
         header_box.addWidget(lbl_author)
         
         layout.addLayout(header_box)
@@ -2271,7 +2808,7 @@ class AboutDialog(QDialog):
         story_layout.setSpacing(12)
         
         lbl_story_title = QLabel("ABOUT")
-        lbl_story_title.setStyleSheet("background: transparent; font-size: 10px; font-weight: 700; color: #64748B; letter-spacing: 0.6px;")
+        lbl_story_title.setStyleSheet("background: transparent; font-size: 10px; font-weight: 700; color: #858585; letter-spacing: 0.6px;")
         story_layout.addWidget(lbl_story_title)
         
         inner_box = QFrame()
@@ -2284,16 +2821,14 @@ class AboutDialog(QDialog):
             '<p style="margin: 0 0 10px 0; line-height: 1.54;">'
             "✦ Hi, I'm Kushal! 👋 I wanted a screensaver that was simple, neat, and actually fun to look at, so I built <b>Dinoscreener</b>.</p>"
             '<p style="margin: 0 0 10px 0; line-height: 1.54;">'
-            "✦ <b>3 cozy styles</b> in one: a playful <b>Jumping Dino</b>, a classic <b>Flip Clock</b>, and a clean <b>Rotary Dial</b> with your weather & battery.</p>"
-            '<p style="margin: 0 0 10px 0; line-height: 1.54;">'
-            "✦ Made with love to be <b>super smooth</b>, <b>safe for OLED screens</b>, and complete with gentle <b>hourly bell chimes</b>.</p>"
-            '<p style="margin: 0; line-height: 1.54; color: #94A3B8;">'
+            "✦ <b>3 cozy styles</b> in one: a playful <b>Jumping Dino</b>, a classic <b>Flip Clock</b>, and a clean <b>Rotary Clock</b> with your weather & battery.</p>"
+            '<p style="margin: 0; line-height: 1.54; color: #A8A8A8;">'
             "Hope it makes your desk smile! Ideas are always welcome 😊</p>"
         )
         lbl_story = QLabel(story_text)
         lbl_story.setTextFormat(Qt.TextFormat.RichText)
         lbl_story.setWordWrap(True)
-        lbl_story.setStyleSheet("background: transparent; font-size: 11.5px; color: #CBD5E1;")
+        lbl_story.setStyleSheet("background: transparent; font-size: 11.5px; color: #D2D2D2;")
         inner_layout.addWidget(lbl_story)
         story_layout.addWidget(inner_box)
         
@@ -2301,7 +2836,7 @@ class AboutDialog(QDialog):
         pills_row = QHBoxLayout()
         pills_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
         pills_row.setSpacing(10)
-        for icon_text in ["🦕 Chrome Dino", "⏱️ 3D Flip Clock", "⭕ Rotary Dial"]:
+        for icon_text in ["🦕 Chrome Dino", "⏱️ 3D Flip Clock", "⭕ Rotary Clock"]:
             lbl_pill = QLabel(icon_text)
             lbl_pill.setAlignment(Qt.AlignmentFlag.AlignCenter)
             lbl_pill.setFixedHeight(27)
@@ -2309,7 +2844,7 @@ class AboutDialog(QDialog):
                 background: rgba(255, 255, 255, 0.04);
                 border: 1px solid rgba(255, 255, 255, 0.08);
                 border-radius: 8px;
-                color: #94A3B8;
+                color: #A8A8A8;
                 font-size: 11px;
                 font-weight: 500;
                 padding: 0 14px;
@@ -2326,12 +2861,12 @@ class AboutDialog(QDialog):
         upd_layout.setSpacing(10)
         
         lbl_upd_head = QLabel("UPDATES")
-        lbl_upd_head.setStyleSheet("background: transparent; font-size: 10px; font-weight: 700; color: #64748B; letter-spacing: 0.6px;")
+        lbl_upd_head.setStyleSheet("background: transparent; font-size: 10px; font-weight: 700; color: #858585; letter-spacing: 0.6px;")
         upd_layout.addWidget(lbl_upd_head)
         
         self.lbl_status = QLabel(f"✓ You're on the newest release (<b>{APP_VERSION}</b>).")
         self.lbl_status.setTextFormat(Qt.TextFormat.RichText)
-        self.lbl_status.setStyleSheet("background: transparent; font-size: 11.5px; color: #E2E8F0;")
+        self.lbl_status.setStyleSheet("background: transparent; font-size: 11.5px; color: #E6E6E6;")
         upd_layout.addWidget(self.lbl_status)
         
         self.material_loader = MaterialYouLoader(self.win_accent, self)
@@ -2357,6 +2892,7 @@ class AboutDialog(QDialog):
         
         upd_layout.addLayout(upd_btn_row)
         layout.addWidget(card_upd)
+        layout.addWidget(PaletteStrip())
         
         # 4. Footer Row (Golden Ratio Balance & Outer Symmetry)
         footer_row = QHBoxLayout()
@@ -2379,6 +2915,7 @@ class AboutDialog(QDialog):
         self.latest_download_url = ""
         self.latest_tag = ""
         
+        polish_controls(self, MATERIAL['primary'])
         if auto_check:
             self.check_updates_clicked()
 
@@ -2571,7 +3108,7 @@ class SpatialGrabberBar(QWidget):
         bloom_a = 120 if self.hovered else 50
         core_a = 255 if self.hovered else 175
         
-        c_bloom = QColor(165, 180, 252, bloom_a)
+        c_bloom = QColor(146, 164, 184, bloom_a)
         c_core = QColor(255, 255, 255, core_a)
         w, h = float(self.width()), float(self.height())
         p.setPen(Qt.PenStyle.NoPen)
@@ -2607,11 +3144,56 @@ class SpatialGrabberBar(QWidget):
         p.end()
 
 
+def cache_frosted_backdrop(surface, studio, position, neutral=False):
+    """Render only the panel region at quarter resolution, then cache a soft image.
+
+    Event-driven only: no screen grabs, pixel loops or blur work in paintEvent.
+    """
+    started = time.perf_counter()
+    scale = 4
+    width, height = max(1,surface.width()//scale), max(1,surface.height()//scale)
+    image = QImage(width, height, QImage.Format.Format_ARGB32_Premultiplied)
+    image.fill(QColor('#000000'))
+    painter = QPainter(image)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    painter.scale(1/scale,1/scale)
+    painter.translate(-position.x(),-position.y())
+    studio.clock.render_clock_canvas(painter,studio.width(),studio.height())
+    painter.end()
+    # Cascaded smooth resampling is a bounded low-resolution tent filter.
+    soft = image.scaled(max(1,width//4),max(1,height//4),Qt.AspectRatioMode.IgnoreAspectRatio,Qt.TransformationMode.SmoothTransformation)
+    if neutral:
+        soft = soft.convertToFormat(QImage.Format.Format_Grayscale8)
+    surface.frosted_backdrop = QPixmap.fromImage(soft.scaled(width,height,Qt.AspectRatioMode.IgnoreAspectRatio,Qt.TransformationMode.SmoothTransformation))
+    surface.frosted_origin = QPoint(position)
+    surface.frosted_updates = getattr(surface,"frosted_updates",0)+1
+    surface.frosted_ms = (time.perf_counter()-started)*1000
+    surface.update()
+
+
+def paint_frosted_surface(painter, surface, radius):
+    rect = QRectF(1,1,surface.width()-2,surface.height()-2)
+    path = QPainterPath(); path.addRoundedRect(rect,radius,radius)
+    painter.save();painter.setClipPath(path)
+    painter.fillRect(rect,QColor('#111111'))
+    backdrop = getattr(surface,'frosted_backdrop',None)
+    if backdrop is not None:
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.drawPixmap(rect,backdrop,QRectF(backdrop.rect()))
+    painter.fillRect(rect,QColor(24,24,24,170))
+    sheen = QLinearGradient(0,0,0,surface.height())
+    sheen.setColorAt(0,QColor(255,255,255,15));sheen.setColorAt(1,QColor(255,255,255,3))
+    painter.fillRect(rect,sheen);painter.restore()
+    painter.setBrush(Qt.BrushStyle.NoBrush)
+    painter.setPen(QPen(QColor(255,255,255,45),1))
+    painter.drawRoundedRect(rect,radius,radius)
+
+
 class StudioDrawer(QFrame):
     """
     Floating Studio Obsidian Glass Drawer:
     Hosts the REAL, working Settings cards from SettingsDialog.
-    Renders with deep obsidian-slate rounded background (QColor(23, 27, 38, 238))
+    Renders with deep obsidian-slate rounded background (QColor(26, 26, 26, 238))
     and a subtle 1px highlight rim border with 26px rounded corners.
     """
     def __init__(self, studio, win_accent, check_icon_path, fixed_w, fixed_h):
@@ -2635,15 +3217,17 @@ class StudioDrawer(QFrame):
             QLabel {{
                 background: transparent;
                 color: #FFFFFF;
-                font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+                font-family: 'Google Sans Flex', 'Google Sans Flex', sans-serif;
             }}
             QCheckBox {{
                 background: transparent;
-                color: #CBD5E1;
-                font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+                color: #D2D2D2;
+                font-family: 'Google Sans Flex', 'Google Sans Flex', sans-serif;
                 font-size: 11.5px;
                 spacing: 8px;
             }}
+            QCheckBox:focus {{ color: #FFFFFF; }}
+            QCheckBox::indicator:focus {{ border: 2px solid #FFFFFF; }}
             QCheckBox:hover {{
                 color: #FFFFFF;
             }}
@@ -2691,7 +3275,7 @@ class StudioDrawer(QFrame):
                 font-size: 11px;
             }}
             QComboBox QAbstractItemView {{
-                background-color: #171B26;
+                background-color: #1A1A1A;
                 border: 1px solid rgba(255, 255, 255, 0.15);
                 border-radius: 6px;
                 color: #FFFFFF;
@@ -2700,25 +3284,34 @@ class StudioDrawer(QFrame):
         """)
         
         self.drawer_layout = QVBoxLayout(self)
-        self.drawer_layout.setContentsMargins(14, 12, 14, 12)
+        self.drawer_layout.setContentsMargins(12, 12, 12, 12)
         self.drawer_layout.setSpacing(0)
         self.card = None
 
     def paintEvent(self, event):
-        p = QPainter(self)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        w, h = float(self.width()), float(self.height())
-        p.setBrush(QColor(23, 27, 38, 238))
-        p.setPen(QPen(QColor(255, 255, 255, 26), 1.0))
-        p.drawRoundedRect(QRectF(1.0, 1.0, w - 2.0, h - 2.0), 26.0, 26.0)
-        p.end()
-        super().paintEvent(event)
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        paint_frosted_surface(painter,self,26)
+        painter.end()
 
     def set_card(self, card):
         self.card = card
+        self.studio.settings.cards_row.removeWidget(card)
         card.setParent(self)
+        card.setAutoFillBackground(False)
         self.drawer_layout.addWidget(card)
         card.show()
+        self.fit_content()
+
+    def fit_content(self):
+        if self.card is None:
+            return
+        self.card.layout().activate()
+        hint = self.card.layout().minimumSize().expandedTo(self.card.sizeHint())
+        self.fixed_w = max(self.fixed_w, hint.width()+24)
+        self.fixed_h = max(120, hint.height()+24)
+        self.setFixedSize(self.fixed_w, self.fixed_h)
+
 
 
 class StudioAboutModal(QFrame):
@@ -2735,9 +3328,9 @@ class StudioAboutModal(QFrame):
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         
         # Subpixel ClearType antialiased font hierarchy
-        ui_font = QFont(["Segoe UI Variable Text", "Segoe UI", "Arial", "sans-serif"], 9)
+        ui_font = QFont(["Google Sans Flex", "Segoe UI Emoji", "Arial", "sans-serif"], 9)
         ui_font.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.PreferQuality)
-        ui_font.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
+        ui_font.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
         self.setFont(ui_font)
         
         self.win_accent = self.studio.win_accent
@@ -2751,12 +3344,12 @@ class StudioAboutModal(QFrame):
             QLabel {{
                 background: transparent;
                 color: #FFFFFF;
-                font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, sans-serif;
+                font-family: 'Google Sans Flex', 'Google Sans Flex', -apple-system, sans-serif;
             }}
             QFrame#aboutCard {{
                 background: rgba(255, 255, 255, 0.04);
                 border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 16px;
+                border-radius: 8px;
             }}
             QFrame#storyInnerBox {{
                 background: rgba(0, 0, 0, 0.28);
@@ -2791,7 +3384,7 @@ class StudioAboutModal(QFrame):
             QPushButton#closeIconBtn {{
                 background: transparent;
                 border: none;
-                color: #94A3B8;
+                color: #A8A8A8;
                 font-size: 14px;
                 font-weight: bold;
                 border-radius: 14px;
@@ -2817,7 +3410,7 @@ class StudioAboutModal(QFrame):
         """)
         
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(24, 20, 24, 20)
+        main_layout.setContentsMargins(24, 24, 24, 24)
         main_layout.setSpacing(12)
         
         # Header Row
@@ -2842,13 +3435,9 @@ class StudioAboutModal(QFrame):
         lbl_logo = QLabel()
         lbl_logo.setFixedSize(48, 48)
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl_logo.setStyleSheet("""
-            background: rgba(23, 27, 38, 0.78);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 12px;
-        """)
+        lbl_logo.setStyleSheet("background: transparent; border: none; padding: 0px;")
         if os.path.exists(logo_path):
-            lbl_logo.setPixmap(get_rounded_pixmap(logo_path, size=48, radius=12, dpr=3.0))
+            lbl_logo.setPixmap(get_rounded_pixmap(logo_path, size=48, radius=12, dpr=lbl_logo.devicePixelRatioF()))
         logo_box = QHBoxLayout()
         logo_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
         logo_box.addWidget(lbl_logo)
@@ -2856,16 +3445,17 @@ class StudioAboutModal(QFrame):
         
         title_row = QHBoxLayout()
         title_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_row.setSpacing(8)
+        title_row.setSpacing(10)
         lbl_title = QLabel(APP_NAME)
         lbl_title.setStyleSheet("background: transparent; font-size: 19px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.3px;")
         title_row.addWidget(lbl_title)
         
         lbl_ver = QLabel(APP_VERSION)
+        lbl_ver.setObjectName('versionBadge')
         lbl_ver.setStyleSheet(f"""
-            background: rgba({QColor(self.win_accent).red()}, {QColor(self.win_accent).green()}, {QColor(self.win_accent).blue()}, 0.18);
-            color: {self.win_accent};
-            border: 1px solid rgba({QColor(self.win_accent).red()}, {QColor(self.win_accent).green()}, {QColor(self.win_accent).blue()}, 0.38);
+            background: #D1D1E5;
+            color: #202733;
+            border: 1px solid #D1D1E5;
             border-radius: 6px;
             font-size: 10.5px;
             font-weight: 700;
@@ -2877,7 +3467,7 @@ class StudioAboutModal(QFrame):
         lbl_author = QLabel("Built by <b>Kushal :)</b> 👋 (@kushalarvindo)")
         lbl_author.setTextFormat(Qt.TextFormat.RichText)
         lbl_author.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl_author.setStyleSheet("font-size: 11.5px; color: #94A3B8;")
+        lbl_author.setStyleSheet("font-size: 11.5px; color: #A8A8A8;")
         header_center.addWidget(lbl_author)
         
         top_bar.addLayout(header_center)
@@ -2885,7 +3475,9 @@ class StudioAboutModal(QFrame):
         
         btn_close_top = QPushButton("✕")
         btn_close_top.setObjectName("closeIconBtn")
-        btn_close_top.setFixedSize(28, 28)
+        btn_close_top.setFixedSize(36, 36)
+        btn_close_top.setAccessibleName('Close About')
+        btn_close_top.setToolTip('Close About (Esc)')
         btn_close_top.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_close_top.clicked.connect(self.studio.hide_about)
         top_bar.addWidget(btn_close_top)
@@ -2900,7 +3492,7 @@ class StudioAboutModal(QFrame):
         story_layout.setSpacing(10)
         
         lbl_story_title = QLabel("ABOUT")
-        lbl_story_title.setStyleSheet("background: transparent; font-size: 10px; font-weight: 700; color: #64748B; letter-spacing: 0.6px;")
+        lbl_story_title.setStyleSheet("background: transparent; font-size: 10px; font-weight: 700; color: #858585; letter-spacing: 0.6px;")
         story_layout.addWidget(lbl_story_title)
         
         inner_box = QFrame()
@@ -2913,23 +3505,21 @@ class StudioAboutModal(QFrame):
             '<p style="margin: 0 0 8px 0; line-height: 1.5;">'
             "✦ Hi, I'm Kushal! 👋 I wanted a screensaver that was simple, neat, and actually fun to look at, so I built <b>Dinoscreener</b>.</p>"
             '<p style="margin: 0 0 8px 0; line-height: 1.5;">'
-            "✦ <b>3 cozy styles</b> in one: a playful <b>Jumping Dino</b>, a classic <b>Flip Clock</b>, and a clean <b>Rotary Dial</b> with your weather & battery.</p>"
-            '<p style="margin: 0 0 8px 0; line-height: 1.5;">'
-            "✦ Made with love to be <b>super smooth</b>, <b>safe for OLED screens</b>, and complete with gentle <b>hourly bell chimes</b>.</p>"
-            '<p style="margin: 0; line-height: 1.5; color: #94A3B8;">'
+            "✦ <b>3 cozy styles</b> in one: a playful <b>Jumping Dino</b>, a classic <b>Flip Clock</b>, and a clean <b>Rotary Clock</b> with your weather & battery.</p>"
+            '<p style="margin: 0; line-height: 1.5; color: #A8A8A8;">'
             "Hope it makes your desk smile! Ideas are always welcome 😊</p>"
         )
         lbl_story = QLabel(story_text)
         lbl_story.setTextFormat(Qt.TextFormat.RichText)
         lbl_story.setWordWrap(True)
-        lbl_story.setStyleSheet("background: transparent; font-size: 11px; color: #CBD5E1;")
+        lbl_story.setStyleSheet("background: transparent; font-size: 11px; color: #D2D2D2;")
         inner_layout.addWidget(lbl_story)
         story_layout.addWidget(inner_box)
         
         pills_row = QHBoxLayout()
         pills_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
         pills_row.setSpacing(8)
-        for icon_text in ["🦕 Chrome Dino", "⏱️ 3D Flip Clock", "⭕ Rotary Dial"]:
+        for icon_text in ["🦕 Chrome Dino", "⏱️ 3D Flip Clock", "⭕ Rotary Clock"]:
             lbl_pill = QLabel(icon_text)
             lbl_pill.setAlignment(Qt.AlignmentFlag.AlignCenter)
             lbl_pill.setFixedHeight(24)
@@ -2937,7 +3527,7 @@ class StudioAboutModal(QFrame):
                 background: rgba(255, 255, 255, 0.04);
                 border: 1px solid rgba(255, 255, 255, 0.08);
                 border-radius: 8px;
-                color: #94A3B8;
+                color: #A8A8A8;
                 font-size: 10.5px;
                 font-weight: 500;
                 padding: 0 10px;
@@ -2954,12 +3544,12 @@ class StudioAboutModal(QFrame):
         upd_layout.setSpacing(8)
         
         lbl_upd_head = QLabel("UPDATES")
-        lbl_upd_head.setStyleSheet("background: transparent; font-size: 10px; font-weight: 700; color: #64748B; letter-spacing: 0.6px;")
+        lbl_upd_head.setStyleSheet("background: transparent; font-size: 10px; font-weight: 700; color: #858585; letter-spacing: 0.6px;")
         upd_layout.addWidget(lbl_upd_head)
         
         self.lbl_status = QLabel(f"✓ You're on the newest release (<b>{APP_VERSION}</b>).")
         self.lbl_status.setTextFormat(Qt.TextFormat.RichText)
-        self.lbl_status.setStyleSheet("background: transparent; font-size: 11.5px; color: #E2E8F0;")
+        self.lbl_status.setStyleSheet("background: transparent; font-size: 11.5px; color: #E6E6E6;")
         upd_layout.addWidget(self.lbl_status)
         
         self.material_loader = MaterialYouLoader(self.win_accent, self)
@@ -2987,6 +3577,7 @@ class StudioAboutModal(QFrame):
         
         upd_layout.addLayout(upd_btn_row)
         main_layout.addWidget(card_upd)
+        main_layout.addWidget(PaletteStrip())
         
         # 3. Footer
         footer_row = QHBoxLayout()
@@ -3011,14 +3602,10 @@ class StudioAboutModal(QFrame):
         self.latest_tag = ""
 
     def paintEvent(self, event):
-        p = QPainter(self)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        w, h = float(self.width()), float(self.height())
-        p.setBrush(QColor(23, 27, 38, 246))
-        p.setPen(QPen(QColor(255, 255, 255, 28), 1.0))
-        p.drawRoundedRect(QRectF(1.0, 1.0, w - 2.0, h - 2.0), 26.0, 26.0)
-        p.end()
-        super().paintEvent(event)
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        paint_frosted_surface(painter,self,26)
+        painter.end()
 
     def show_modal(self):
         sw = self.studio.width()
@@ -3027,8 +3614,10 @@ class StudioAboutModal(QFrame):
         if hasattr(self.studio.settings, 'latest_update_info') and self.studio.settings.latest_update_info:
             latest_tag, body, download_url = self.studio.settings.latest_update_info
             self.on_update_result(True, latest_tag, body, download_url)
+        cache_frosted_backdrop(self,self.studio,self.pos())
         self.show()
         self.raise_()
+        self.studio.action_dock.raise_()
         self.setFocus()
 
     def hide_modal(self):
@@ -3121,7 +3710,7 @@ class StudioInfoButton(QPushButton):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         w, h = float(self.width()), float(self.height())
-        bg_col = QColor(36, 42, 60, 245) if self.underMouse() else QColor(23, 27, 38, 238)
+        bg_col = QColor(40, 40, 40, 245) if self.underMouse() else QColor(26, 26, 26, 238)
         border_col = QColor(255, 255, 255, 60) if self.underMouse() else QColor(255, 255, 255, 26)
         p.setBrush(bg_col)
         p.setPen(QPen(border_col, 1.0))
@@ -3144,7 +3733,7 @@ class StudioActionDock(QFrame):
                 border: none;
             }
             QPushButton {
-                font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+                font-family: 'Google Sans Flex', 'Google Sans Flex', sans-serif;
             }
         """)
         layout = QHBoxLayout(self)
@@ -3157,7 +3746,7 @@ class StudioActionDock(QFrame):
         self.btn_reset.setStyleSheet("""
             QPushButton {
                 background: transparent;
-                color: #94A3B8;
+                color: #A8A8A8;
                 border: none;
                 border-radius: 12px;
                 padding: 4px 8px;
@@ -3193,12 +3782,14 @@ class StudioActionDock(QFrame):
         layout.addWidget(self.btn_apply)
         
         # 3. Exit button
-        self.btn_exit = QPushButton("✕ Exit")
+        self.btn_exit = QPushButton("Exit")
+        self.btn_exit.setToolTip("Return to settings (F11)")
+        self.btn_exit.setAccessibleName("Exit fullscreen Studio")
         self.btn_exit.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_exit.setStyleSheet("""
             QPushButton {
                 background: rgba(255, 255, 255, 0.08);
-                color: #CBD5E1;
+                color: #D2D2D2;
                 border: 1px solid rgba(255, 255, 255, 0.14);
                 border-radius: 15px;
                 font-weight: 500;
@@ -3218,9 +3809,7 @@ class StudioActionDock(QFrame):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         w, h = float(self.width()), float(self.height())
-        p.setBrush(QColor(23, 27, 38, 238))
-        p.setPen(QPen(QColor(255, 255, 255, 26), 1.0))
-        p.drawRoundedRect(QRectF(1.0, 1.0, w - 2.0, h - 2.0), 22.0, 22.0)
+        paint_frosted_surface(p, self, 22)
         p.end()
         super().paintEvent(event)
 
@@ -3234,6 +3823,8 @@ class FullscreenStudioMode(QWidget):
     def __init__(self, settings_dialog):
         super().__init__()
         self.settings = settings_dialog
+        self._closing = False
+        self._exit_press = False
         self.win_accent = self.settings.win_accent
         self.contrast_text, self.hover_accent, self.press_accent = get_color_variants(self.win_accent)
         check_icon_path = get_or_create_check_icon(self.contrast_text)
@@ -3278,15 +3869,17 @@ class FullscreenStudioMode(QWidget):
         )
         self.clock.setMouseTracking(True)
         self.clock.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.clock.lower()
-        
+        self.clock.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         self.clock.lower()
         
         # 2. Floating HUD Elements
         self.btn_info = StudioInfoButton(self)
         self.action_dock = StudioActionDock(self)
+        polish_controls(self.action_dock, self.win_accent)
         
         self.mode_capsule = CollapsibleModeCapsule(win_accent=self.win_accent, parent=self)
+        self.mode_capsule.studio_glass = True
+        self.mode_capsule.setStyleSheet('QFrame#capsuleFrame { background: transparent; border: none; }')
         self.mode_capsule.set_current_mode(self.clock.clock_style)
         self.mode_capsule.on_mode_changed = self.on_studio_mode_changed
         self.mode_capsule.on_width_changed = self._recenter_mode_capsule
@@ -3308,6 +3901,7 @@ class FullscreenStudioMode(QWidget):
         # 5. In-Canvas About Modal (Zero window focus deactivation)
         self.about_modal = StudioAboutModal(self)
         self.about_modal.hide()
+        polish_controls(self.about_modal, self.win_accent)
         
         # State tracking
         self.left_open = False
@@ -3315,24 +3909,132 @@ class FullscreenStudioMode(QWidget):
         self.right_open = False
         
         # Position animations
-        self.anim_left = QPropertyAnimation(self.left_drawer, b"pos", self)
+        self.anim_left = DisplayPositionAnimation(self.left_drawer, b"pos", self)
         self.anim_left.setDuration(260)
         self.anim_left.setEasingCurve(QEasingCurve.Type.OutQuart)
         
-        self.anim_top = QPropertyAnimation(self.top_drawer, b"pos", self)
+        self.anim_top = DisplayPositionAnimation(self.top_drawer, b"pos", self)
         self.anim_top.setDuration(260)
         self.anim_top.setEasingCurve(QEasingCurve.Type.OutQuart)
         
-        self.anim_right = QPropertyAnimation(self.right_drawer, b"pos", self)
+        self.anim_right = DisplayPositionAnimation(self.right_drawer, b"pos", self)
         self.anim_right.setDuration(260)
         self.anim_right.setEasingCurve(QEasingCurve.Type.OutQuart)
+
+        self.exit_shortcut = QShortcut(QKeySequence("F11"), self)
+        self.exit_shortcut.activated.connect(self.close_studio)
+        self.apply_feedback_timer = QTimer(self)
+        self.apply_feedback_timer.setSingleShot(True)
+        self.apply_feedback_timer.timeout.connect(self.restore_apply_button)
+        self.backdrop_refresh = QTimer(self)
+        self.backdrop_refresh.setSingleShot(True)
+        self.backdrop_refresh.timeout.connect(self.refresh_frosted_panels)
+        for animation in (self.anim_left,self.anim_top,self.anim_right):
+            animation.finished.connect(self.refresh_frosted_panels)
+        QApplication.instance().installEventFilter(self)
+
+
+    def eventFilter(self, watched, event):
+        if (isinstance(QApplication.activeModalWidget(), LockNotice) or self._closing or not self.isVisible() or not isinstance(watched, QWidget)
+                or not (watched is self or self.isAncestorOf(watched))):
+            return super().eventFilter(watched, event)
+        kind = event.type()
+        if kind not in (QEvent.Type.MouseMove, QEvent.Type.MouseButtonPress, QEvent.Type.MouseButtonRelease):
+            return super().eventFilter(watched, event)
+        point = event.globalPosition().toPoint()
+        capsule = self.mode_capsule
+        inside_capsule = capsule.rect().contains(capsule.mapFromGlobal(point))
+        modal_open = self.about_modal.isVisible()
+        if kind == QEvent.Type.MouseButtonPress and self.settings.reset_state == 1:
+            reset = self.action_dock.btn_reset
+            if not reset.rect().contains(reset.mapFromGlobal(point)):
+                self.settings.set_reset_state(0)
+        if not modal_open and not getattr(self, "_forwarding_input", False) and (watched is self or watched is self.clock or self.clock.isAncestorOf(watched)):
+            receiver = getattr(self, '_drawer_mouse_receiver', None)
+            if kind == QEvent.Type.MouseButtonPress:
+                receiver = None
+                for edge in ('left','top','right'):
+                    drawer = getattr(self, edge+'_drawer')
+                    if getattr(self, edge+'_open'):
+                        child = drawer.childAt(drawer.mapFromGlobal(point))
+                        if isinstance(child,(NativePushButton,QCheckBox,QSlider,QComboBox)) and child.isEnabled():
+                            receiver = child
+                            break
+                self._drawer_mouse_receiver = receiver
+            if receiver is not None:
+                from PyQt6.QtGui import QMouseEvent
+                if kind == QEvent.Type.MouseButtonRelease:
+                    self._drawer_mouse_receiver = None
+                local = QPointF(receiver.mapFromGlobal(point))
+                forwarded = QMouseEvent(kind, local, event.globalPosition(), event.button(), event.buttons(), event.modifiers())
+                self._forwarding_input = True
+                try:
+                    QApplication.sendEvent(receiver, forwarded)
+                finally:
+                    self._forwarding_input = False
+                return True
+        if kind == QEvent.Type.MouseMove:
+            if not modal_open:
+                if inside_capsule:
+                    capsule.expand()
+                elif not capsule.rect().adjusted(-8,-8,8,8).contains(capsule.mapFromGlobal(point)):
+                    capsule.collapse()
+            return super().eventFilter(watched, event)
+        if event.button() != Qt.MouseButton.LeftButton:
+            return super().eventFilter(watched, event)
+        targets = [self.btn_info]
+        if not modal_open:
+            targets.extend((self.action_dock.btn_reset, self.action_dock.btn_apply, self.action_dock.btn_exit))
+            if capsule.stack.currentIndex() == 1:
+                targets.extend(capsule.mode_buttons)
+        target = next((button for button in targets if button.isEnabled() and button.isVisible()
+                       and button.rect().contains(button.mapFromGlobal(point))
+                       and (button not in capsule.mode_buttons or inside_capsule)), None)
+        if target is None and inside_capsule and not modal_open:
+            target = capsule
+        if kind == QEvent.Type.MouseButtonPress:
+            self._hud_pressed = target
+            if target is not None:
+                if isinstance(target, (NativePushButton, QCheckBox)):
+                    target.setDown(True)
+                return True
+        else:
+            pressed = getattr(self, '_hud_pressed', None)
+            self._hud_pressed = None
+            if pressed is not None:
+                if isinstance(pressed, (NativePushButton, QCheckBox)):
+                    pressed.setDown(False)
+                if target is pressed:
+                    if pressed is capsule:
+                        capsule.expand()
+                    else:
+                        pressed.click()
+                return True
+        return super().eventFilter(watched, event)
+
+    def refresh_frosted_panels(self):
+        if self._closing:return
+        for surface in (self.mode_capsule, self.action_dock):
+            cache_frosted_backdrop(surface, self, surface.pos(), neutral=True)
+        for opened,drawer,animation in ((self.left_open,self.left_drawer,self.anim_left),(self.top_open,self.top_drawer,self.anim_top),(self.right_open,self.right_drawer,self.anim_right)):
+            if opened:
+                # A debounced refresh during the slide must sample the final panel
+                # location, not its temporary off-screen animation position.
+                position = animation.endValue() if animation.state()==QPropertyAnimation.State.Running else drawer.pos()
+                cache_frosted_backdrop(drawer,self,position)
+        if self.about_modal.isVisible():cache_frosted_backdrop(self.about_modal,self,self.about_modal.pos())
 
     def _recenter_mode_capsule(self, w=None):
         if w is None:
             w = self.mode_capsule.width()
         sw = self.width()
         sh = self.height()
-        self.mode_capsule.move((sw - w) // 2, sh - self.mode_capsule.height() - 32)
+        bottom = sh - 32
+        if (sw + self.mode_capsule._expanded_width)//2 + 8 > self.action_dock.x():
+            bottom = self.action_dock.y() - 8
+        self.mode_capsule.move((sw - w)//2, bottom - self.mode_capsule.height())
+        if hasattr(self, 'backdrop_refresh'):
+            self.backdrop_refresh.start(180)
 
     def on_studio_mode_changed(self, idx):
         self.settings.set_mode(idx)
@@ -3344,6 +4046,8 @@ class FullscreenStudioMode(QWidget):
         sw, sh = self.width(), self.height()
         
         self.clock.setGeometry(0, 0, sw, sh)
+        for drawer in (self.left_drawer, self.top_drawer, self.right_drawer):
+            drawer.fit_content()
         
         self.btn_info.move(sw - self.btn_info.width() - 32, 32)
         self.btn_info.raise_()
@@ -3354,7 +4058,7 @@ class FullscreenStudioMode(QWidget):
         self.action_dock.raise_()
         
         cw = self.mode_capsule.width()
-        self.mode_capsule.move((sw - cw) // 2, sh - self.mode_capsule.height() - 32)
+        self._recenter_mode_capsule(cw)
         self.mode_capsule.raise_()
         
         self.left_grabber.move(0, (sh - self.left_grabber.height()) // 2)
@@ -3383,6 +4087,8 @@ class FullscreenStudioMode(QWidget):
             self.right_drawer.move(sw - self.right_drawer.width() - 24, (sh - self.right_drawer.height()) // 2)
         else:
             self.right_drawer.move(sw + 20, (sh - self.right_drawer.height()) // 2)
+        self.action_dock.raise_()
+        if hasattr(self,"backdrop_refresh"):self.backdrop_refresh.start(80)
 
     def set_left_drawer_open(self, open_state):
         if self.left_open == open_state:
@@ -3395,6 +4101,8 @@ class FullscreenStudioMode(QWidget):
         sh = self.height()
         target_pos = QPoint(24, (sh - self.left_drawer.height()) // 2) if open_state else QPoint(-self.left_drawer.width() - 20, (sh - self.left_drawer.height()) // 2)
         
+        if open_state:
+            cache_frosted_backdrop(self.left_drawer,self,target_pos)
         self.anim_left.stop()
         self.anim_left.setStartValue(self.left_drawer.pos())
         self.anim_left.setEndValue(target_pos)
@@ -3402,6 +4110,7 @@ class FullscreenStudioMode(QWidget):
         
         if open_state:
             self.left_drawer.raise_()
+            self.action_dock.raise_()
 
     def set_top_drawer_open(self, open_state):
         if self.top_open == open_state:
@@ -3414,6 +4123,8 @@ class FullscreenStudioMode(QWidget):
         sw = self.width()
         target_pos = QPoint((sw - self.top_drawer.width()) // 2, 24) if open_state else QPoint((sw - self.top_drawer.width()) // 2, -self.top_drawer.height() - 20)
         
+        if open_state:
+            cache_frosted_backdrop(self.top_drawer,self,target_pos)
         self.anim_top.stop()
         self.anim_top.setStartValue(self.top_drawer.pos())
         self.anim_top.setEndValue(target_pos)
@@ -3421,6 +4132,7 @@ class FullscreenStudioMode(QWidget):
         
         if open_state:
             self.top_drawer.raise_()
+            self.action_dock.raise_()
 
     def set_right_drawer_open(self, open_state):
         if self.right_open == open_state:
@@ -3433,6 +4145,8 @@ class FullscreenStudioMode(QWidget):
         sw, sh = self.width(), self.height()
         target_pos = QPoint(sw - self.right_drawer.width() - 24, (sh - self.right_drawer.height()) // 2) if open_state else QPoint(sw + 20, (sh - self.right_drawer.height()) // 2)
         
+        if open_state:
+            cache_frosted_backdrop(self.right_drawer,self,target_pos)
         self.anim_right.stop()
         self.anim_right.setStartValue(self.right_drawer.pos())
         self.anim_right.setEndValue(target_pos)
@@ -3440,6 +4154,7 @@ class FullscreenStudioMode(QWidget):
         
         if open_state:
             self.right_drawer.raise_()
+            self.action_dock.raise_()
 
     def handle_canvas_mouse_move(self, event):
         pos = event.pos()
@@ -3519,7 +4234,7 @@ class FullscreenStudioMode(QWidget):
 
     def apply_clicked(self):
         self.settings.save_config()
-        self.action_dock.btn_apply.setText("✓ Saved")
+        self.action_dock.btn_apply.setText("Saved")
         self.action_dock.btn_apply.setStyleSheet("""
             QPushButton {
                 background-color: #10B981;
@@ -3531,7 +4246,7 @@ class FullscreenStudioMode(QWidget):
                 padding: 5px 18px;
             }
         """)
-        QTimer.singleShot(1500, self.restore_apply_button)
+        self.apply_feedback_timer.start(1500)
 
     def restore_apply_button(self):
         if hasattr(self, 'action_dock'):
@@ -3550,41 +4265,40 @@ class FullscreenStudioMode(QWidget):
                     background-color: {self.hover_accent};
                 }}
             """)
+            polish_controls(self.action_dock,self.win_accent)
 
     def reset_defaults_clicked(self):
-        self.settings.reset_defaults()
+        self.settings.request_reset()
         self.settings.sync_studio_clock()
         self.mode_capsule.set_current_mode(self.clock.clock_style)
 
     def close_studio(self):
-        if hasattr(self, 'settings') and self.settings:
-            try:
-                self.settings.restore_cards()
-            except Exception:
-                pass
-            self.settings.studio = None
-            try:
-                self.settings.show()
-                self.settings.raise_()
-                self.settings.activateWindow()
-            except Exception:
-                pass
-        self.close()
+        if not self._closing:
+            self.close()
 
     def closeEvent(self, event):
-        if hasattr(self, 'settings') and self.settings:
-            try:
-                self.settings.restore_cards()
-            except Exception as e:
-                print("Error restoring cards:", e)
-            self.settings.studio = None
-            try:
-                self.settings.show()
-                self.settings.raise_()
-                self.settings.activateWindow()
-            except Exception:
-                pass
-        super().closeEvent(event)
+        if self._closing:
+            event.accept()
+            return
+        self._closing = True
+        QApplication.instance().removeEventFilter(self)
+        self.backdrop_refresh.stop()
+        self.apply_feedback_timer.stop()
+        for animation in (self.anim_left, self.anim_top, self.anim_right):
+            animation.stop()
+        self.clock.anim_timer.stop()
+        self.clock.sync_timer.stop()
+        if self.mode_capsule._anim_group is not None:
+            self.mode_capsule._anim_group.stop()
+        self.setUpdatesEnabled(False)
+        self.hide()
+        self.settings.restore_cards()
+        self.settings.studio = None
+        self.settings.show()
+        self.settings.raise_()
+        self.settings.activateWindow()
+        self.settings.btn_fullscreen.setFocus()
+        event.accept()
 
     def keyPressEvent(self, event):
         if hasattr(self, 'about_modal') and self.about_modal.isVisible():
@@ -3619,14 +4333,15 @@ class FullscreenStudioMode(QWidget):
 class SettingsDialog(QDialog):
     def __init__(self, config_path):
         super().__init__()
+        load_ui_font()
         self.setWindowTitle("Dinoscreener Settings")
         self.setFixedSize(680, 760)
         self.setAcceptDrops(True)
         
         # Subpixel ClearType Antialiased Font Hierarchy
-        ui_font = QFont(["Segoe UI Variable Text", "Segoe UI", "Arial", "sans-serif"])
+        ui_font = QFont(["Google Sans Flex", "Segoe UI Emoji", "Arial", "sans-serif"])
         ui_font.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.PreferQuality)
-        ui_font.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
+        ui_font.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
         self.setFont(ui_font)
         
         # Load Application Icon
@@ -3634,19 +4349,20 @@ class SettingsDialog(QDialog):
         if getattr(sys, 'frozen', False):
             logo_path = os.path.join(sys._MEIPASS, "app_icon.png")
         if os.path.exists(logo_path):
-            self.setWindowIcon(QIcon(logo_path))
+            self.setWindowIcon(QIcon(os.path.join(os.path.dirname(logo_path), "app_icon_taskbar.png")))
         self.logo_path = logo_path
         
         # Windows 11 DWM Mica / Glass Blur Backdrop Setup
         self.is_dwm_active = apply_windows_dwm_effects(self)
+        QTimer.singleShot(0, lambda: apply_windows_dwm_effects(self))
 
-        self.win_accent = get_windows_accent_color()
+        self.win_accent = "#D0D0D0"
         self.contrast_text, self.hover_accent, self.press_accent = get_color_variants(self.win_accent)
         check_icon_path = get_or_create_check_icon(self.contrast_text)
         chevron_icon_path = get_or_create_chevron_icon()
 
-        bg_dialog = "rgba(16, 20, 29, 0.72)" if self.is_dwm_active else "#10141D"
-        bg_card = "rgba(23, 27, 38, 0.78)" if self.is_dwm_active else "#171B26"
+        bg_dialog = "rgba(18, 18, 18, 0.34)" if self.is_dwm_active else "#121212"
+        bg_card = "rgba(26, 26, 26, 0.50)" if self.is_dwm_active else "#1A1A1A"
 
         # Spatial Studio Modern Glass Stylesheet (DWM Mica / Glass Blur with clean solid fallback)
         self.setStyleSheet(f"""
@@ -3656,14 +4372,14 @@ class SettingsDialog(QDialog):
             QLabel {{
                 background: transparent;
                 color: #FFFFFF;
-                font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, sans-serif;
+                font-family: 'Google Sans Flex', 'Google Sans Flex', -apple-system, sans-serif;
             }}
             QFrame {{
                 background: transparent;
             }}
             QFrame#bentoCard {{
                 background: {bg_card};
-                border: 1px solid rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.14);
                 border-radius: 14px;
             }}
             QFrame#previewCard {{
@@ -3673,12 +4389,14 @@ class SettingsDialog(QDialog):
             }}
             /* Fluent Checkbox with Windows Accent Color & Rounded Indicator */
             QCheckBox {{
-                color: #CBD5E1;
-                font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+                color: #D2D2D2;
+                font-family: 'Google Sans Flex', 'Google Sans Flex', sans-serif;
                 font-size: 11.5px;
                 spacing: 8px;
                 background: transparent;
             }}
+            QCheckBox:focus {{ color: #FFFFFF; }}
+            QCheckBox::indicator:focus {{ border: 2px solid #FFFFFF; }}
             QCheckBox:hover {{
                 color: #FFFFFF;
             }}
@@ -3724,10 +4442,10 @@ class SettingsDialog(QDialog):
             QSlider::handle:horizontal:hover {{
                 background: #FFFFFF;
                 border: 2px solid #FFFFFF;
-                width: 20px;
-                height: 20px;
-                margin: -7px 0;
-                border-radius: 10px;
+                width: 18px;
+                height: 18px;
+                margin: -6px 0;
+                border-radius: 9px;
             }}
             /* Comboboxes - Smooth Rounded Pill Style with Visible Chevron Arrow */
             QComboBox, QFontComboBox {{
@@ -3736,7 +4454,7 @@ class SettingsDialog(QDialog):
                 border: 1px solid rgba(255, 255, 255, 0.14);
                 border-radius: 12px;
                 padding: 4px 10px;
-                font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+                font-family: 'Google Sans Flex', 'Google Sans Flex', sans-serif;
                 font-size: 11px;
                 min-height: 20px;
             }}
@@ -3756,7 +4474,7 @@ class SettingsDialog(QDialog):
                 height: 10px;
             }}
             QComboBox QAbstractItemView, QFontComboBox QAbstractItemView {{
-                background: #181C26;
+                background: #242424;
                 color: #FFFFFF;
                 selection-background-color: {self.win_accent};
                 selection-color: {self.contrast_text};
@@ -3790,6 +4508,37 @@ class SettingsDialog(QDialog):
             
         self.latest_update_info = None
         self.initUI()
+        self.reset_state = 0
+        self.reset_dismiss_filter = ResetDismissFilter(self)
+        QApplication.instance().installEventFilter(self.reset_dismiss_filter)
+        for switch in self.findChildren(VectorCheckBox):
+            switch.toggled.connect(lambda checked: self.set_reset_state(0))
+        polish_controls(self, self.win_accent)
+        self.setObjectName('settingsRoot')
+        self.setStyleSheet(self.styleSheet() + ' QToolTip { background: #292929; color: #F2F2F2; border: 1px solid #606060; padding: 7px; font: 11px "Google Sans Flex"; }')
+        self.layout().activate()
+        desired = self.size().expandedTo(self.layout().minimumSize())
+        screen = self.screen().availableGeometry()
+        if desired.height() > screen.height()-80:
+            content = QWidget()
+            content.setObjectName('settingsContent')
+            content.setStyleSheet('QWidget#settingsContent { background: transparent; }')
+            content.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+            content.setLayout(self.layout())
+            content.setMinimumSize(desired)
+            self.settings_scroll = QScrollArea(self)
+            self.settings_scroll.setWidgetResizable(True)
+            self.settings_scroll.setFrameShape(QFrame.Shape.NoFrame)
+            self.settings_scroll.setStyleSheet('QScrollArea { background: transparent; border: none; }')
+            self.settings_scroll.viewport().setAutoFillBackground(False)
+            self.settings_scroll.viewport().setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+            self.settings_scroll.setWidget(content)
+            outer = QVBoxLayout(self)
+            outer.setContentsMargins(0,0,0,0)
+            outer.addWidget(self.settings_scroll)
+            self.setFixedSize(desired.width()+18, max(400,screen.height()-80))
+        else:
+            self.setFixedSize(desired)
         self.installEventFilter(self)
         self.check_font_changed()
         self.check_char_changed()
@@ -3829,6 +4578,12 @@ class SettingsDialog(QDialog):
                     event.acceptProposedAction()
                     return
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        if not hasattr(self, 'settings_scroll'):
+            self.layout().activate()
+            self.setFixedSize(self.size().expandedTo(self.layout().minimumSize()))
+
     def eventFilter(self, obj, event):
         if event.type() == event.Type.KeyPress:
             if event.key() == Qt.Key.Key_Space:
@@ -3849,7 +4604,7 @@ class SettingsDialog(QDialog):
 
     def get_default_config(self):
         return {
-            "accent_color": self.win_accent,
+            "accent_color": get_windows_accent_color(),
             "show_info": True,
             "show_weather": True,
             "show_battery": True,
@@ -3882,8 +4637,8 @@ class SettingsDialog(QDialog):
             try:
                 with open(self.config_path, 'r') as f:
                     loaded = json.load(f)
-                    if loaded.get("accent_color") in ["#0078D4", "#8F96BF", None]:
-                        loaded["accent_color"] = self.win_accent
+                    if loaded.get("accent_color") in ["#0078D4", "#8F96BF", "#A5A9DE", "#a5a9de", "#D0D0D0", get_windows_accent_color(), None]:
+                        loaded["accent_color"] = get_windows_accent_color()
                     if "show_weather" not in loaded and "show_info" in loaded:
                         loaded["show_weather"] = loaded["show_info"]
                     if "show_battery" not in loaded and "show_info" in loaded:
@@ -3949,19 +4704,30 @@ class SettingsDialog(QDialog):
         super().reject()
 
     def restore_cards(self):
-        if hasattr(self, 'card_mode') and hasattr(self, 'cards_row'):
-            self.card_mode.setParent(self)
-            self.card_disp.setParent(self)
-            self.card_sys.setParent(self)
-            if self.cards_row.indexOf(self.card_mode) == -1:
-                self.cards_row.addWidget(self.card_mode, stretch=1)
-            if self.cards_row.indexOf(self.card_disp) == -1:
-                self.cards_row.addWidget(self.card_disp, stretch=1)
-            if self.cards_row.indexOf(self.card_sys) == -1:
-                self.cards_row.addWidget(self.card_sys, stretch=1)
-            self.card_mode.show()
-            self.card_disp.show()
-            self.card_sys.show()
+        if not hasattr(self, 'cards_row'):return
+        owner = self.cards_row.parentWidget()
+        owner.setUpdatesEnabled(False)
+        try:
+            for index,card in enumerate((self.card_mode,self.card_disp,self.card_sys)):
+                # Explicitly release scroll ownership before reparenting; layout
+                # membership alone does not guarantee a valid on-screen geometry.
+                parent = card.parentWidget()
+                if parent and isinstance(parent.parentWidget(),QScrollArea):
+                    parent.parentWidget().takeWidget()
+                self.cards_row.removeWidget(card)
+                card.hide();card.setParent(owner)
+                self.cards_row.insertWidget(index,card,stretch=1)
+                card.show();card.updateGeometry()
+            self.cards_row.invalidate()
+            owner.layout().invalidate()
+            owner.layout().activate()
+        finally:
+            owner.setUpdatesEnabled(True)
+            owner.update()
+        self.preview.last_frame_time = time.perf_counter()
+        self.preview.checkTime()
+        self.preview.anim_timer.start(self.preview.target_frame_interval)
+        self.preview.sync_timer.start(200)
 
     def update_strict_exit(self, state=None):
         self.preview.strict_exit = self.strict_cb.isChecked()
@@ -4017,11 +4783,14 @@ class SettingsDialog(QDialog):
                 c.dino_font = getattr(p, 'dino_font', 'Bungee')
                 c.character_type = getattr(p, 'character_type', 'dino')
                 c.custom_character_image = getattr(p, 'custom_character_image', '')
-                if c.character_type == "custom" and c.custom_character_image:
-                    c.set_custom_character(c.custom_character_image)
-                elif hasattr(p, 'custom_char_pixmap') and p.custom_char_pixmap and not p.custom_char_pixmap.isNull():
+                if hasattr(p, 'custom_char_pixmap') and p.custom_char_pixmap and not p.custom_char_pixmap.isNull():
+                    # QPixmap sharing avoids reopening the sprite on every slider tick.
                     c.custom_char_pixmap = p.custom_char_pixmap
+                elif c.character_type == "custom" and c.custom_character_image and c.custom_char_pixmap.isNull():
+                    c.set_custom_character(c.custom_character_image)
+                c.anim_timer.setInterval(c.target_frame_interval)
                 c.update()
+                self.studio.backdrop_refresh.start(80)
         except (RuntimeError, AttributeError):
             self.studio = None
         except Exception:
@@ -4030,7 +4799,10 @@ class SettingsDialog(QDialog):
     def test_fullscreen(self):
         try:
             self.studio = FullscreenStudioMode(self)
+            self.preview.anim_timer.stop()
+            self.preview.sync_timer.stop()
             self.hide()
+            self.set_reset_state(self.reset_state)
             self.studio.showFullScreen()
             self.studio.raise_()
             self.studio.activateWindow()
@@ -4045,6 +4817,25 @@ class SettingsDialog(QDialog):
             import traceback
             traceback.print_exc()
             print("Error launching fullscreen studio mode:", e)
+
+    def set_reset_state(self, state):
+        self.reset_state = state
+        buttons = [self.reset_button]
+        studio = getattr(self, 'studio', None)
+        if studio and hasattr(studio, 'action_dock'):
+            buttons.append(studio.action_dock.btn_reset)
+        for button in buttons:
+            button.setText(('Reset Defaults','Are you Sure?','Resetted!')[state])
+            button.setProperty('resetState', state)
+            button._bevel_key = None
+            button.update()
+
+    def request_reset(self):
+        if self.reset_state == 0:
+            self.set_reset_state(1)
+        elif self.reset_state == 1:
+            self.reset_defaults()
+            self.set_reset_state(2)
 
     def reset_defaults(self):
         # Reset UI controls and in-memory stage preview to factory defaults.
@@ -4071,7 +4862,7 @@ class SettingsDialog(QDialog):
         self.fahrenheit_cb.setChecked(False)
         self.revert_font()
         self.revert_character()
-        self.set_accent_color(self.win_accent)
+        self.set_accent_color(get_windows_accent_color())
         self.set_mode(0)
 
     def on_preview_scale_scrolled(self, val):
@@ -4083,34 +4874,28 @@ class SettingsDialog(QDialog):
 
     def initUI(self):
         root_layout = QVBoxLayout(self)
-        root_layout.setContentsMargins(18, 12, 18, 12)
-        root_layout.setSpacing(8)
+        root_layout.setContentsMargins(20, 20, 20, 20)
+        root_layout.setSpacing(12)
         
         # 1. TOP HEADER (App Branding with Logo on the left)
         header_row = QHBoxLayout()
-        header_row.setContentsMargins(2, 0, 2, 0)
+        header_row.setContentsMargins(0, 0, 0, 0)
         header_row.setSpacing(10)
         
         lbl_logo = QLabel()
         lbl_logo.setFixedSize(38, 38)
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl_logo.setStyleSheet("""
-            QLabel {
-                background: transparent;
-                border: 1px solid rgba(255, 255, 255, 0.16);
-                border-radius: 9px;
-            }
-        """)
+        lbl_logo.setStyleSheet("background: transparent; border: none; padding: 0px;")
         if hasattr(self, 'logo_path') and os.path.exists(self.logo_path):
-            lbl_logo.setPixmap(get_rounded_pixmap(self.logo_path, size=38, radius=9, dpr=3.0))
+            lbl_logo.setPixmap(get_rounded_pixmap(self.logo_path, size=38, radius=9, dpr=lbl_logo.devicePixelRatioF()))
         header_row.addWidget(lbl_logo, alignment=Qt.AlignmentFlag.AlignVCenter)
         
         brand_box = QVBoxLayout()
         brand_box.setSpacing(1)
         lbl_app_name = QLabel("Dinoscreener")
         lbl_app_name.setStyleSheet("font-size: 15px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.2px;")
-        lbl_app_sub = QLabel("ScreenSaver Settings :)")
-        lbl_app_sub.setStyleSheet("font-size: 11px; color: #94A3B8;")
+        lbl_app_sub = QLabel("Screensaver Settings :)")
+        lbl_app_sub.setStyleSheet("font-size: 11px; color: #A8A8A8;")
         brand_box.addWidget(lbl_app_name)
         brand_box.addWidget(lbl_app_sub)
         header_row.addLayout(brand_box)
@@ -4164,9 +4949,9 @@ class SettingsDialog(QDialog):
         
         # 2. 16:9 WIDESCREEN PREVIEW STAGE (Authentic Monitor Aspect Ratio)
         self.stage_frame = SpatialStageFrame()
-        self.stage_frame.setFixedSize(644, 364)
+        self.stage_frame.setFixedSize(576, 331)
         stage_layout = QVBoxLayout(self.stage_frame)
-        stage_layout.setContentsMargins(2, 2, 2, 2)
+        stage_layout.setContentsMargins(8, 8, 8, 8)
         
         self.preview_card = QFrame()
         self.preview_card.setObjectName("previewCard")
@@ -4197,7 +4982,11 @@ class SettingsDialog(QDialog):
             pixel_shift=self.config.get("pixel_shift", False),
             hourly_chime=self.config.get("hourly_chime", False)
         )
-        self.preview.setFixedSize(640, 360) # Exact 16:9 widescreen ratio
+        self.preview.setFixedSize(560, 315) # Exact 16:9 widescreen ratio
+        self.preview_card.setFixedSize(560, 315)
+        preview_shape = QPainterPath()
+        preview_shape.addRoundedRect(QRectF(0, 0, 560, 315), 12, 12)
+        self.preview_card.setMask(QRegion(preview_shape.toFillPolygon().toPolygon()))
         self.preview.scale_callback = self.on_preview_scale_scrolled
         preview_layout.addWidget(self.preview)
         stage_layout.addWidget(self.preview_card)
@@ -4210,15 +4999,21 @@ class SettingsDialog(QDialog):
         
         self.mode_capsule = CollapsibleModeCapsule(win_accent=self.win_accent)
         self.mode_capsule.on_mode_changed = self.set_mode
+        self.mode_capsule.pin_open = False
+        capsule_slot = QWidget()
+        capsule_slot.setFixedSize(self.mode_capsule._expanded_width, 38)
+        self.mode_capsule.setParent(capsule_slot)
+        self.mode_capsule.on_width_changed = lambda width: self.mode_capsule.move((capsule_slot.width()-width)//2, 0)
+        self.mode_capsule.on_width_changed(self.mode_capsule.width())
         self.mode_buttons = self.mode_capsule.mode_buttons
         
-        capsule_row.addWidget(self.mode_capsule)
+        capsule_row.addWidget(capsule_slot)
         capsule_row.addStretch()
         root_layout.addLayout(capsule_row)
         
         # 4. THREE BALANCED SPATIAL BENTO CARDS (Rounded 14px)
         self.cards_row = QHBoxLayout()
-        self.cards_row.setSpacing(10)
+        self.cards_row.setSpacing(12)
         self.cards_row.setContentsMargins(0, 0, 0, 0)
         cards_row = self.cards_row
         
@@ -4227,8 +5022,8 @@ class SettingsDialog(QDialog):
         self.card_mode.setObjectName("bentoCard")
         card_mode = self.card_mode
         card_mode_layout = QVBoxLayout(self.card_mode)
-        card_mode_layout.setContentsMargins(12, 11, 12, 11)
-        card_mode_layout.setSpacing(8)
+        card_mode_layout.setContentsMargins(12, 12, 12, 12)
+        card_mode_layout.setSpacing(5)
         
         self.lbl_mode_title = QLabel("Flip Clock")
         self.lbl_mode_title.setStyleSheet("font-size: 13px; font-weight: 600; color: #FFFFFF;")
@@ -4240,18 +5035,24 @@ class SettingsDialog(QDialog):
         page_flip = QWidget()
         flip_layout = QVBoxLayout(page_flip)
         flip_layout.setContentsMargins(0, 2, 0, 0)
-        flip_layout.setSpacing(8)
+        flip_layout.setSpacing(5)
         
         scale_header = QHBoxLayout()
         lbl_scale_title = QLabel("Clock Scale")
-        lbl_scale_title.setStyleSheet("color: #E2E8F0; font-size: 11.5px; font-weight: 500;")
-        init_scale = int(self.preview.clock_scales.get("0", 0.45) * 100)
+        lbl_scale_title.setStyleSheet("color: #E6E6E6; font-size: 11.5px; font-weight: 500;")
+        init_scale = int(self.preview.clock_scales.get(str(self.preview.clock_style), 0.45) * 100)
         self.lbl_scale_pct = QLabel(f"{init_scale}%")
         self.lbl_scale_pct.setStyleSheet(f"color: {self.win_accent}; font-size: 12px; font-weight: 600;")
         scale_header.addWidget(lbl_scale_title)
         scale_header.addStretch()
         scale_header.addWidget(self.lbl_scale_pct)
-        flip_layout.addLayout(scale_header)
+        self.scale_controls = QWidget()
+        scale_controls_layout = QVBoxLayout(self.scale_controls)
+        scale_controls_layout.setContentsMargins(0,0,0,0)
+        scale_controls_layout.setSpacing(5)
+        card_mode_layout.addWidget(self.scale_controls)
+        self.scale_controls.setVisible(self.preview.clock_style != 1)
+        scale_controls_layout.addLayout(scale_header)
         
         scale_box = QHBoxLayout()
         scale_box.setSpacing(6)
@@ -4259,7 +5060,7 @@ class SettingsDialog(QDialog):
         undo_style = """
             QPushButton {
                 background: rgba(255, 255, 255, 0.06);
-                color: #94A3B8;
+                color: #A8A8A8;
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 11px;
                 font-size: 11px;
@@ -4274,7 +5075,7 @@ class SettingsDialog(QDialog):
         btn_step_style = """
             QPushButton {
                 background: rgba(255, 255, 255, 0.06);
-                color: #CBD5E1;
+                color: #D2D2D2;
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 12px;
                 font-size: 13px;
@@ -4292,7 +5093,7 @@ class SettingsDialog(QDialog):
         self.btn_scale_minus.clicked.connect(lambda: self.step_scale(-5))
         scale_box.addWidget(self.btn_scale_minus)
         
-        self.scale_slider = QSlider(Qt.Orientation.Horizontal)
+        self.scale_slider = StudioSlider(Qt.Orientation.Horizontal)
         self.scale_slider.setRange(15, 95)
         self.scale_slider.setValue(init_scale)
         self.scale_slider.valueChanged.connect(self.update_scale)
@@ -4304,19 +5105,26 @@ class SettingsDialog(QDialog):
         self.btn_scale_plus.setStyleSheet(btn_step_style)
         self.btn_scale_plus.clicked.connect(lambda: self.step_scale(5))
         scale_box.addWidget(self.btn_scale_plus)
-        flip_layout.addLayout(scale_box)
+        scale_controls_layout.addLayout(scale_box)
 
         # --- Hourly Bell Chime & Audio Customization ---
+        self.chime_group = QWidget()
+        chime_policy = self.chime_group.sizePolicy()
+        chime_policy.setRetainSizeWhenHidden(True)
+        self.chime_group.setSizePolicy(chime_policy)
+        chime_layout = QVBoxLayout(self.chime_group)
+        chime_layout.setContentsMargins(0, 8, 0, 0)
+        chime_layout.setSpacing(4)
         chime_row = QHBoxLayout()
         chime_row.setContentsMargins(0, 4, 0, 0)
         chime_row.setSpacing(6)
-        self.hourly_chime_cb = QCheckBox("Hourly Chime")
+        self.hourly_chime_cb = VectorCheckBox("Hourly Chime")
         self.hourly_chime_cb.setChecked(self.config.get("hourly_chime", False))
         self.hourly_chime_cb.setToolTip("Plays a chime every hour on the hour")
         self.hourly_chime_cb.stateChanged.connect(self.on_hourly_chime_changed)
         chime_row.addWidget(self.hourly_chime_cb)
         
-        self.btn_test_chime = QPushButton("🔔 Test")
+        self.btn_test_chime = QPushButton("Test")
         self.btn_test_chime.setToolTip("Preview chime at current volume")
         self.btn_test_chime.setFixedWidth(56)
         self.btn_test_chime.setFixedHeight(22)
@@ -4338,38 +5146,40 @@ class SettingsDialog(QDialog):
         self.btn_test_chime.clicked.connect(self.test_chime_sound)
         chime_row.addWidget(self.btn_test_chime)
         chime_row.addStretch()
-        flip_layout.addLayout(chime_row)
+        chime_layout.addLayout(chime_row)
 
         sound_box = QHBoxLayout()
         sound_box.setSpacing(5)
-        lbl_sound = QLabel("Sound:")
+        self.sound_caption = lbl_sound = QLabel("Sound:")
         lbl_sound.setFixedWidth(38)
-        lbl_sound.setStyleSheet("color: #E2E8F0; font-size: 11px; font-weight: 500;")
+        lbl_sound.setStyleSheet("color: #E6E6E6; font-size: 11px; font-weight: 500;")
         sound_box.addWidget(lbl_sound)
 
         self.chime_sound_cb = QComboBox()
+        self.chime_sound_cb.setMinimumContentsLength(12)
+        self.chime_sound_cb.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
         self.chime_sound_cb.setToolTip("Select chime tone or drop custom audio file")
         self.refresh_chime_combobox()
         self.chime_sound_cb.currentIndexChanged.connect(self.on_chime_preset_changed)
         sound_box.addWidget(self.chime_sound_cb, stretch=1)
 
-        self.btn_browse_sound = QPushButton("📂")
+        self.btn_browse_sound = QPushButton("…")
         self.btn_browse_sound.setFixedSize(22, 22)
         self.btn_browse_sound.setStyleSheet(undo_style)
         self.btn_browse_sound.setToolTip("Browse or drop custom audio (.wav, .mp3, .ogg)")
         self.btn_browse_sound.clicked.connect(self.browse_custom_sound)
         sound_box.addWidget(self.btn_browse_sound)
-        flip_layout.addLayout(sound_box)
+        chime_layout.addLayout(sound_box)
 
         vol_box = QHBoxLayout()
         vol_box.setSpacing(6)
-        lbl_vol = QLabel("Vol:")
+        self.vol_caption = lbl_vol = QLabel("Vol:")
         lbl_vol.setFixedWidth(38)
-        lbl_vol.setStyleSheet("color: #E2E8F0; font-size: 11px; font-weight: 500;")
+        lbl_vol.setStyleSheet("color: #E6E6E6; font-size: 11px; font-weight: 500;")
         vol_box.addWidget(lbl_vol)
 
         init_vol = self.config.get("chime_volume", 45)
-        self.chime_vol_slider = QSlider(Qt.Orientation.Horizontal)
+        self.chime_vol_slider = StudioSlider(Qt.Orientation.Horizontal)
         self.chime_vol_slider.setRange(5, 100)
         self.chime_vol_slider.setValue(init_vol)
         self.chime_vol_slider.setToolTip("Adjust chime playback volume")
@@ -4379,29 +5189,30 @@ class SettingsDialog(QDialog):
         self.lbl_chime_vol = QLabel(f"{init_vol}%")
         self.lbl_chime_vol.setStyleSheet(f"color: {self.win_accent}; font-size: 11px; font-weight: 600; min-width: 28px;")
         vol_box.addWidget(self.lbl_chime_vol)
-        flip_layout.addLayout(vol_box)
+        chime_layout.addLayout(vol_box)
 
         lbl_chime_tip = QLabel("Drop any audio file to use your own chime")
-        lbl_chime_tip.setStyleSheet("color: #64748B; font-size: 9.5px;")
-        flip_layout.addWidget(lbl_chime_tip)
+        lbl_chime_tip.setStyleSheet("color: #858585; font-size: 9.5px;")
+        chime_layout.addWidget(lbl_chime_tip)
+        lbl_chime_tip.setWordWrap(True)
 
         flip_layout.addStretch()
         self.pages.addWidget(page_flip)
         
-        # --- Page 1: Rotary Modern ---
+        # --- Page 1: Rotary Clock ---
         page_rotary = QWidget()
         rot_layout = QVBoxLayout(page_rotary)
         rot_layout.setContentsMargins(0, 2, 0, 0)
-        rot_layout.setSpacing(8)
+        rot_layout.setSpacing(5)
         
         accent_box = QHBoxLayout()
         accent_box.setSpacing(5)
         lbl_dial = QLabel("Accent:")
-        lbl_dial.setStyleSheet("color: #E2E8F0; font-size: 11.5px; font-weight: 500;")
+        lbl_dial.setStyleSheet("color: #E6E6E6; font-size: 11.5px; font-weight: 500;")
         accent_box.addWidget(lbl_dial)
         
         self.swatch_buttons = []
-        raw_presets = [self.win_accent, "#0078D4", "#60CDFF", "#10B981", "#F59E0B"]
+        raw_presets = [get_windows_accent_color(), "#0078D4", "#60CDFF", "#10B981", "#F59E0B"]
         seen = set()
         preset_colors = []
         for c in raw_presets:
@@ -4412,8 +5223,10 @@ class SettingsDialog(QDialog):
         preset_colors = preset_colors[:5]
         
         for c in preset_colors:
-            s_btn = QPushButton()
-            s_btn.setFixedSize(18, 18)
+            s_btn = ColorSwatch(c)
+            s_btn.setFixedSize(26, 26)
+            s_btn.setAccessibleName(f"Accent color {c}")
+            s_btn.setToolTip(f"Accent color {c}")
             s_btn.setCursor(Qt.CursorShape.PointingHandCursor)
             s_btn.clicked.connect(lambda checked, col=c: self.set_accent_color(col))
             accent_box.addWidget(s_btn)
@@ -4424,7 +5237,7 @@ class SettingsDialog(QDialog):
         btn_custom.setStyleSheet("""
             QPushButton {
                 background: rgba(255, 255, 255, 0.06);
-                color: #CBD5E1;
+                color: #D2D2D2;
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 10px;
                 padding: 2px 7px;
@@ -4441,21 +5254,34 @@ class SettingsDialog(QDialog):
         accent_box.addStretch()
         rot_layout.addLayout(accent_box)
         
-        self.show_weather_cb = QCheckBox("Show Weather")
+        self.show_weather_cb = VectorCheckBox("Show Weather")
         self.show_weather_cb.setChecked(self.config.get("show_weather", self.config.get("show_info", True)))
         self.show_weather_cb.stateChanged.connect(self.update_rotary_telemetry)
         rot_layout.addWidget(self.show_weather_cb)
         
-        self.show_battery_cb = QCheckBox("Show Battery")
+        self.show_battery_cb = VectorCheckBox("Show Battery")
         self.show_battery_cb.setChecked(self.config.get("show_battery", self.config.get("show_info", True)))
         self.show_battery_cb.stateChanged.connect(self.update_rotary_telemetry)
         rot_layout.addWidget(self.show_battery_cb)
         
-        self.fahrenheit_cb = QCheckBox("Fahrenheit Format (°F)")
+        self.fahrenheit_cb = VectorCheckBox("Fahrenheit Format (°F)")
         self.fahrenheit_cb.setChecked(self.config.get("use_fahrenheit", self.config.get("live_weather", False)))
         self.fahrenheit_cb.setToolTip("Toggle temperature display between Celsius (°C) and Fahrenheit (°F)")
         self.fahrenheit_cb.stateChanged.connect(self.update_rotary_telemetry)
-        rot_layout.addWidget(self.fahrenheit_cb)
+        self.fahrenheit_cb.hide()
+        self.temperature_row = QWidget()
+        temperature_layout = QHBoxLayout(self.temperature_row)
+        temperature_layout.setContentsMargins(0, 0, 0, 0)
+        temperature_layout.addWidget(QLabel("Temperature unit"))
+        self.temperature_unit = QComboBox()
+        self.temperature_unit.addItems(["°C", "°F"])
+        self.temperature_unit.setCurrentIndex(1 if self.fahrenheit_cb.isChecked() else 0)
+        self.temperature_unit.currentIndexChanged.connect(lambda index: self.fahrenheit_cb.setChecked(index == 1))
+        self.fahrenheit_cb.toggled.connect(lambda checked: self.temperature_unit.setCurrentIndex(int(checked)))
+        temperature_layout.addWidget(self.temperature_unit)
+        rot_layout.insertWidget(rot_layout.indexOf(self.show_weather_cb)+1, self.temperature_row)
+        self.temperature_row.setEnabled(self.show_weather_cb.isChecked())
+        self.show_weather_cb.toggled.connect(self.temperature_row.setEnabled)
         rot_layout.addStretch()
         self.pages.addWidget(page_rotary)
         
@@ -4468,7 +5294,7 @@ class SettingsDialog(QDialog):
         undo_style = """
             QPushButton {
                 background: rgba(255, 255, 255, 0.06);
-                color: #94A3B8;
+                color: #A8A8A8;
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 11px;
                 font-size: 11px;
@@ -4486,7 +5312,7 @@ class SettingsDialog(QDialog):
         font_box.setSpacing(6)
         lbl_dino_font = QLabel("Font:")
         lbl_dino_font.setFixedWidth(40)
-        lbl_dino_font.setStyleSheet("color: #E2E8F0; font-size: 11px; font-weight: 500;")
+        lbl_dino_font.setStyleSheet("color: #E6E6E6; font-size: 11px; font-weight: 500;")
         font_box.addWidget(lbl_dino_font)
         
         self.primary_font = self.config.get("primary_font", "")
@@ -4509,7 +5335,7 @@ class SettingsDialog(QDialog):
         char_box.setSpacing(6)
         lbl_sprite = QLabel("Sprite:")
         lbl_sprite.setFixedWidth(40)
-        lbl_sprite.setStyleSheet("color: #E2E8F0; font-size: 11px; font-weight: 500;")
+        lbl_sprite.setStyleSheet("color: #E6E6E6; font-size: 11px; font-weight: 500;")
         char_box.addWidget(lbl_sprite)
         
         self.custom_character_image = self.config.get("custom_character_image", "")
@@ -4528,7 +5354,8 @@ class SettingsDialog(QDialog):
         dino_layout.addLayout(char_box)
         
         lbl_dino_tip = QLabel("Drop font or sprite image to customize")
-        lbl_dino_tip.setStyleSheet("color: #64748B; font-size: 10px;")
+        lbl_dino_tip.setWordWrap(True)
+        lbl_dino_tip.setStyleSheet("color: #858585; font-size: 10px;")
         dino_layout.addWidget(lbl_dino_tip)
         dino_layout.addStretch()
         self.pages.addWidget(page_dino)
@@ -4541,17 +5368,17 @@ class SettingsDialog(QDialog):
         self.card_disp.setObjectName("bentoCard")
         card_disp = self.card_disp
         card_disp_layout = QVBoxLayout(self.card_disp)
-        card_disp_layout.setContentsMargins(12, 11, 12, 11)
-        card_disp_layout.setSpacing(8)
+        card_disp_layout.setContentsMargins(12, 12, 12, 12)
+        card_disp_layout.setSpacing(5)
         
-        lbl_disp_title = QLabel("Display")
+        lbl_disp_title = QLabel("Appearance")
         lbl_disp_title.setStyleSheet("font-size: 13px; font-weight: 600; color: #FFFFFF;")
         card_disp_layout.addWidget(lbl_disp_title)
         
         # Huge Tactile Brightness Bar
         bright_header = QHBoxLayout()
         lbl_bright_title = QLabel("Brightness")
-        lbl_bright_title.setStyleSheet("color: #E2E8F0; font-size: 11.5px; font-weight: 500;")
+        lbl_bright_title.setStyleSheet("color: #E6E6E6; font-size: 11.5px; font-weight: 500;")
         self.bright_val_label = QLabel(f"{self.config.get('brightness', 100)}%")
         self.bright_val_label.setStyleSheet(f"color: {self.win_accent}; font-size: 12px; font-weight: 600;")
         bright_header.addWidget(lbl_bright_title)
@@ -4562,11 +5389,11 @@ class SettingsDialog(QDialog):
         bright_box = QHBoxLayout()
         bright_box.setSpacing(6)
         lbl_sun1 = QLabel("☼")
-        lbl_sun1.setStyleSheet("color: #64748B; font-size: 13px;")
+        lbl_sun1.setStyleSheet("color: #858585; font-size: 13px;")
         lbl_sun2 = QLabel("☀")
-        lbl_sun2.setStyleSheet("color: #94A3B8; font-size: 15px;")
+        lbl_sun2.setStyleSheet("color: #A8A8A8; font-size: 15px;")
         
-        self.bright_slider = QSlider(Qt.Orientation.Horizontal)
+        self.bright_slider = StudioSlider(Qt.Orientation.Horizontal)
         self.bright_slider.setRange(10, 100)
         self.bright_slider.setValue(self.config.get("brightness", 100))
         self.bright_slider.valueChanged.connect(self.update_brightness)
@@ -4576,27 +5403,27 @@ class SettingsDialog(QDialog):
         card_disp_layout.addLayout(bright_box)
         
         # Display Toggles
-        self.ambient_cb = QCheckBox("Ambient Mode (Space)")
+        self.ambient_cb = VectorCheckBox("Ambient Mode (Space)")
         self.ambient_cb.setChecked(self.config.get("ambient_mode", self.preview.show_bg))
         self.ambient_cb.setToolTip("Soft ambient glow behind clock (press Spacebar anytime)")
         self.ambient_cb.stateChanged.connect(self.on_ambient_cb_changed)
         card_disp_layout.addWidget(self.ambient_cb)
 
-        self.pixel_shift_cb = QCheckBox("OLED Burn-in Protection")
+        self.pixel_shift_cb = VectorCheckBox("Burn-in protection")
         self.pixel_shift_cb.setChecked(self.config.get("pixel_shift", False))
         self.pixel_shift_cb.setToolTip("Subtle orbital shift so OLED screens don't get burn-in")
         self.pixel_shift_cb.stateChanged.connect(self.update_pixel_shift)
         card_disp_layout.addWidget(self.pixel_shift_cb)
 
-        self.use_24hr_cb = QCheckBox("24-Hour Format")
+        self.use_24hr_cb = VectorCheckBox("24-Hour Format")
         self.use_24hr_cb.setChecked(self.config.get("use_24hr", False))
         self.use_24hr_cb.stateChanged.connect(self.update_24hr)
-        card_disp_layout.addWidget(self.use_24hr_cb)
+        card_mode_layout.insertWidget(1, self.use_24hr_cb)
         
-        self.leading_zero_cb = QCheckBox("Leading Zeros")
+        self.leading_zero_cb = VectorCheckBox("Leading Zeros")
         self.leading_zero_cb.setChecked(self.preview.leading_zeros.get(str(start_style), False))
         self.leading_zero_cb.stateChanged.connect(self.update_leading_zero)
-        card_disp_layout.addWidget(self.leading_zero_cb)
+        card_mode_layout.insertWidget(2, self.leading_zero_cb)
         card_disp_layout.addStretch()
         cards_row.addWidget(card_disp, stretch=1)
         
@@ -4605,30 +5432,34 @@ class SettingsDialog(QDialog):
         self.card_sys.setObjectName("bentoCard")
         card_sys = self.card_sys
         card_sys_layout = QVBoxLayout(self.card_sys)
-        card_sys_layout.setContentsMargins(12, 11, 12, 11)
-        card_sys_layout.setSpacing(8)
+        card_sys_layout.setContentsMargins(12, 12, 12, 12)
+        card_sys_layout.setSpacing(5)
         
-        lbl_sys_title = QLabel("System")
+        lbl_sys_title = QLabel("Behavior")
         lbl_sys_title.setStyleSheet("font-size: 13px; font-weight: 600; color: #FFFFFF;")
         card_sys_layout.addWidget(lbl_sys_title)
         
-        self.strict_cb = QCheckBox("Lock on Exit (Ctrl+Z)")
+        self.strict_cb = LockExitSwitch("Lock on exit (Ctrl+Z)")
+        self.strict_cb.setToolTip("Require Ctrl+Z to exit the screensaver")
         self.strict_cb.setChecked(self.config.get("strict_exit", False))
         self.strict_cb.setToolTip("Requires pressing Ctrl+Z to dismiss the screensaver")
-        self.strict_cb.stateChanged.connect(self.update_strict_exit)
+        self.strict_cb.toggled.connect(self.update_strict_exit)
         card_sys_layout.addWidget(self.strict_cb)
         
-        self.ignore_media_cb = QCheckBox("Ignore Media Keys")
+        self.ignore_media_cb = VectorCheckBox("Ignore Media Keys")
         self.ignore_media_cb.setChecked(self.config.get("ignore_media_keys", False))
         self.ignore_media_cb.setToolTip("Volume and track keys won't close screensaver")
         self.ignore_media_cb.stateChanged.connect(self.update_ignore_media)
         card_sys_layout.addWidget(self.ignore_media_cb)
         
-        self.win_cb = QCheckBox("Enable Windows Key")
+        self.win_cb = VectorCheckBox("Allow Windows key")
         self.win_cb.setChecked(self.config.get("enable_win_key", False))
         self.win_cb.setToolTip("Use Windows key without waking screensaver")
         self.win_cb.stateChanged.connect(self.update_enable_win_key)
         card_sys_layout.addWidget(self.win_cb)
+        card_sys_layout.addWidget(self.chime_group)
+        self.chime_group.show()
+        self.refresh_chime_enabled()
         card_sys_layout.addStretch()
         cards_row.addWidget(card_sys, stretch=1)
         
@@ -4636,19 +5467,21 @@ class SettingsDialog(QDialog):
         
         # 5. FOOTER ACTIONS (Pill Rounded)
         footer_row = QHBoxLayout()
-        footer_row.setContentsMargins(4, 2, 4, 0)
+        footer_row.setContentsMargins(0, 0, 0, 0)
         
         self.btn_fullscreen = QPushButton()
         self.btn_fullscreen.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_fullscreen.setIcon(get_or_create_fullscreen_duotone_icon(self.win_accent))
         self.btn_fullscreen.setIconSize(QSize(20, 20))
-        self.btn_fullscreen.setFixedSize(36, 32)
-        self.btn_fullscreen.setToolTip("Fullscreen Preview")
+        self.btn_fullscreen.setFixedSize(116, 34)
+        self.btn_fullscreen.setText("Studio")
+        self.btn_fullscreen.setAccessibleName("Open fullscreen Studio")
+        self.btn_fullscreen.setToolTip("Edit settings in fullscreen Studio")
         self.btn_fullscreen.setStyleSheet("""
             QPushButton {
                 background: rgba(255, 255, 255, 0.05);
                 border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 16px;
+                border-radius: 8px;
                 outline: none;
             }
             QPushButton:hover {
@@ -4668,18 +5501,19 @@ class SettingsDialog(QDialog):
         btn_reset.setStyleSheet("""
             QPushButton {
                 background: transparent;
-                color: #94A3B8;
+                color: #A8A8A8;
                 border: none;
                 border-radius: 14px;
                 padding: 7px 14px;
                 font-size: 12px;
-                font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+                font-family: 'Google Sans Flex', 'Google Sans Flex', sans-serif;
             }
             QPushButton:hover {
                 color: #F87171;
             }
         """)
-        btn_reset.clicked.connect(self.reset_defaults)
+        self.reset_button = btn_reset
+        btn_reset.clicked.connect(self.request_reset)
         footer_row.addWidget(btn_reset)
         
         btn_apply = QPushButton("Apply")
@@ -4689,11 +5523,11 @@ class SettingsDialog(QDialog):
                 background-color: {self.win_accent};
                 color: {self.contrast_text};
                 border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 16px;
+                border-radius: 8px;
                 padding: 7px 32px;
                 font-size: 12px;
                 font-weight: 600;
-                font-family: 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+                font-family: 'Google Sans Flex', 'Google Sans Flex', sans-serif;
             }}
             QPushButton:hover {{
                 background-color: {self.hover_accent};
@@ -4710,6 +5544,7 @@ class SettingsDialog(QDialog):
 
     def set_mode(self, idx):
         self.preview.clock_style = idx
+        self.preview.anim_timer.setInterval(self.preview.target_frame_interval)
         self.preview.update()
         if hasattr(self, 'stage_frame'):
             self.stage_frame.set_stage_theme(idx, self.config.get("accent_color", self.win_accent))
@@ -4721,7 +5556,9 @@ class SettingsDialog(QDialog):
                 btn.setChecked(i == idx)
                 btn.blockSignals(False)
         self.pages.setCurrentIndex(idx)
-        titles = ["Flip Clock", "Rotary Modern", "Dino Runner"]
+        self.scale_controls.setVisible(idx != 1)
+        self.on_preview_scale_scrolled(round(self.preview.clock_scales.get(str(idx), 0.45)*100))
+        titles = ["Flip Clock", "Rotary Clock", "Dino Runner"]
         if idx < len(titles):
             self.lbl_mode_title.setText(titles[idx])
         self.update_swatch_highlights()
@@ -4742,17 +5579,15 @@ class SettingsDialog(QDialog):
                 self.studio = None
             except Exception:
                 pass
-        self.repaint()
+        self.update()
 
     def update_swatch_highlights(self):
         if not hasattr(self, 'swatch_buttons'):
             return
         curr = self.config.get("accent_color", self.win_accent).upper()
         for hex_code, btn in self.swatch_buttons:
-            if hex_code.upper() == curr:
-                btn.setStyleSheet(f"background-color: {hex_code}; border: 2px solid #FFFFFF; border-radius: 10px;")
-            else:
-                btn.setStyleSheet(f"background-color: {hex_code}; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 10px;")
+            btn.setChecked(hex_code.upper() == curr)
+            btn.update()
 
     def set_accent_color(self, hex_code):
         self.config["accent_color"] = hex_code
@@ -4777,10 +5612,10 @@ class SettingsDialog(QDialog):
 
     def update_scale(self, val):
         self.lbl_scale_pct.setText(f"{val}%")
-        self.preview.clock_scales["0"] = val / 100.0
-        self.config["clock_scales"]["0"] = val / 100.0
-        if self.preview.clock_style == 0:
-            self.preview.update()
+        key = str(self.preview.clock_style)
+        self.preview.clock_scales[key] = val / 100.0
+        self.config["clock_scales"][key] = val / 100.0
+        self.preview.update()
         self.sync_studio_clock()
 
     def step_scale(self, delta):
@@ -4791,11 +5626,21 @@ class SettingsDialog(QDialog):
     def on_ambient_cb_changed(self, state=None):
         val = self.ambient_cb.isChecked()
         self.preview.show_bg = val
+        self.preview.anim_timer.setInterval(self.preview.target_frame_interval)
         self.config["ambient_mode"] = val
         self.preview.update()
         self.sync_studio_clock()
 
+    def refresh_chime_enabled(self):
+        enabled = self.hourly_chime_cb.isChecked()
+        for label in (self.sound_caption, self.vol_caption, self.lbl_chime_vol):
+            label.setStyleSheet("color: " + ("#E6E6E6" if enabled else "#858585") + "; font-size: 11px;")
+        for control in (self.btn_test_chime, self.chime_sound_cb, self.btn_browse_sound,
+                        self.chime_vol_slider, self.lbl_chime_vol):
+            control.setEnabled(enabled)
+
     def on_hourly_chime_changed(self, state=None):
+        self.refresh_chime_enabled()
         val = self.hourly_chime_cb.isChecked()
         self.preview.hourly_chime = val
         self.config["hourly_chime"] = val
@@ -4917,7 +5762,7 @@ class SettingsDialog(QDialog):
             ("Bungee (Default)", "Bungee"),
             ("Google Sans", "Google Sans"),
             ("Segoe UI Variable", "Segoe UI Variable Display"),
-            ("Segoe UI", "Segoe UI"),
+            ("Google Sans Flex", "Google Sans Flex"),
             ("Arial Black", "Arial Black"),
             ("Consolas", "Consolas"),
         ]
@@ -5131,28 +5976,20 @@ class SettingsDialog(QDialog):
 
 
 if __name__ == '__main__':
-    if sys.platform == "win32":
-        try:
-            import ctypes
-            ctypes.windll.shcore.SetProcessDpiAwareness(2)
-        except Exception:
-            try:
-                ctypes.windll.user32.SetProcessDPIAware()
-            except Exception:
-                pass
     QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     app = QApplication(sys.argv)
+    load_ui_font()
     
-    ui_font = QFont(["Segoe UI Variable Text", "Segoe UI", "Arial", "sans-serif"])
+    ui_font = QFont(["Google Sans Flex", "Segoe UI Emoji", "Arial", "sans-serif"])
     ui_font.setStyleStrategy(QFont.StyleStrategy.PreferAntialias | QFont.StyleStrategy.PreferQuality)
-    ui_font.setHintingPreference(QFont.HintingPreference.PreferVerticalHinting)
+    ui_font.setHintingPreference(QFont.HintingPreference.PreferNoHinting)
     app.setFont(ui_font)
     
     logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_icon.png")
     if getattr(sys, 'frozen', False):
         logo_path = os.path.join(sys._MEIPASS, "app_icon.png")
     if os.path.exists(logo_path):
-        app.setWindowIcon(QIcon(logo_path))
+        app.setWindowIcon(QIcon(os.path.join(os.path.dirname(logo_path), "app_icon_taskbar.png")))
         
     font_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Bungee-Regular.ttf")
     if getattr(sys, 'frozen', False):
@@ -5184,10 +6021,78 @@ if __name__ == '__main__':
         config_dir = os.path.join(os.environ.get('APPDATA', os.path.expanduser('~')), 'Dinoscreener')
     config_path = os.path.join(config_dir, 'config.json')
     
+    if '--demo-verify' in sys.argv:
+        mode = 'c'
+        config_path = os.path.join(os.path.dirname(os.path.abspath(sys.executable)), 'demo-qa-config.json')
     if mode == 'c':
         app.setQuitOnLastWindowClosed(False)
         dialog = SettingsDialog(config_path)
         dialog.show()
+        if '--demo-verify' in sys.argv:
+            def verify_packaged_demo():
+                import traceback
+                report = {'passed': False, 'checks': [], 'errors': []}
+                sys.excepthook = lambda kind, error, tb: report['errors'].append(str(error))
+                output = os.path.dirname(os.path.abspath(sys.executable))
+                try:
+                    cards = (dialog.card_mode, dialog.card_disp, dialog.card_sys)
+                    for mode_index in (0, 1, 2):
+                        dialog.set_mode(mode_index)
+                        app.processEvents()
+                        save_demo_capture(dialog,os.path.join(output, f'packaged-mode-{mode_index}.png'))
+                        surface=getattr(dialog.preview,'_gpu_surface',None)
+                        if surface is not None and surface.isValid():
+                            frame = surface.grabFramebuffer()
+                            for x, y in ((0,0),(frame.width()-1,0),(0,frame.height()-1),(frame.width()-1,frame.height()-1)):
+                                assert frame.pixelColor(x,y).alpha() == 0, 'Uncleared preview corner'
+                            frame.save(os.path.join(output,f'packaged-gpu-mode-{mode_index}.png'))
+                            report.setdefault('render_backends',[]).append(surface.engine_name)
+                        else:report.setdefault('render_backends',[]).append('Raster fallback')
+                        dialog.test_fullscreen()
+                        studio = dialog.studio
+                        app.processEvents()
+                        studio.show_about()
+                        app.processEvents()
+                        close = studio.about_modal.findChild(QPushButton, 'closeIconBtn')
+                        assert close.width() == 36 and close.accessibleName() == 'Close About'
+                        save_demo_capture(studio,os.path.join(output, f'packaged-studio-frost-{mode_index}.png'))
+                        studio.hide_about()
+                        from PyQt6.QtGui import QEnterEvent
+                        for edge in ('left','top','right'):
+                            grabber = getattr(studio, edge+'_grabber')
+                            point = grabber.rect().center()
+                            app.sendEvent(grabber,QEnterEvent(QPointF(point),QPointF(point),QPointF(grabber.mapToGlobal(point))))
+                            studio.refresh_frosted_panels()
+                            drawer = getattr(studio,edge+'_drawer')
+                            assert getattr(studio,edge+'_open') and drawer.frosted_backdrop is not None
+                            assert drawer.frosted_origin == getattr(studio,'anim_'+edge).endValue()
+                            assert drawer.card.parentWidget() is drawer
+                            assert drawer.contentsRect().contains(drawer.card.geometry())
+                        assert '#92A4B8' in studio.action_dock.btn_apply.styleSheet()
+                        from PyQt6.QtGui import QMouseEvent
+                        button = studio.action_dock.btn_exit
+                        point = button.mapToGlobal(button.rect().center())
+                        for event_type in (QEvent.Type.MouseButtonPress,QEvent.Type.MouseButtonRelease):
+                            event = QMouseEvent(event_type, QPointF(studio.clock.mapFromGlobal(point)), QPointF(point), Qt.MouseButton.LeftButton, Qt.MouseButton.LeftButton if event_type==QEvent.Type.MouseButtonPress else Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
+                            app.sendEvent(studio.clock, event)
+                        app.processEvents()
+                        assert dialog.studio is None
+                        assert all(dialog.cards_row.indexOf(card) >= 0 for card in cards)
+                        owner = dialog.cards_row.parentWidget()
+                        assert all(card.parentWidget() is owner for card in cards)
+                        assert all(dialog.cards_row.geometry().contains(card.geometry()) for card in cards)
+                        assert all(cards[index].geometry().right() < cards[index+1].geometry().left() for index in (0,1))
+                        save_demo_capture(dialog,os.path.join(output,f'packaged-after-studio-{mode_index}.png'))
+                        report['checks'].append(f'mode {mode_index}: clean GPU preview corners, larger About close, three hover/frost paths, purple buttons, Studio exit, real cards restored')
+                    dialog.save_config()
+                    assert not report['errors'], report['errors']
+                    report['passed'] = True
+                except Exception:
+                    report['errors'].append(traceback.format_exc())
+                with open(os.path.join(output, 'packaged-qa.json'), 'w', encoding='utf-8') as file:
+                    json.dump(report, file, indent=2)
+                app.exit(0 if report['passed'] else 1)
+            QTimer.singleShot(200, verify_packaged_demo)
         sys.exit(app.exec())
     elif mode == 'p':
         # Preview mode inside small settings window. Not supported gracefully in PyQt without heavy win32 embedding.
@@ -5227,6 +6132,8 @@ if __name__ == '__main__':
         except Exception:
             pass
             
+    if default_config.get('accent_color') == '#D0D0D0':
+        default_config['accent_color'] = get_windows_accent_color()
     ex = CrispAestheticFlipClock(
         accent_color=default_config["accent_color"], 
         enable_win_key=default_config["enable_win_key"], 
@@ -5256,4 +6163,5 @@ if __name__ == '__main__':
         custom_character_image=default_config.get("custom_character_image", "")
     )
     sys.exit(app.exec())
+
 
