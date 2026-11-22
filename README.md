@@ -10,6 +10,7 @@
     <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
     <img src="https://img.shields.io/badge/GUI-PyQt6-41CD52?style=flat-square&logo=qt&logoColor=white" alt="PyQt6" />
     <img src="https://img.shields.io/badge/License-MIT-gray?style=flat-square" alt="License" />
+    <img src="https://komarev.com/ghpvc/?username=kushalarvindo-dinoscreener&label=Views&color=0078D4&style=flat-square" alt="Repository Views" />
   </p>
 </div>
 
@@ -135,7 +136,5 @@ Copy-Item dist/Dinoscreener.exe Dinoscreener.scr
   <p>Built with ❤️, Python, and caffeine by <b>Kushal :)</b> 👋 (<a href="https://github.com/kushalarvindo">@kushalarvindo</a>)</p>
   <p>If you enjoy Dinoscreener, give it a ⭐ on GitHub — it means the world!</p>
   <br />
-  <a href="https://github.com/kushalarvindo/dinoscreener">
-    <img src="https://komarev.com/ghpvc/?username=kushalarvindo-dinoscreener&label=Views&color=0078D4&style=flat-square" alt="Repository Views" />
-  </a>
+  <a href="https://github.com/kushalarvindo/dinoscreener"> </a>
 </div>
